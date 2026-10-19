@@ -2,6 +2,7 @@
 // 「普通回合」＝4 combo：隊伍主色 2 組、次色 1 組、第三色或心 1 組，每組 3 顆（Fable 建議的假設）
 global.window = global;
 require("../data.js"); require("../cards.js"); require("../story.js");
+for (const f of ["story-ch8.js", "story-ch9.js"]) { try { require("../" + f); } catch (e) { if (e.code !== "MODULE_NOT_FOUND") throw e; } }
 const BEATS = window.BEATS;
 const typeMul = (a, d) => BEATS[a] === d ? 2 : BEATS[d] === a && a !== "light" && a !== "dark" ? .5 : 1;
 function turnDamage(team, enemy, combos = 4) {
@@ -38,10 +39,12 @@ const TEAMS = {
 module.exports = { turnDamage, teamHp, TEAMS };
 if (require.main === module) {
   for (const ch of CHAPTERS) {
-    const boss = ch.waves.flatMap(w => w.enemies).map(k => ENEMIES[k]).find(e => e.boss);
+    const bosses = ch.waves.flatMap(w => w.enemies).map(k => ENEMIES[k]).filter(e => e.boss);
+    const boss = bosses.length > 1 ? { ...bosses[0], name: bosses.map(b => b.name).join("＋"), hp: bosses.reduce((a, b) => a + b.hp, 0), atk: bosses.reduce((a, b) => a + b.atk, 0) / bosses.length } : bosses[0];   // 雙王：血量相加（逐一打），攻擊取平均
     const mobs = ch.waves.filter(w => !w.enemies.some(k => ENEMIES[k].boss));
     console.log(`\n${ch.no}〈${ch.name}〉 王：${boss.name}（${boss.attr}） 血 ${boss.hp}，每 ${boss.cd} 回合打 ${boss.atk}`);
-    for (const [name, t] of Object.entries(TEAMS)) {
+    for (const [name, t0] of Object.entries(TEAMS)) {
+      const t = [...t0]; (ch.trial || []).forEach((id, k) => { t[[0, 5, 1, 2, 3, 4][k]] = id; });   // 試用隊伍：借用的卡覆蓋隊長、戰友位
       const d = turnDamage(t, boss), hp = teamHp(t);
       const mobTurns = mobs.map(w => Math.max(...w.enemies.map(k => Math.ceil(ENEMIES[k].hp / Math.max(1, turnDamage(t, ENEMIES[k]))))));
       console.log(`  ${name.padEnd(12, "　")} 打王 ${String(Math.ceil(boss.hp / d)).padStart(3)} 回合（每回合 ${Math.round(d)}）｜小怪波 ${mobTurns.join("+")} 回合｜血量 ${Math.round(hp)}，扛王 ${Math.floor(hp / boss.atk)} 下`);

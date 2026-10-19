@@ -15,6 +15,7 @@ const { SET, saveSet, canVibe, vibe, sfx, music } = HQ;
 function go(id) {
   $$(".screen").forEach(s => s.classList.toggle("active", s.id === id));
   if (id !== "battle") music.play("title");
+  if (id !== "team" && id !== "battle") restoreTrial();
   if (id === "team") renderTeam();
   if (id === "chapters") renderChapters();
   if (id === "dex") renderDex();
@@ -41,6 +42,16 @@ const store = {
 };
 const team = (t => Array.isArray(t) && t.length === 6 && t.every(id => CARDS[id]) ? t : [...DEMO_TEAM])(store.get("hq-team"));
 let CH = CHAPTERS[0];
+/* 試用隊伍：章節設定 trial: [卡片id...]，進組隊畫面時依序借用隊長、戰友、隊員位（沒擁有也能用）；離開組隊/戰鬥後還原，不存進存檔 */
+let trialSave = null;
+const TRIAL_SLOTS = [0, 5, 1, 2, 3, 4];
+const trialSlot = i => !!trialSave && CH.trial.some((id, k) => TRIAL_SLOTS[k] === i);
+function restoreTrial() { if (trialSave) { trialSave.forEach((id, i) => team[i] = id); trialSave = null; } }
+function syncTrial() {
+  restoreTrial();
+  if (CH.trial && CH.trial.length) { trialSave = [...team]; CH.trial.forEach((id, k) => { team[TRIAL_SLOTS[k]] = id; }); }
+}
+const saveTeam = () => store.set("hq-team", trialSave || team);
 const prog = (p => ({ ...p, cleared: p.cleared || 0, stars: p.stars || [], chal: p.chal || [] }))(store.get("hq-progress", {}));
 let cleared = Math.max(0, Math.min(CHAPTERS.length, Math.floor(+prog.cleared) || 0));   // 已通關到第幾章（夾在合理範圍）
 const saveProg = () => store.set("hq-progress", { ...prog, cleared });
@@ -136,6 +147,7 @@ function teamRec() {
   return r;
 }
 function renderTeam() {
+  syncTrial();
   $(".stage-place").textContent = CH.place;
   $(".stage-name").textContent = `${CH.no}　${CH.name}${chal ? "　挑戰關" : ""}`;
   const cb = $(".chal-box"), cd = chal && chalDef(chal.idx), cmsg = chalCheck();
@@ -158,14 +170,14 @@ function renderTeam() {
   }).join("");
   $$(".pre").forEach(b => b.onclick = () => {
     if (lacking(PRESETS[+b.dataset.p]).length) { b.animate([{ transform: "translateX(-5px)" }, { transform: "translateX(5px)" }, { transform: "none" }], { duration: 250 }); vibe(30); return; }
-    PRESETS[+b.dataset.p].team.forEach((id, k) => team[k] = id);
-    store.set("hq-team", team); vibe(20); renderTeam();
+    PRESETS[+b.dataset.p].team.forEach((id, k) => { if (trialSlot(k)) return; team[k] = id; if (trialSave) trialSave[k] = id; });
+    saveTeam(); vibe(20); renderTeam();
   });
   const roles = ["隊長", "隊員", "隊員", "隊員", "隊員", "戰友"];
   $(".team-slots").innerHTML = team.map((id, i) => {
     const c = CARDS[id];
-    return `<div class="slot ${i === 0 || i === 5 ? "lead" : ""}" data-i="${i}"><div class="role">${roles[i]}</div>
-      ${iconHTML(id)}<div class="nm">${c.title}<br>${c.who}</div><div class="swap">更換</div></div>`;
+    return `<div class="slot ${i === 0 || i === 5 ? "lead" : ""} ${trialSlot(i) ? "trial" : ""}" data-i="${i}"><div class="role">${roles[i]}</div>
+      ${iconHTML(id)}<div class="nm">${c.title}<br>${c.who}</div><div class="swap">${trialSlot(i) ? "試用" : "更換"}</div></div>`;
   }).join("");
   const atk = team.reduce((s, id) => s + CARDS[id].atk, 0);
   $(".team-sum").innerHTML = `<div>生命力 <b>${fmt(teamHp())}</b></div><div>攻擊力 <b>${fmt(atk)}</b></div><div>回復力 <b>${fmt(teamRec())}</b></div>`;
@@ -173,7 +185,10 @@ function renderTeam() {
     const c = CARDS[team[i]];
     return `<div class="ls">${i ? "戰友" : "隊長"}技能 <b>${c.lead.name}</b>：${c.lead.desc}</div>`;
   }).join("");
-  $$(".slot").forEach(s => s.onclick = () => openPicker(+s.dataset.i));
+  $$(".slot").forEach(s => s.onclick = () => {
+    if (trialSlot(+s.dataset.i)) { s.animate([{ transform: "translateX(-5px)" }, { transform: "translateX(5px)" }, { transform: "none" }], { duration: 250 }); vibe(30); return; }
+    openPicker(+s.dataset.i);
+  });
 }
 /* 換卡：依系列列出擁有的卡片 */
 function openPicker(slot) {
@@ -185,7 +200,7 @@ function openPicker(slot) {
     <p class="hint">${d && d.bad ? `挑戰條件「${d.label}」：變暗的卡不能帶。` : "沒看到想要的角色？通關章節可以解鎖，也能到托夢照相館用功德兌換。"}</p>
     <div class="row"><button class="btn" data-close>取消</button><button class="btn" id="pk-info">卡片資料</button></div>`);
   $$(".pk").forEach(b => b.onclick = () => {
-    team[slot] = b.dataset.id; store.set("hq-team", team);
+    team[slot] = b.dataset.id; if (trialSave) trialSave[slot] = b.dataset.id; saveTeam();
     vibe(15); closeModal(); renderTeam();
   });
   $("#pk-info").onclick = () => showCard(team[slot]);
@@ -397,6 +412,7 @@ async function loadWave(w) {
   if (w === 0 && tutWanted()) tutPrepEnemies();
   const boss = B.enemies.find(e => e.boss);
   if (boss) await bossIntro(boss, $(".enemy.boss"));
+  $$(".enemy.boss.lurk").forEach(x => x.classList.remove("lurk"));   // 雙王：第二隻跟著現身
   if (!B) return;
   else { music.play((CH.music && CH.music.battle) || "battle1"); banner(`第 ${w + 1} 波`); sfx.wave(); }
   B.enemies.forEach((e, i) => { if (e.shield) { updateEnemy(i); } });
