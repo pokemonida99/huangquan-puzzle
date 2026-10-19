@@ -117,7 +117,7 @@ function portraitOf(who, expr) {
   if (!who) return null;
   const ids = Object.keys(CARDS).filter(id => CARDS[id].who === who);
   if (ids.length) {
-    const c = CARDS[who === "李國志" ? "lee3" : who === "語彤" ? "yutong1" : ids[0]];
+    const c = CARDS[who === "李國志" ? "lee4" : who === "語彤" ? "yutong1" : ids[0]];
     return { src: VN[who] ? `art/vn/${VN[who]}-${expr || "normal"}.webp` : c.art, fallback: c.art, attr: c.attr, kind: VN[who] ? "vn" : "card" };
   }
   const e = Object.values(ENEMIES).find(x => x.name === who);
@@ -336,7 +336,11 @@ function showCombo(n) {
 }
 
 /* ---------------- 盤面 ---------------- */
-function randAttr() { return ORB_TYPES[Math.floor(Math.random() * 6)]; }
+// 落珠：隊長／戰友有「某屬性掉落機率提升」時（例：祝融的火符石），先依機率決定要不要掉那個屬性
+function randAttr() {
+  for (const fx of leaderFx()) if (fx.skyfall) for (const [a, p] of Object.entries(fx.skyfall)) if (Math.random() < p) return a;
+  return ORB_TYPES[Math.floor(Math.random() * 6)];
+}
 // 符石：圖片＋一道定時掃過的反光（每顆的時間錯開）
 function orbInner(attr) { return `<i style="--img:url(art/orb-${attr}.webp);--gd:${(Math.random() * 6).toFixed(2)}s"></i>`; }
 function makeOrb(attr) {
@@ -571,7 +575,9 @@ async function attack(groups) {
   // 攻擊：每位成員依自己的屬性出手
   for (let i = 0; i < team.length; i++) {
     const c = CARDS[team[i]];
-    const mine = groups.filter(g => g.attr === c.attr);
+    // 利維坦的隊長技：任何顏色的符石都算作水符石
+    const asAll = leaderFx().some(fx => fx.allAs === c.attr);
+    const mine = groups.filter(g => g.attr === c.attr || asAll);
     if (!mine.length || !alive().length) continue;
     const base = mine.reduce((s, g) => s + 1 + (g.n - 3) * .25, 0);
     const toAll = mine.some(g => g.n >= 5);

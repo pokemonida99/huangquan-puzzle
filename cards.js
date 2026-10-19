@@ -83,10 +83,10 @@ const ROWS = [
     "Shencha, a Shiba Inu-headed Egyptian god of death with a striped golden nemes headdress and a curved khopesh sword, friendly face, Egyptian pillars"],
   ["cherub", "基路伯", "智天使", "light", "天族", 5, "gods", "hp", "責任天使", { allHp: 1.8 }, "解除咫尺天涯", 8, { healPct: .7 },
     "Cherub, a man with short dark hair, wearing a white hooded robe and a gold pendant necklace, kind confident smile, soft heavenly light behind him. No wings"],
-  ["zhurong", "祝融", "赤帝", "fire", "半神", 5, "gods", "atk", "半神隊長", { attrAtk: { fire: 3 } }, "殲滅邪神帝", 9, { nuke: 25 },
+  ["zhurong", "祝融", "赤帝", "fire", "半神", 5, "gods", "atk", "半神隊長", { attrAtk: { fire: 3 }, skyfall: { fire: .45 } }, "殲滅邪神帝", 9, { nuke: 25 },
     "Zhurong, the Red Emperor demigod: long wild blond hair, burning eyes, red and gold divine armor, flames swirling, ancient war battlefield"],
   /* 魔界 */
-  ["leviathan", "利維坦", "嫉妒魔王", "water", "魔族", 5, "demon", "atk", "無上戰技", { attrAtk: { water: 3 } }, "剪刀石頭石頭石頭", 8, { nuke: 25 },
+  ["leviathan", "利維坦", "嫉妒魔王", "water", "魔族", 5, "demon", "atk", "無上戰技", { attrAtk: { water: 2.5 }, allAs: "water" }, "剪刀石頭石頭石頭", 8, { nuke: 25 },
     "Leviathan, a pale man with long silver hair with blue tips, glittery blue makeup on one cheek, black jacket, black headphones hanging around his neck, cool smile, ice crystals and a dark sea behind him"],
   ["nova", "諾瓦", "獨角鯨惡魔", "water", "魔族", 4, "demon", "bal", "鯨落", { attrAtk: { water: 2 } }, "從漫畫開始學藝術", 6, { convert: ["fire", "water"] },
     "Nova, a small demon girl with short black hair and heterochromia eyes, wearing a blue narwhal-shaped hood hat, holding a paintbrush, painting of a whale fall glowing underwater"],
@@ -156,22 +156,22 @@ window.TIERS = {
     "劉大牛": "D", "梁安恆": "D", "林怡曼": "D", "鐵蛋": "D"
   };
   // 李國志三階：業鏡羅漢照表是 B；刀鋸使、米店老闆依劇情往下
-  const BY_ID = { lee1: "D", lee2: "C", lee3: "B", yutong1: "D", yutong: "D", yutong3: "C", yutong4: "C" };
+  const BY_ID = { lee1: "D", lee2: "C", lee3: "B", lee4: "B", yutong1: "D", yutong: "D", yutong3: "C", yutong4: "C" };
   // 同一階級裡，進化後的卡再強一點
-  const EVO_UP = { lee2: 1.06, lee3: 1.06, yutong: 1.06, yutong3: 1.0, yutong4: 1.08 };
+  const EVO_UP = { lee2: 1.06, lee3: 1.06, lee4: 1.12, yutong: 1.06, yutong3: 1.0, yutong4: 1.08 };
   const ON_CHART = new Set(["路西法", "祝融", "基路伯", "觀音菩薩", "利維坦", "阿芙羅黛蒂", "哈索爾", "千里眼", "鼠軍師", "月老", "愛染明王", "華佗", "九尾", "語彤", "陽滋公主", "諾瓦", "狐姬", "七號"]);
-  const KIND_ID = { lee1: "bal", lee2: "atk", lee3: "bal", xiaobai: "atk", xiaoyu: "rec", dabao: "atk", afu: "hp" };
+  const KIND_ID = { lee1: "bal", lee2: "atk", lee3: "bal", lee4: "bal", xiaobai: "atk", xiaoyu: "rec", dabao: "atk", afu: "hp" };
   const KIND = { atk: [.9, 1.2, .8], hp: [1.3, .9, .9], rec: [1, .85, 1.5], bal: [1.05, 1, 1.05] };
   const BIAS = { water: [1.3, .75, 1.6], fire: [.8, 1.35, .65] };
   const BASE = [1800, 680, 330];
   Object.entries(CARDS).forEach(([id, c], k) => {
     const tier = BY_ID[id] || BY_WHO[c.who] || "D", t = TIERS[tier];
     const kind = KIND_ID[id] || c.kind || "bal", km = KIND[kind], ab = BIAS[c.attr] || [1, 1, 1];
-    const j = (1 + ((k * 37) % 9 - 4) / 100) * (EVO_UP[id] || 1);
-    c.tier = tier; c.onChart = (ON_CHART.has(c.who) && !/^yutong/.test(id)) || id === "lee3" || id === "yutong4"; c.star = t.star;
-    c.hp = Math.round(BASE[0] * t.m * km[0] * ab[0] * j / 10) * 10;
-    c.atk = Math.round(BASE[1] * t.m * km[1] * ab[1] / j / 5) * 5;
-    c.rec = Math.round(BASE[2] * t.m * km[2] * ab[2] * j / 5) * 5;
+    const j = 1 + ((k * 37) % 9 - 4) / 100, e = EVO_UP[id] || 1;   // j 每張卡微調、e 進化加成
+    c.tier = tier; c.onChart = (ON_CHART.has(c.who) && !/^yutong/.test(id)) || id === "lee4" || id === "yutong4"; c.star = t.star;
+    c.hp = Math.round(BASE[0] * t.m * km[0] * ab[0] * j * e / 10) * 10;
+    c.atk = Math.round(BASE[1] * t.m * km[1] * ab[1] / j * e / 5) * 5;
+    c.rec = Math.round(BASE[2] * t.m * km[2] * ab[2] * j * e / 5) * 5;
   });
 })();
 
@@ -184,6 +184,8 @@ window.TIERS = {
     if (fx.attrAtk) Object.entries(fx.attrAtk).forEach(([a, x]) => t.push(`${N(a)}屬性攻擊力 ${x} 倍`));
     if (fx.allHp) t.push(`全隊生命力 ${fx.allHp} 倍`);
     if (fx.allRec) t.push(`全隊回復力 ${fx.allRec} 倍`);
+    if (fx.allAs) t.push(`消除任何顏色的符石都算作${N(fx.allAs)}符石，${N(fx.allAs)}屬性成員都會出手`);
+    if (fx.skyfall) Object.entries(fx.skyfall).forEach(([a, p]) => t.push(`${N(a)}符石掉落機率大幅提升（約 ${Math.round((p + (1 - p) / 6) * 100)}%）`));
     if (fx.multiAttr) t.push(`同時消除 ${fx.multiAttr.n} 種或以上屬性符石時，全隊攻擊力再 ${fx.multiAttr.x} 倍`);
     return t.join("；");
   }

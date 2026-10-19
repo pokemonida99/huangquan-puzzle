@@ -47,25 +47,34 @@ window.CARDS = {
   /* ---------------- 李國志：白李米店 → 刀鋸使 → 業鏡羅漢 ---------------- */
   lee1: {
     who: "李國志", title: "白李米店", attr: "light", race: "人類", star: 4,
-    hp: 1400, atk: 520, rec: 220, art: "art/lee1.webp", evo: "lee2",
+    hp: 1400, atk: 520, rec: 220, art: "art/lee1.webp", evo: "lee2", stage: 1,
     lore: "七十多年前，不忍村裡百姓餓死，偷偷把米賣給窮人。",
     lead: { name: "偷賣米", desc: "光屬性攻擊力 2 倍", fx: { attrAtk: { light: 2 } } },
     act: { name: "開倉放糧", cd: 6, desc: "心符石轉化為光符石", fx: { convert: ["heart", "light"] } }
   },
   lee2: {
     who: "李國志", title: "刀鋸使", attr: "light", race: "地府官差", star: 5,
-    hp: 2200, atk: 760, rec: 300, art: "art/lee2.webp", evo: "lee3",
+    hp: 2200, atk: 760, rec: 300, art: "art/lee2.webp", evo: "lee3", stage: 2,
     lore: "到地府第一天也去要了黑令旗，後來在刀鋸地獄當刀鋸使。",
     lead: { name: "刀鋸使聽令", desc: "全隊攻擊力 2.5 倍", fx: { allAtk: 2.5 } },
     act: { name: "刀鋸地獄", cd: 8, desc: "暗符石轉化為光符石，並對全體敵人造成自身攻擊力 20 倍的光屬性傷害", fx: { convert: ["dark", "light"], nuke: 20 } }
   },
   lee3: {
     who: "李國志", title: "業鏡羅漢", attr: "light", race: "地府官差", star: 6,
-    hp: 3200, atk: 1050, rec: 420, art: "art/lee3.webp", evo: null,
+    hp: 3200, atk: 1050, rec: 420, art: "art/lee3.webp", evo: "lee4", stage: 3,
     lore: "村民替他蓋了義民廟，累積六萬功德，被稱為「業鏡羅漢」。",
     lead: { name: "業鏡審判", desc: "全隊攻擊力 3 倍、生命力 1.5 倍；同時消除 4 種或以上屬性符石時，全隊攻擊力再 1.5 倍",
       fx: { allAtk: 3, allHp: 1.5, multiAttr: { n: 4, x: 1.5 } } },
     act: { name: "業鏡照心", cd: 10, desc: "所有符石重新排列，六種符石各 5 粒；本回合全隊攻擊力 1.5 倍", fx: { rainbow: true, buff: 1.5 } }
+  },
+
+  lee4: {
+    who: "李國志", title: "業鏡羅漢（禮帽）", attr: "light", race: "地府官差", star: 6,
+    hp: 3200, atk: 1050, rec: 420, art: "art/lee4.webp", evo: null, stage: 4,
+    lore: "戴禮帽、穿西裝的燒肉店老闆。地府不允許魔存在，他以羅漢之名擔保，把語彤帶回燒肉店。",
+    lead: { name: "羅漢之名擔保", desc: "全隊攻擊力 3 倍、生命力 1.5 倍；同時消除 4 種或以上屬性符石時，全隊攻擊力再 1.8 倍",
+      fx: { allAtk: 3, allHp: 1.5, multiAttr: { n: 4, x: 1.8 } } },
+    act: { name: "異界降臨", cd: 9, desc: "所有敵人的攻擊延遲 2 回合，並對全體敵人造成自身攻擊力 18 倍的光屬性傷害", fx: { delay: 2, nuke: 18 } }
   },
 
   /* ---------------- 基礎隊員 ---------------- */
@@ -104,13 +113,13 @@ window.CARDS = {
 };
 
 /* 試玩隊伍：頭尾都是李國志 */
-window.DEMO_TEAM = ["lee3", "xiaobai", "xiaoyu", "dabao", "afu", "lee3"];
+window.DEMO_TEAM = ["lee4", "xiaobai", "xiaoyu", "dabao", "afu", "lee4"];
 
 /* 推薦隊伍：選了之後每一格都還能自由換卡 */
 window.PRESETS = [
-  { name: "業鏡五屬隊", note: "李國志帶隊，五種屬性一起消，全隊攻擊力再加成", team: DEMO_TEAM },
-  { name: "嫉妒魔王水隊", note: "血多、回復高、攻擊低，穩穩打。水剋火：適合第三章的撒旦", team: ["leviathan", "nova", "mimi", "jiuwei", "yangzi", "leviathan"] },
-  { name: "赤帝火隊", note: "攻擊高、血少、回復低，速戰速決。火剋木：適合第二章", team: ["zhurong", "dabao", "aizen", "akasaka", "huji", "zhurong"] }
+  { name: "業鏡五屬隊", note: "禮帽西裝的李國志帶隊，四種屬性一起消，攻擊力再加成", team: DEMO_TEAM },
+  { name: "嫉妒魔王水隊", note: "利維坦：任何顏色都算水。血多、回復高、攻擊低，水剋火：適合第三章", team: ["leviathan", "nova", "mimi", "jiuwei", "yangzi", "leviathan"] },
+  { name: "赤帝火隊", note: "祝融：火珠大量掉落。攻擊高、血少、回復低，火剋木：適合第二章", team: ["zhurong", "dabao", "aizen", "akasaka", "huji", "zhurong"] }
 ];
 
 window.ENEMIES = {
