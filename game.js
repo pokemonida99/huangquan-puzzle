@@ -229,6 +229,8 @@ function startBattle(skipStory) {
     if (!skipStory) { introSeen.clear(); music.play("title"); await dialog(CH.pre); }
     if (B !== b) return;
     await loadWave(0);
+    if (B === b && tutWanted()) await tutorialRun(b);
+    if (B !== b) return;
     B.busy = false; board.classList.remove("locked");
   })();
 }
@@ -275,6 +277,7 @@ async function loadWave(w) {
     B.target = B.target === i ? null : i;
     $$(".enemy").forEach((x, j) => x.classList.toggle("target", j === B.target));
   });
+  if (w === 0 && tutWanted()) tutPrepEnemies();
   const boss = B.enemies.find(e => e.boss);
   if (boss) await bossIntro(boss, $(".enemy.boss"));
   else { music.play("battle"); banner(`第 ${w + 1} 波`); sfx.wave(); }
@@ -392,6 +395,7 @@ function showCombo(n) {
 /* ---------------- 盤面 ---------------- */
 // 落珠：隊長／戰友有「某屬性掉落機率提升」時（例：祝融的火符石），先依機率決定要不要掉那個屬性
 function randAttr() {
+  if (tut.fall && tut.fall.length) return tut.fall.shift();   // 教學：落珠照預設順序
   for (const fx of leaderFx()) if (fx.skyfall) for (const [a, p] of Object.entries(fx.skyfall)) if (Math.random() < p) return a;
   return ORB_TYPES[Math.floor(Math.random() * 6)];
 }
@@ -416,9 +420,9 @@ function setAttr(o, attr) {
   o.el.innerHTML = orbInner(attr);
   o.el.classList.add("morph"); setTimeout(() => o.el.classList.remove("morph"), 450);
 }
-function initBoard() {
+function initBoard(layout) {
   board.innerHTML = "";
-  const attrs = noMatchLayout(() => randAttr());
+  const attrs = layout ? layout.map(row => [...row].map(ch => TUT_ATTR[ch])) : noMatchLayout(() => randAttr());
   grid = attrs.map((row, r) => row.map((a, c) => { const o = makeOrb(a); place(o, r, c, true); return o; }));
 }
 function noMatchLayout(pick) {
@@ -783,7 +787,12 @@ function settingsDialog() {
     ${row("music", "配樂", "標題、戰鬥與王關的背景音樂")}
     ${row("sound", "音效", "轉珠、消除、攻擊與技能的聲音")}
     ${row("vibe", "震動", canVibe ? "消除、受傷、發動技能時手機會震動" : "這支手機的瀏覽器不支援震動（iPhone 的瀏覽器都不支援）", canVibe)}
+    <div class="set-row"><div>轉珠教學<small>重新看一次轉珠操作說明</small></div><button class="btn mini" id="replay-tut">重看</button></div>
     <div class="row"><button class="btn gold" data-close>完成</button></div>`);
+  $("#replay-tut").onclick = () => {
+    closeModal(); tut.force = true; CH = CHAPTERS[0];
+    go("battle"); startBattle(true);
+  };
   $$(".switch[data-k]").forEach(b => b.onclick = () => {
     SET[b.dataset.k] = !SET[b.dataset.k]; saveSet();
     b.classList.toggle("on", SET[b.dataset.k]);
@@ -793,6 +802,149 @@ function settingsDialog() {
   });
 }
 document.addEventListener("click", e => { if (e.target.closest("[data-settings]") && !(B && B.busy)) settingsDialog(); });
+
+/* ================================================================
+   新手轉珠教學（第一章第 1 波；localStorage "hq-tutorial" 記錄看過了）
+   做法：固定盤面＋疊一層提示；敵人 HP 放大、CD 拉長（不會死也不攻擊）；
+   拖曳判定不動，只在盤面外層用 capture 擋掉「不是從指定符石開始」的按下
+   ================================================================ */
+const TUT_ATTR = { W: "water", F: "fire", G: "wood", L: "light", D: "dark", H: "heart" };
+const TUT_STEPS = [
+  { from: [3, 2], to: [4, 2], expect: 1, fall: "GLWGGHGDHWWF", title: "① 拖動符石",
+    text: "按住發亮的符石，往下拖到虛線框。<b>3 顆同色連成一排</b>就會消除！",
+    praise: "消除成功！連線消除，就能攻擊敵人。",
+    layout: ["WFGLDH", "GLDHWF", "DHWFGL", "WFWLDH", "WWFHWF"] },
+  { from: [2, 1], to: [2, 2], expect: 2, fall: "FHLWDGGGGHFL", title: "② 連鎖 Combo",
+    text: "這一拖，<b>同時消除兩組</b>！Combo 越多，傷害越高。",
+    praise: "2 Combo！傷害比剛才高。",
+    layout: ["FGLDHW", "DGWFGL", "FFGFFW", "DHWDGL", "FGLDHW"] }
+];
+const TUT_PAGES = [
+  { title: "③ 小知識：回復", html: `<img class="tut-orb" src="art/orb-heart.webp" alt=""> 消除<b>心符石</b>可以回血，回復力越高補越多。` },
+  { title: "③ 小知識：全體攻擊", html: `一次連 <b>5 顆以上</b>同色，會打<b>全體敵人</b>。` },
+  { title: "③ 小知識：屬性相剋", html: `<b>水剋火、火剋木、木剋水</b>，光暗互剋。打中被剋制的屬性，傷害 <b>2 倍</b>。
+    <div class="tut-rel">${["water", "fire", "wood", "water"].map(a => `<img class="tut-orb" src="art/orb-${a}.webp" alt="">`).join("<i>›</i>")}<span></span>
+    <img class="tut-orb" src="art/orb-light.webp" alt=""><i>⇄</i><img class="tut-orb" src="art/orb-dark.webp" alt=""></div>` }
+];
+const tut = { fall: null, combos: 0, force: false, start: null, skipped: false, next: false };
+const tutWanted = () => CH.id === "ch1" && (tut.force || !store.get("hq-tutorial", false));
+{ const _showCombo = showCombo; showCombo = n => { tut.combos = Math.max(tut.combos, n); _showCombo(n); }; }
+
+function tutPrepEnemies() {
+  $("#battle").classList.add("tutorial");
+  B.enemies.forEach(e => { e.hp *= 100; e.hpNow = e.hp; e.cdNow = e.cd = 999; });
+}
+function tutRestoreEnemies() {
+  $("#battle").classList.remove("tutorial");
+  if (!B || !B.enemies) return;
+  B.enemies.forEach((e, i) => {
+    const o = ENEMIES[e.key]; e.hp = o.hp; e.hpNow = o.hp; e.cd = o.cd; e.cdNow = o.cd;
+    if (enemyEl(i)) { enemyEl(i).classList.remove("dead"); updateEnemy(i); }
+  });
+}
+function tutRect(el) {
+  const a = $("#app").getBoundingClientRect(), r = el.getBoundingClientRect();
+  return { x: r.left - a.left, y: r.top - a.top, w: r.width, h: r.height };
+}
+function tutCell(r, c) {
+  const b = tutRect(board), w = b.w / COLS, h = b.h / ROWS;
+  return { x: b.x + c * w, y: b.y + r * h, w, h };
+}
+async function tutorialRun(b) {
+  tut.skipped = false;
+  const root = document.createElement("div");
+  root.id = "tut";
+  const f = tutRect($(".field")), bw = tutRect($(".board-wrap"));
+  root.innerHTML = `<div class="tut-field" style="left:${f.x}px;top:${f.y}px;width:${f.w}px;height:${f.h}px"><div class="tut-card"></div></div>
+    <div class="tut-block" style="left:${bw.x}px;top:${bw.y}px;width:${bw.w}px;height:${bw.h}px"></div>
+    <i class="tut-ring from"></i><i class="tut-ring to"></i><div class="tut-finger">👆</div>`;
+  $("#app").appendChild(root);
+  const card = $(".tut-card", root), blocker = $(".tut-block", root), ringA = $(".from", root), ringB = $(".to", root), finger = $(".tut-finger", root);
+  const cd0 = [...B.cd];
+  let anim = null;
+  const alive_ = () => B === b && !tut.skipped;
+  const wait = async fn => { while (alive_() && !fn()) await sleep(80); return alive_(); };
+  const place = (el, r) => Object.assign(el.style, { display: "block", left: r.x + "px", top: r.y + "px", width: r.w + "px", height: r.h + "px" });
+  const showCard = (title, html, btn) => {
+    tut.next = false;
+    card.innerHTML = `<div class="tut-top"><small>轉珠教學</small><b>${title}</b><button class="tut-skip">略過教學</button></div>
+      <p>${html}</p>${btn ? `<button class="tut-next">${btn}</button>` : `<p class="tut-hint"></p>`}`;
+    $(".tut-skip", card).onclick = () => { tut.skipped = true; };
+    const n = $(".tut-next", card); if (n) n.onclick = () => { tut.next = true; };
+    card.classList.remove("pop"); void card.offsetWidth; card.classList.add("pop");
+  };
+  const hint = t => { const h = $(".tut-hint", card); if (h) { h.textContent = t; h.animate([{ transform: "translateX(-5px)" }, { transform: "translateX(5px)" }, { transform: "none" }], { duration: 240 }); } };
+  const hideGuide = () => { ringA.style.display = ringB.style.display = finger.style.display = "none"; if (anim) anim.cancel(); anim = null; };
+  const guide = (from, to) => {
+    const a = tutCell(...from), z = tutCell(...to);
+    place(ringA, a); place(ringB, z);
+    finger.style.display = "block";
+    const p = r => `translate(${r.x + r.w * .4}px, ${r.y + r.h * .45}px)`;
+    if (anim) anim.cancel();
+    anim = finger.animate([{ transform: p(a) + " scale(1.15)", offset: 0 }, { transform: p(a) + " scale(.9)", offset: .2 },
+      { transform: p(z) + " scale(.9)", offset: .7 }, { transform: p(z) + " scale(1.15)", offset: .85 }, { transform: p(a) + " scale(1.15)", offset: 1, opacity: 0 }],
+      { duration: 2200, iterations: Infinity });
+  };
+  const cleanup = done => {
+    hideGuide(); root.remove(); tut.start = null; tut.fall = null;
+    $$(".party .icon").forEach(el => el.classList.remove("tut-hl"));
+    if (B !== b) return;
+    tutRestoreEnemies();
+    B.cd = cd0; updateParty();
+    if (done) store.set("hq-tutorial", true);
+    tut.force = false;
+    initBoard();
+  };
+
+  // 前兩步：照指示拖
+  for (let k = 0; k < TUT_STEPS.length; k++) {
+    const st = TUT_STEPS[k];
+    blocker.style.display = "none";
+    for (;;) {
+      if (!alive_()) return cleanup(false);
+      initBoard(st.layout);
+      showCard(st.title, st.text);
+      guide(st.from, st.to);
+      tut.start = st.from; tut.combos = 0; tut.fall = [...st.fall].map(ch => TUT_ATTR[ch]);
+      B.busy = false; board.classList.remove("locked");
+      if (!await wait(() => B.busy)) return cleanup(false);     // 等玩家拖完開始結算
+      tut.start = null;
+      if (!await wait(() => !B.busy)) return cleanup(false);   // 等這回合結束
+      tut.fall = null;
+      if (tut.combos >= st.expect) break;
+      hint("不是這樣拖喔，照著手指再試一次");
+      await sleep(900);
+    }
+    hideGuide();
+    showCard("太棒了", st.praise);
+    await sleep(1500);
+  }
+  // 第三步：小知識（蓋住盤面，不用操作）
+  B.busy = true; board.classList.add("locked");
+  initBoard();
+  blocker.style.display = "block";
+  for (let k = 0; k < TUT_PAGES.length; k++) {
+    showCard(TUT_PAGES[k].title, TUT_PAGES[k].html, "下一步");
+    if (!await wait(() => tut.next)) return cleanup(false);
+  }
+  // 第四步：主動技能
+  B.cd[0] = 0; updateParty();
+  const icon = $$(".party .icon")[0];
+  icon.classList.add("tut-hl");
+  B.busy = false;
+  showCard("④ 主動技能", "隊員頭像<b>發光、顯示 OK</b> 時，點一下就能發動主動技能。點點看發光的頭像吧！", "完成教學");
+  if (!await wait(() => tut.next)) return cleanup(false);
+  await wait(() => !B.busy);   // 若剛好在放技能，等它放完
+  cleanup(true);
+}
+document.querySelector(".board-wrap").addEventListener("pointerdown", e => {
+  if (!tut.start || !B) return;
+  const { r, c } = cellAt(e.clientX, e.clientY);
+  if (r === tut.start[0] && c === tut.start[1]) return;
+  e.stopPropagation();
+  const h = $(".tut-hint"); if (h) { h.textContent = "請從發亮的符石開始拖喔"; h.animate([{ transform: "translateX(-5px)" }, { transform: "translateX(5px)" }, { transform: "none" }], { duration: 240 }); }
+  const ring = $("#tut .tut-ring.from"); if (ring) ring.animate([{ transform: "scale(1.25)" }, { transform: "none" }], { duration: 300 });
+}, true);
 
 /* ---------------- 對話框 ---------------- */
 function modal(html, kind = "") { $(".modal-box").innerHTML = html; $("#modal").className = "modal on " + kind; }
