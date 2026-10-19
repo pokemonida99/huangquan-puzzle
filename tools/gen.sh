@@ -1,0 +1,13 @@
+#!/bin/zsh
+# 用法: tools/gen.sh <輸出名> "<提示詞>" [參考圖...]
+# 以 ChatGPT.app 內建 codex 生圖，結果存到 art/<輸出名>.png
+cd "$(dirname $0)/.."
+name=$1; prompt=$2; shift 2
+args=()
+for f in "$@"; do args+=(-i "$f"); done
+log=work/gen-$name.log
+/Applications/ChatGPT.app/Contents/Resources/codex-cli/bin/codex exec --skip-git-repo-check \
+  "Generate one image with your image generation tool: $prompt Do not run any shell commands." "${args[@]}" > $log 2>&1 </dev/null
+sid=$(grep -m1 -o 'session id: [0-9a-f-]*' $log | awk '{print $3}')
+img=$(ls -t ~/.codex/generated_images/$sid/*.png(N) 2>/dev/null | head -1)
+if [[ -n $img ]]; then cp "$img" art/$name.png; echo "OK $name"; else echo "FAIL $name (see $log)"; fi

@@ -1,0 +1,70 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, user-scalable=no">
+<title>黃泉燒肉店 轉珠試玩版</title>
+<link rel="stylesheet" href="style.css?v=1">
+</head>
+<body>
+<div id="app">
+
+  <!-- 標題 -->
+  <section id="title" class="screen active">
+    <div class="title-bg"></div>
+    <div class="title-box">
+      <div class="title-kicker">棲渺拾光《黃泉燒肉店》粉絲作品</div>
+      <h1>黃泉燒肉店<small>轉珠試玩版</small></h1>
+      <p class="title-motto">如入火聚，得清涼門</p>
+      <button class="btn gold" data-go="team">開始試玩</button>
+      <button class="btn" data-go="dex">卡片圖鑑</button>
+      <p class="title-note">試玩版 v0.1 ‧ 非官方粉絲作品</p>
+    </div>
+  </section>
+
+  <!-- 隊伍 -->
+  <section id="team" class="screen">
+    <header class="bar"><button class="back" data-go="title">‹</button><h2>出擊隊伍</h2></header>
+    <div class="stage-card">
+      <div class="stage-place">三途川</div>
+      <div class="stage-name">第三王國入侵</div>
+      <div class="stage-intro"></div>
+      <div class="stage-waves"></div>
+    </div>
+    <div class="team-slots"></div>
+    <div class="team-sum"></div>
+    <div class="team-lead"></div>
+    <p class="hint">點隊長或戰友，可以切換李國志的進化階段。</p>
+    <button class="btn gold wide" id="go-battle">出擊</button>
+  </section>
+
+  <!-- 戰鬥 -->
+  <section id="battle" class="screen">
+    <div class="field">
+      <div class="field-bg"></div>
+      <div class="wave-tag"></div>
+      <button class="menu-btn" id="quit">✕</button>
+      <div class="enemies"></div>
+      <div class="fx-layer"></div>
+      <div class="combo"></div>
+    </div>
+    <div class="party"></div>
+    <div class="hpbar"><div class="hp-fill"></div><div class="hp-txt"></div></div>
+    <div class="timer"><div class="timer-fill"></div></div>
+    <div class="board-wrap"><div class="board"></div></div>
+  </section>
+
+  <!-- 圖鑑 -->
+  <section id="dex" class="screen">
+    <header class="bar"><button class="back" data-go="title">‹</button><h2>卡片圖鑑</h2></header>
+    <div class="dex-tabs"></div>
+    <div class="dex-head"></div>
+    <div class="dex-grid"></div>
+  </section>
+
+  <div id="modal" class="modal"><div class="modal-box"></div></div>
+</div>
+<script src="data.js?v=1"></script>
+<script src="game.js?v=1"></script>
+</body>
+</html>

@@ -1,0 +1,5 @@
+src/
+work/
+.venv/
+art/*.png
+.DS_Store
