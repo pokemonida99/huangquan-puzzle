@@ -1046,7 +1046,17 @@ function settingsDialog() {
     ${row("sound", "音效", "轉珠、消除、攻擊與技能的聲音")}
     ${row("vibe", "震動", canVibe ? "消除、受傷、發動技能時手機會震動" : "這支手機的瀏覽器不支援震動（iPhone 的瀏覽器都不支援）", canVibe)}
     <div class="set-row"><div>轉珠教學<small>重新看一次轉珠操作說明</small></div><button class="btn mini" id="replay-tut">重看</button></div>
+    <div class="set-row"><div>清除存檔<small>通關進度、角色、功德、隊伍全部歸零（音效設定保留）</small></div><button class="btn mini danger" id="wipe-save">清除</button></div>
+    <p class="hint">黃泉燒肉店 轉珠 v${GAME_VERSION}</p>
     <div class="row"><button class="btn gold" data-close>完成</button></div>`);
+  $("#wipe-save").onclick = () => {
+    modal(`<h3>清除存檔？</h3><p>通關進度、擁有的角色、功德、隊伍與看過的劇情介紹都會刪除，回到剛開始的狀態。這個動作不能復原。</p>
+      <div class="row"><button class="btn" data-close>取消</button><button class="btn gold danger" id="wipe-yes">確定清除</button></div>`);
+    $("#wipe-yes").onclick = () => {
+      try { Object.keys(localStorage).filter(k => k.startsWith("hq-") && k !== "hq-settings").forEach(k => localStorage.removeItem(k)); } catch (e) {}
+      location.reload();
+    };
+  };
   $("#replay-tut").onclick = () => {
     closeModal(); tut.force = true; CH = CHAPTERS[0];
     go("battle"); startBattle(true);
@@ -1345,6 +1355,7 @@ function showEnemy(k) {
 }
 
 renderTeam();
+$$(".ver").forEach(el => el.textContent = GAME_VERSION);
 
 /* ---------------- 片頭：點一下進入（同時解鎖聲音）→ 拔刀斬出 Logo → 標題 ---------------- */
 (() => {

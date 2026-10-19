@@ -12,9 +12,12 @@ case $key in
  rat) D="A hamster strategist character, same as the reference card, standing upright on its hind legs." ; R=(art/rat.png);;
  leviathan) D="Young man with silver hair with blue tips, blue glitter makeup on the cheek, black jacket, black headphones hanging around his neck; only items shown in the references, nothing added." ; R=(art/leviathan.png src/qimiao-shiguang/assets/g/c059-1.jpg);;
  yutongh) D="Young Taiwanese woman, straight black bob haircut with full bangs, NO glasses, a red birthmark on one cheek decorated with a few tiny sparkling rhinestones, wearing a pale mint-green and white Hanfu, a small golden hair ornament; only items shown in the references." ; R=(art/yutong4.png src/qimiao-shiguang/assets/ep/ep4-08.jpg refs/yutong-chart.jpg);;
- youshuzhang) D="Man with long black hair wearing dark Qin-dynasty robes, no armor; only items shown in the references." ; R=(art/youshuzhang.png work/vn/refs/153.png work/vn/refs/151.png);;
+ youshuzhang) D="Handsome clean man with long black hair half tied up and a few white strands beside the face, wearing a white Hanfu with red-and-black patterned trim; clean face, no dirt, no blood; only items shown in the references." ; R=(art/youshuzhang.png src/qimiao-shiguang/assets/g/c052-3.jpg src/qimiao-shiguang/assets/ep/yl-04.jpg);;
  yangzi) D="Young woman with long black hair, a silver hair crown, white Hanfu with flowing black ribbons; only items shown in the references." ; R=(art/yangzi.png work/vn/refs/048.png src/qimiao-shiguang/assets/g/c064-1.jpg);;
  nova) D="Little girl with short black hair, wearing a blue narwhal-shaped hat and a light-blue sleeveless dress; only items shown in the references. Child proportions, full face visible." ; R=(art/nova.png src/qimiao-shiguang/assets/g/c060-1.jpg);;
+ liudaniu) D="Qin-dynasty squad leader / prison guard, same man and same outfit as in the references; only items shown in the references." ; R=(art/liudaniu.png src/qimiao-shiguang/assets/g/c053-1.jpg);;
+ guanyin) D="Guanyin in a modern look: white suit, silver-purple hair, thin-frame glasses, same as the references; only items shown." ; R=(art/guanyin.png src/qimiao-shiguang/assets/g/c005-3.jpg src/qimiao-shiguang/assets/g/c005-4.jpg);;
+ qianliyan) D="General with a green feather mask and feather battle robe, same as the references; only items shown." ; R=(art/qianliyan.png src/qimiao-shiguang/assets/g/c070-1.jpg);;
 esac
 declare -A E
 E[normal]="Calm neutral expression, mouth closed."

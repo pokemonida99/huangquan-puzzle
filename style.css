@@ -555,3 +555,5 @@ h1 small { display: block; font-size: 18px; letter-spacing: .5em; color: var(--i
 .sp-load i { display: block; height: 3px; width: 0; border-radius: 2px; background: linear-gradient(90deg, #ff8a3a, #ffd27a); box-shadow: 0 0 8px #ff8a3a; transition: width .2s; }
 .sp-load span { display: block; margin-top: 8px; font-size: 12px; color: var(--dim); letter-spacing: .2em; }
 .sp-load.done { opacity: 0; height: 0; margin: 0; overflow: hidden; }
+.btn.danger { border-color: #c8443a; color: #ff8a7a; }
+.btn.gold.danger { background: linear-gradient(180deg, #ff8a7a, #b8322a); color: #fff; border-color: #ff8a7a; }
