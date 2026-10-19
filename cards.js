@@ -7,8 +7,12 @@
 (() => {
 const ROWS = [
   /* 黃泉燒肉店 */
-  ["yutong", "語彤", "燒肉店的乾女兒", "dark", "半魔", 5, "shop", "atk", "恨之歌", { attrAtk: { dark: 2.5 } }, "暈船雷達", 7, { convert: ["heart", "dark"], buff: 1.3 },
+  // 語彤是主角，四階進化依劇中衣著的時期：高中生 → 燒肉店 → 狐姬改造後 → 實習月老
+  ["yutong1", "語彤", "呆丸高中生", "dark", "半魔", 3, "shop", "atk", "黑令旗", { attrAtk: { dark: 2 } }, "魔氣", 6, { convert: ["heart", "dark"] }, null],
+  ["yutong", "語彤", "燒肉店的乾女兒", "dark", "半魔", 3, "shop", "bal", "胎記是神的印章", { attrAtk: { dark: 2 }, allRec: 1.3 }, "巧克力醬菜單", 5, { convert: ["light", "dark"], healPct: .2 },
     "Lin Yutong, a teenage girl with a short mint-green bob with dark roots and blunt bangs, round black glasses, a dark red birthmark around one eye, wearing the dark grey Huangquan Yakiniku staff shirt with a small gold embroidered shop name on the chest, standing in the warm yakiniku restaurant. No robe, no red thread"],
+  ["yutong3", "語彤", "赤戀星空", "dark", "半魔", 4, "shop", "bal", "赤戀星空", { attrAtk: { dark: 2.5 } }, "暈船雷達", 7, { convert: ["heart", "dark"], buff: 1.3 }, null],
+  ["yutong4", "語彤", "實習月老", "dark", "半魔", 4, "shop", "atk", "恨之歌", { attrAtk: { dark: 2.5 }, allHp: 1.2 }, "月老廟的香火", 8, { convert: ["light", "dark"], nuke: 15 }, null],
   ["baimei", "白妹", "碧落髮廊", "wood", "人類", 4, "shop", "rec", "等了幾十年", { allRec: 2 }, "百元快剪", 5, { convert: ["dark", "wood"] },
     "Bai Mei, a woman with long purple hair and big black glasses, black kimono-style barber outfit, holding scissors and a comb, old-fashioned underworld hair salon with warm lamps"],
   /* 呆丸消防隊 */
@@ -109,14 +113,66 @@ const KIND = { atk: [.9, 1.2, .8], hp: [1.3, .9, .9], rec: [1, .85, 1.5], bal: [
 // 屬性傾向 [生命, 攻擊, 回復]：水屬性血多、回復高、攻擊低；火屬性攻擊高、血少、回復低
 const ATTR_BIAS = { water: [1.3, .75, 1.6], fire: [.8, 1.35, .65] };
 ROWS.forEach(([id, who, title, attr, race, star, series, kind, leadName, leadFx, actName, cd, actFx, desc], k) => {
-  const b = BASE[star], k0 = KIND[kind], ab = ATTR_BIAS[attr] || [1, 1, 1], m = k0.map((v, n) => v * ab[n]), j = 1 + ((k * 37) % 9 - 4) / 100;   // 每張卡微調一點點，數值才不會一模一樣
+  const b = BASE[star] || BASE[4], k0 = KIND[kind], ab = ATTR_BIAS[attr] || [1, 1, 1], m = k0.map((v, n) => v * ab[n]), j = 1 + ((k * 37) % 9 - 4) / 100;   // 每張卡微調一點點，數值才不會一模一樣
   CARDS[id] = {
-    who, title, attr, race, star, series,
+    who, title, attr, race, star, series, kind,
     hp: Math.round(b.hp * m[0] * j / 10) * 10, atk: Math.round(b.atk * m[1] / j / 5) * 5, rec: Math.round(b.rec * m[2] * j / 5) * 5,
-    art: `art/${id}.webp`, evo: null,
+    art: `art/${id}.webp`, evo: null, stage: /^yutong(\d)?$/.test(id) ? ({ yutong1: 1, yutong: 2, yutong3: 3, yutong4: 4 })[id] : 0,
     lead: { name: leadName, fx: leadFx }, act: { name: actName, cd, fx: actFx }, gen: desc
   };
 });
+})();
+// 語彤的進化順序
+[["yutong1", "yutong"], ["yutong", "yutong3"], ["yutong3", "yutong4"]].forEach(([a, b]) => { CARDS[a].evo = b; });
+
+/* =========================================================================
+   戰力階級：依使用者的《黃泉燒肉店》S1–S5 戰力表（S+ 最強、D 最弱）
+   表上 19 位照表；表上沒有的角色依劇情判斷（標 ※）
+   星數與數值都由階級決定：數值 = 基準 × 階級倍率 × 型（攻／血／回復）× 屬性傾向
+   ========================================================================= */
+window.TIERS = {
+  "S+": { star: 7, m: 1.7 }, "S": { star: 6, m: 1.45 }, "S-": { star: 6, m: 1.3 },
+  "A": { star: 5, m: 1.15 }, "B": { star: 5, m: 1 }, "C": { star: 4, m: .88 }, "D": { star: 3, m: .78 }
+};
+(() => {
+  const BY_WHO = {
+    // 戰力表
+    "路西法": "S+", "祝融": "S+", "基路伯": "S+",
+    "觀音菩薩": "S", "利維坦": "S",
+    "阿芙羅黛蒂": "S-", "哈索爾": "S-",
+    "千里眼": "A", "鼠軍師": "A", "月老": "A", "愛染明王": "A", "華佗": "A",
+    "九尾": "B",
+    "語彤": "C", "陽滋公主": "C",
+    "諾瓦": "D", "狐姬": "D", "七號": "D",
+    // ※ 依劇情判斷
+    "神差": "B",       // 埃及死神，和月老一起處理魔
+    "庚寅月老": "B",   // 另一個時空的月下老人
+    "辜老師": "C",     // 用靈魂核心打開穿界門
+    "右庶長": "C",     // 月老生前，朱雀將軍
+    "紅衣武士": "D", "杜先生": "D", "泡芙": "D", "吳小白": "D", "二號": "D",
+    "小雨": "D", "大寶": "D", "阿副": "D", "白妹": "D", "赤坂": "D",
+    "林伯伯": "D", "王柏宏": "D", "筱晴": "D", "阿副的女友": "D", "茉蒂": "D", "大牛": "D",
+    "咪咪": "D", "黑糖": "D", "謎": "D", "小米": "D", "918號引渡貓": "D", "貢丸君": "D", "毛怪": "D",
+    "劉大牛": "D", "梁安恆": "D", "林怡曼": "D", "鐵蛋": "D"
+  };
+  // 李國志三階：業鏡羅漢照表是 B；刀鋸使、米店老闆依劇情往下
+  const BY_ID = { lee1: "D", lee2: "C", lee3: "B", yutong1: "D", yutong: "D", yutong3: "C", yutong4: "C" };
+  // 同一階級裡，進化後的卡再強一點
+  const EVO_UP = { lee2: 1.06, lee3: 1.06, yutong: 1.06, yutong3: 1.0, yutong4: 1.08 };
+  const ON_CHART = new Set(["路西法", "祝融", "基路伯", "觀音菩薩", "利維坦", "阿芙羅黛蒂", "哈索爾", "千里眼", "鼠軍師", "月老", "愛染明王", "華佗", "九尾", "語彤", "陽滋公主", "諾瓦", "狐姬", "七號"]);
+  const KIND_ID = { lee1: "bal", lee2: "atk", lee3: "bal", xiaobai: "atk", xiaoyu: "rec", dabao: "atk", afu: "hp" };
+  const KIND = { atk: [.9, 1.2, .8], hp: [1.3, .9, .9], rec: [1, .85, 1.5], bal: [1.05, 1, 1.05] };
+  const BIAS = { water: [1.3, .75, 1.6], fire: [.8, 1.35, .65] };
+  const BASE = [1800, 680, 330];
+  Object.entries(CARDS).forEach(([id, c], k) => {
+    const tier = BY_ID[id] || BY_WHO[c.who] || "D", t = TIERS[tier];
+    const kind = KIND_ID[id] || c.kind || "bal", km = KIND[kind], ab = BIAS[c.attr] || [1, 1, 1];
+    const j = (1 + ((k * 37) % 9 - 4) / 100) * (EVO_UP[id] || 1);
+    c.tier = tier; c.onChart = (ON_CHART.has(c.who) && !/^yutong/.test(id)) || id === "lee3" || id === "yutong4"; c.star = t.star;
+    c.hp = Math.round(BASE[0] * t.m * km[0] * ab[0] * j / 10) * 10;
+    c.atk = Math.round(BASE[1] * t.m * km[1] * ab[1] / j / 5) * 5;
+    c.rec = Math.round(BASE[2] * t.m * km[2] * ab[2] * j / 5) * 5;
+  });
 })();
 
 /* 技能說明：沒寫 desc 的卡片，依效果自動產生 */

@@ -98,7 +98,7 @@ function renderTeam() {
 function openPicker(slot) {
   const roles = ["隊長", "隊員", "隊員", "隊員", "隊員", "戰友"];
   modal(`<h3>選擇${roles[slot]}</h3><div class="picker">${SERIES.map(s => `<div class="pk-head" style="color:${s.color}">${s.name}</div>
-    <div class="pk-grid">${s.members.flatMap(who => Object.keys(CARDS).filter(id => CARDS[id].who === who)).map(id =>
+    <div class="pk-grid">${s.members.flatMap(who => cardsOf(who)).map(id =>
       `<button class="pk ${team[slot] === id ? "cur" : ""}" data-id="${id}">${iconHTML(id)}<span>${CARDS[id].who}</span></button>`).join("")}</div>`).join("")}</div>
     <div class="row"><button class="btn" data-close>取消</button><button class="btn" id="pk-info">卡片資料</button></div>`);
   $$(".pk").forEach(b => b.onclick = () => {
@@ -117,7 +117,7 @@ function portraitOf(who, expr) {
   if (!who) return null;
   const ids = Object.keys(CARDS).filter(id => CARDS[id].who === who);
   if (ids.length) {
-    const c = CARDS[who === "李國志" ? "lee3" : ids[0]];
+    const c = CARDS[who === "李國志" ? "lee3" : who === "語彤" ? "yutong1" : ids[0]];
     return { src: VN[who] ? `art/vn/${VN[who]}-${expr || "normal"}.webp` : c.art, fallback: c.art, attr: c.attr, kind: VN[who] ? "vn" : "card" };
   }
   const e = Object.values(ENEMIES).find(x => x.name === who);
@@ -738,7 +738,7 @@ $("#modal").addEventListener("click", e => {
    ================================================================ */
 const DEX_TABS = [...SERIES, { id: "enemy", name: "敵人", sub: "主線劇情裡的對手", color: "#c8443a" }];
 let dexSeries = SERIES[0].id;
-function cardsOf(who) { return Object.keys(CARDS).filter(id => CARDS[id].who === who); }
+function cardsOf(who) { return Object.keys(CARDS).filter(id => CARDS[id].who === who).sort((a, b) => (CARDS[a].stage || 0) - (CARDS[b].stage || 0)); }
 function renderDex() {
   $(".dex-tabs").innerHTML = DEX_TABS.map(s => `<button data-s="${s.id}" class="${s.id === dexSeries ? "on" : ""}">${s.name}</button>`).join("");
   $$(".dex-tabs button").forEach(b => b.onclick = () => { dexSeries = b.dataset.s; renderDex(); });
@@ -757,7 +757,7 @@ function renderDex() {
         <span class="lock">製作中</span><div class="cap"><small>預定卡片</small>${who}</div></div>`;
     }
     return ids.map(id => { const c = CARDS[id]; return `<div class="dcard" data-id="${id}" style="${attrVars(c.attr)}">
-      <img src="${c.art}" alt="${c.who}"><div class="cap"><small>${c.title}</small>${c.who}<div class="st">${stars(c.star)}</div></div></div>`; }).join("");
+      <img src="${c.art}" alt="${c.who}"><span class="dtier tier t${c.tier.replace("+", "p").replace("-", "m")}">${c.tier}</span><div class="cap"><small>${c.title}</small>${c.who}<div class="st">${stars(c.star)}</div></div></div>`; }).join("");
   }).join("");
   $$(".dcard[data-id]").forEach(el => el.onclick = () => showCard(el.dataset.id));
 }
@@ -809,6 +809,7 @@ function showCard(id) {
     <div class="skill"><span class="k">主動技能</span> <b>${c.act.name}</b><span class="cdv">CD ${c.act.cd}</span><br>${c.act.desc}</div>${evo}`;
   cardShell({
     attr: c.attr, art: c.art, star: stars(c.star), title: c.title, name: c.who, race: c.race,
+    topRight: `<span class="tier t${c.tier.replace("+", "p").replace("-", "m")}" title="${c.onChart ? "依戰力表" : "依劇情判斷"}">戰力 ${c.tier}${c.onChart ? "" : "<small>※</small>"}</span>`,
     tabs: [{ id: "skill", label: "能力", html: skill },
            { id: "story", label: "背景故事", html: storyHTML(c.who, c.lore) },
            { id: "info", label: "角色資料", html: infoHTML(c.who) }]

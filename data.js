@@ -114,10 +114,10 @@ window.PRESETS = [
 ];
 
 window.ENEMIES = {
-  bat:    { name: "蝙蝠惡魔", attr: "fire", img: "art/enemy-bat.webp", hp: 45000, atk: 1400, cd: 2 },
-  reaper: { name: "第三王國惡魔", attr: "dark", img: "art/enemy-reaper.webp", hp: 160000, atk: 2600, cd: 3 },
-  plague: { name: "瘟疫", attr: "wood", img: "art/enemy-plague.webp", hp: 120000, atk: 2000, cd: 2 },
-  satan:  { name: "撒旦", attr: "fire", img: "art/enemy-satan.webp", hp: 650000, atk: 4200, cd: 3, boss: true }
+  bat:    { name: "蝙蝠惡魔", attr: "fire", img: "art/enemy-bat.webp", hp: 38000, atk: 1100, cd: 2 },
+  reaper: { name: "第三王國惡魔", attr: "dark", img: "art/enemy-reaper.webp", hp: 135000, atk: 2000, cd: 3 },
+  plague: { name: "瘟疫", attr: "wood", img: "art/enemy-plague.webp", hp: 100000, atk: 1600, cd: 2 },
+  satan:  { name: "撒旦", attr: "fire", img: "art/enemy-satan.webp", hp: 550000, atk: 3300, cd: 3, boss: true }
 };
 
 window.STAGE = {

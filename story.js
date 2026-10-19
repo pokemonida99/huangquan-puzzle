@@ -7,12 +7,12 @@
    ========================================================================= */
 
 Object.assign(window.ENEMIES, {
-  moqi:    { name: "魔氣", attr: "dark", img: "art/enemy-moqi.webp", hp: 32000, atk: 900, cd: 2 },
-  yutongD: { name: "魔化的語彤", attr: "dark", img: "art/enemy-yutong.webp", hp: 300000, atk: 2400, cd: 3, boss: true,
+  moqi:    { name: "魔氣", attr: "dark", img: "art/enemy-moqi.webp", hp: 26000, atk: 700, cd: 2 },
+  yutongD: { name: "魔化的語彤", attr: "dark", img: "art/enemy-yutong.webp", hp: 240000, atk: 1800, cd: 3, boss: true,
              title: "請給我黑令旗", warn: "三途川市役所 ‧ 魔氣暴走", quote: "霸凌我的人，因為未成年被法院輕判，我卻再也見不到我爸爸了" },
-  gang:    { name: "辣雞的跟班", attr: "wood", img: "art/enemy-lajigang.webp", hp: 55000, atk: 1300, cd: 2 },
-  lajiH:   { name: "辣雞", attr: "fire", img: "art/enemy-laji2.webp", hp: 160000, atk: 2000, cd: 2 },
-  laji:    { name: "罪人 陳樂基", attr: "fire", img: "art/enemy-laji.webp", hp: 420000, atk: 3000, cd: 3, boss: true,
+  gang:    { name: "辣雞的跟班", attr: "wood", img: "art/enemy-lajigang.webp", hp: 45000, atk: 1000, cd: 2 },
+  lajiH:   { name: "辣雞", attr: "fire", img: "art/enemy-laji2.webp", hp: 130000, atk: 1500, cd: 2 },
+  laji:    { name: "罪人 陳樂基", attr: "fire", img: "art/enemy-laji.webp", hp: 340000, atk: 2300, cd: 3, boss: true,
              title: "議員之子", warn: "刀鋸地獄 ‧ 業鏡審判", quote: "你知道我爸是誰嗎" }
 });
 Object.assign(window.ENEMIES.satan, { title: "憤怒魔王", warn: "魔界第三王國 ‧ 七宗罪之憤怒", quote: "我不是針對生靈，我是指在座的各位，都是垃圾" });

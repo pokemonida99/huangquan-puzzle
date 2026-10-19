@@ -386,3 +386,11 @@ h1 small { display: block; font-size: 18px; letter-spacing: .5em; color: var(--i
 .pre small { display: block; font-size: 10.5px; color: var(--dim); margin-top: 3px; }
 .pre.on { background: rgba(230,194,122,.16); border-color: var(--gold); box-shadow: 0 0 12px rgba(230,194,122,.25); }
 .slot .swap { font-size: 10px; color: var(--gold); margin-top: 2px; opacity: .8; }
+
+/* 戰力階級 */
+.tier { display: inline-block; padding: 2px 8px; border-radius: 6px; font-size: 12px; font-weight: 900; letter-spacing: .05em; color: #1a1006; text-shadow: none; }
+.tier small { font-size: 9px; margin-left: 2px; opacity: .7; }
+.tSp { background: linear-gradient(135deg, #fff, #ffd84a, #ff8ad8, #8ad8ff); }
+.tS { background: #ff6a6a; } .tSm { background: #c88ae8; } .tA { background: #f2a65a; }
+.tB { background: #f5d36a; } .tC { background: #e9ef7a; } .tD { background: #9fe08a; }
+.dcard .dtier { position: absolute; top: 5px; left: 5px; font-size: 11px; padding: 1px 6px; }
