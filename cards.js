@@ -304,6 +304,7 @@ window.TIERS = {
   }
   function actDesc(fx, attr) {
     const t = [];
+    if (fx.breakShield) t.push("破除所有敵人的護盾（屬性限定、傷害吸收）");
     if (fx.convert) t.push(`${N(fx.convert[0])}符石轉化為${N(fx.convert[1])}符石`);
     if (fx.board) t.push(`符石變成固定版面：${fx.boardDesc}`);
     if (fx.rowTo) t.push(`最下面一排符石轉化為${N(fx.rowTo)}符石`);
@@ -319,6 +320,9 @@ window.TIERS = {
     if (fx.buff) t.push(`本回合全隊攻擊力 ${fx.buff} 倍`);
     return t.join("，");
   }
+  // 破盾功能卡：刀鋸使李國志（光）、秦王（暗）
+  CARDS.lee2.act.fx.breakShield = true; delete CARDS.lee2.act.desc;
+  CARDS.qinwang.act.fx.breakShield = true; delete CARDS.qinwang.act.desc;
   Object.values(CARDS).forEach(c => {
     if (!c.lead.desc) c.lead.desc = leadDesc(c.lead.fx, c.attr);
     if (!c.act.desc) c.act.desc = actDesc(c.act.fx, c.attr);

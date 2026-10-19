@@ -493,8 +493,8 @@ function updateEnemy(i) {
 function skillText(s) {
   if (s.on === "spawn") {
     const head = s.name ? `「${s.name}」` : "";
-    if (s.shield && s.shield.only) return `${head}出場時只受${ATTR[s.shield.only].name}屬性傷害，持續 ${s.turns} 回合`;
-    return `${head}出場時單次傷害低於 ${fmt(s.absorb)} 會被完全吸收，持續 ${s.turns} 回合`;
+    if (s.shield && s.shield.only) return `${head}出場時只受${ATTR[s.shield.only].name}屬性傷害，持續 ${s.turns} 回合（可用破盾技能破除）`;
+    return `${head}出場時單次傷害低於 ${fmt(s.absorb)} 會被完全吸收，持續 ${s.turns} 回合（可用破盾技能破除）`;
   }
   if (s.on === "attack") return `「${s.name}」攻擊後把 ${s.n} 顆${ATTR[s.convert[0]].name}符石變成${ATTR[s.convert[1]].name}符石`;
   if (s.on === "low") return `「${s.name}」生命力低於 ${Math.round(s.hp * 100)}% 時狂暴：攻擊間隔變 ${s.cd} 回合、攻擊力 ${s.atk} 倍`;
@@ -959,6 +959,10 @@ async function castSkillInner(i) {
   B.busy = true; board.classList.add("locked");
   if (c.star >= 5) await cutIn(team[i]);
   else { banner(c.act.name); sfx.skill(); vibe([20, 30, 20, 30, 60]); await sleep(500); }
+  if (fx.breakShield && B.enemies.some(e => e.hpNow > 0 && e.shield)) {
+    B.enemies.forEach((e, k) => { if (e.shield) { e.shield = null; updateEnemy(k); } });
+    banner("破盾！"); sfx.sword && sfx.sword(); await sleep(400);
+  }
   if (fx.convert) {
     const [from, to] = fx.convert;
     grid.flat().filter(o => o.attr === from).forEach(o => setAttr(o, to));
