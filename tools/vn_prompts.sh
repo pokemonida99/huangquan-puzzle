@@ -25,6 +25,12 @@ case $key in
  lucifer) D="Tall archangel with long white-silver hair and large white wings, black-and-gold ornate armor and cape; same as the reference card, nothing added." ; R=(art/lucifer.png);;
  zhurong) D="Demigod captain with long golden hair, glowing red eyes, black-and-gold armored robe with flame patterns; same as the reference card, nothing added." ; R=(art/zhurong.png);;
  gengyin) D="Elderly matchmaker deity with a long white beard and a golden topknot, red-and-gold embroidered robe, holding red thread and a book; same as the reference card, nothing added." ; R=(art/gengyin.png);;
+ huatuo) D="Man in a dark red-brown hooded jacket over a dark tee, a brown knitted beanie, small round green-tinted sunglasses, black over-ear headphones around the neck, a thick gold chain with a gold pendant, a few rings; same face and outfit as the reference card; only items shown in the references." ; R=(work/refs10/huatuo.png work/refs10/s099.png);;
+ jiuwei) D="Young woman with a short dark-purple bob haircut, thin round glasses, a white fluffy fur-trim coat; large fluffy blue fox tails visible behind her shoulders; calm cool expression, same as the reference card; only items shown in the references." ; R=(work/refs10/jiuwei.png work/refs10/s195.png work/refs10/s095.png);;
+ xiaoyu) D="Young woman with long straight black hair and straight full bangs, wearing a loose cream-white sweatshirt cardigan at home; no apron, no accessories; same face as the reference card; only items shown in the references." ; R=(work/refs10/xiaoyu.png work/refs10/s198.png);;
+ dabao) D="Young man with short bleached blonde hair with black streaks on top, wearing a plain black oversized T-shirt and grey sweatpants; same face as the reference card; only items shown in the references; no jacket, no hoodie." ; R=(work/refs10/dabao3.png work/refs10/s198.png work/refs10/s100.png);;
+ mimi) D="Young woman with black hair tied in a high ponytail bun with straight bangs, wearing a black sheer lace dress embroidered with small white flowers over a black top, black knee socks and black mary-jane shoes; same face as the reference card; only items shown in the references." ; R=(work/refs10/mimi.png work/refs10/s100.png);;
+ huji) D="Young woman in a pink ruffled fluffy dress with a pink cat-ear headband, pink fluffy fox tail behind her, same face and outfit as the reference card; only items shown in the references." ; R=(work/refs10/huji.png work/refs10/s095.png work/refs10/s200.png);;
 esac
 declare -A E
 E[normal]="Calm neutral expression, mouth closed."
