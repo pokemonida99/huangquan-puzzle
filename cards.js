@@ -61,7 +61,7 @@ const ROWS = [
   ["maoguai", "毛怪", "下輩子還要當你的狗", "wood", "犬", 4, "sanzu", "rec", "喜歡穿圍裙的人", { allRec: 2 }, "明天的雞腿", 5, { healPct: .3 },
     "Maoguai, a black dog spirit in the form of a gentle girl with short black hair, wearing a purple kimono, sitting at a cozy yakiniku table, soft warm light"],
   /* 神明與天族 */
-  ["guanyin", "觀音菩薩", "三途川最強的神", "light", "神", 5, "gods", "atk", "觀音娘娘", { allAtk: 2.5 }, "又快又狠", 9, { nuke: 30 },
+  ["guanyin", "觀音菩薩", "三途川最強的神", "light", "神", 5, "gods", "atk", "觀音娘娘", { allAtk: 3, allHp: 1.3, openStrike: 40 }, "又快又狠", 8, { nuke: 35, guard: 1 },
     "Guanyin, a woman with silver-white and purple hair and thin glasses, wearing a sharp white suit, serene but powerful, a halo of lotus light behind her"],
   ["yuelao", "月老", "月下老人", "light", "神", 5, "gods", "bal", "讓受過傷的人再相信", { attrAtk: { light: 2.5 } }, "紅線", 7, { convert: ["dark", "light"], delay: 1 },
     "Yue Lao, a handsome young man with tousled brown hair, red and white traditional Chinese robe, red threads of fate wrapped around his hand, moonlit temple with hanging red threads"],
@@ -73,26 +73,26 @@ const ROWS = [
     "Jiuwei, a woman with lavender-silver hair and glasses, nine flowing blue fox tails behind her, holding a smoking incense stick, blue fox fire and barrier runes"],
   ["qianliyan", "千里眼", "千里眼將軍", "wood", "神", 4, "gods", "hp", "媽祖部將", { attrAtk: { wood: 2 } }, "Silence", 6, { delay: 2 },
     "Qianliyan, the far-seeing general: a deity wearing a green feathered mask and a green feather war robe, Taiwanese temple guardian, sea and sky behind him"],
-  ["hathor", "哈索爾", "埃及愛神", "fire", "神", 5, "gods", "atk", "歐西里斯的天秤", { attrAtk: { fire: 2.5 } }, "一掌打死", 8, { nuke: 20 },
+  ["hathor", "哈索爾", "埃及愛神", "fire", "神", 5, "gods", "atk", "歐西里斯的天秤", { attrAtk: { fire: 3 }, vsDemon: 2 }, "一掌打死", 8, { nuke: 30 },
     "Hathor, the Egyptian love goddess with black bangs, a golden horned headdress with a sun disk, wide gold collar, holding the golden scales of Osiris, desert temple at sunset"],
-  ["aphrodite", "阿芙羅黛蒂", "希臘愛神", "light", "神", 5, "gods", "rec", "月桂冠", { attrAtk: { light: 2 }, allRec: 1.5 }, "豎琴", 7, { healPct: .4, buff: 1.3 },
+  ["aphrodite", "阿芙羅黛蒂", "希臘愛神", "light", "神", 5, "gods", "rec", "月桂冠", { attrAtk: { light: 3 }, allRec: 2, regen: .1 }, "豎琴", 7, { healPct: .6, buff: 1.8 },
     "Aphrodite, the Greek love goddess with short dark hair and a flower-and-laurel crown, white Greek dress, holding a golden harp, marble columns and roses"],
   ["aizen", "愛染明王", "日本愛神", "fire", "神", 5, "gods", "atk", "無我境界", { attrAtk: { fire: 2.5 } }, "浮世繪", 7, { convert: ["wood", "fire"] },
     "Aizen Myoo, the Japanese love god: blond man with a golden crown and pearl necklaces, red wrathful-king Buddhist robes, painting ukiyo-e with a large brush, red flames"],
   ["shencha", "神差", "柴犬神", "light", "神", 4, "gods", "bal", "埃及死神", { attrAtk: { light: 2 } }, "排隊買和菓子", 5, { delay: 1, buff: 1.3 },
     "Shencha, a Shiba Inu-headed Egyptian god of death with a striped golden nemes headdress and a curved khopesh sword, friendly face, Egyptian pillars"],
-  ["cherub", "基路伯", "智天使", "light", "天族", 5, "gods", "hp", "責任天使", { allHp: 1.8 }, "解除咫尺天涯", 8, { healPct: .7 },
+  ["cherub", "基路伯", "智天使", "light", "天族", 5, "gods", "hp", "責任天使", { allAtk: 3, allHp: 2, regen: .15, survive: 1 }, "解除咫尺天涯", 8, { healPct: 1, guard: 2, convert: ["heart", "light"] },
     "Cherub, a man with short dark hair, wearing a white hooded robe and a gold pendant necklace, kind confident smile, soft heavenly light behind him. No wings"],
-  ["zhurong", "祝融", "赤帝", "fire", "半神", 5, "gods", "atk", "半神隊長", { attrAtk: { fire: 3 }, skyfall: { fire: .45 } }, "殲滅邪神帝", 9, { nuke: 25 },
+  ["zhurong", "祝融", "赤帝", "fire", "半神", 5, "gods", "atk", "半神隊長", { attrAtk: { fire: 3.5 }, allHp: 1.3, skyfall: { fire: .45 } }, "赤帝之火", 9, { boardTo: "fire", nuke: 20 },
     "Zhurong, the Red Emperor demigod: long wild blond hair, burning eyes, red and gold divine armor, flames swirling, ancient war battlefield"],
   /* 魔界 */
-  ["leviathan", "利維坦", "嫉妒魔王", "water", "魔族", 5, "demon", "atk", "無上戰技", { attrAtk: { water: 2.5 }, allAs: "water" }, "剪刀石頭石頭石頭", 8, { nuke: 25 },
+  ["leviathan", "利維坦", "嫉妒魔王", "water", "魔族", 5, "demon", "atk", "無上戰技", { attrAtk: { water: 2.5 }, allHp: 1.3, allAs: "water" }, "剪刀石頭石頭石頭", 8, { nuke: 35, delay: 1 },
     "Leviathan, a pale man with long silver hair with blue tips, glittery blue makeup on one cheek, black jacket, black headphones hanging around his neck, cool smile, ice crystals and a dark sea behind him"],
   ["nova", "諾瓦", "獨角鯨惡魔", "water", "魔族", 4, "demon", "bal", "鯨落", { attrAtk: { water: 2 } }, "從漫畫開始學藝術", 6, { convert: ["fire", "water"] },
     "Nova, a small demon girl with short black hair and heterochromia eyes, wearing a blue narwhal-shaped hood hat, holding a paintbrush, painting of a whale fall glowing underwater"],
   ["rat", "鼠軍師", "第二王國總參謀", "dark", "魔族", 4, "demon", "bal", "幫本軍師抬轎", { allAtk: 2 }, "麻將拳", 6, { nuke: 12 },
     "the Rat Strategist, a hamster wearing a Chinese military advisor hat with a yin-yang emblem and a little robe, riding a pink tricycle, mahjong tiles flying"],
-  ["lucifer", "路西法", "傲慢魔王", "light", "天族", 5, "demon", "atk", "天族最強戰士", { allAtk: 2.5 }, "天煞孤星", 9, { nuke: 30 },
+  ["lucifer", "路西法", "傲慢魔王", "light", "天族", 5, "demon", "atk", "天族最強戰士", { allAtk: 4, comboUp: .25 }, "殲滅邪神帝", 9, { nuke: 40, buff: 2 },
     "Lucifer, the strongest warrior of heaven turned Demon King of Pride: long white hair, stern face, golden ornate armor, huge white wings, light and shadow split"],
   /* 異時空（大秦、庚寅地球） */
   ["youshuzhang", "右庶長", "朱雀將軍", "fire", "人類", 5, "other", "atk", "楚墨宗主", { attrAtk: { fire: 2.5 } }, "去月下慶祝", 7, { buff: 2 },
@@ -178,20 +178,26 @@ window.TIERS = {
 /* 技能說明：沒寫 desc 的卡片，依效果自動產生 */
 (() => {
   const N = a => ATTR[a].name;
-  function leadDesc(fx) {
+  function leadDesc(fx, attr) {
     const t = [];
+    if (fx.openStrike) t.push(`每一波敵人出現時，先對全體敵人造成自身攻擊力 ${fx.openStrike} 倍的${N(attr)}屬性傷害`);
     if (fx.allAtk) t.push(`全隊攻擊力 ${fx.allAtk} 倍`);
     if (fx.attrAtk) Object.entries(fx.attrAtk).forEach(([a, x]) => t.push(`${N(a)}屬性攻擊力 ${x} 倍`));
     if (fx.allHp) t.push(`全隊生命力 ${fx.allHp} 倍`);
     if (fx.allRec) t.push(`全隊回復力 ${fx.allRec} 倍`);
     if (fx.allAs) t.push(`消除任何顏色的符石都算作${N(fx.allAs)}符石，${N(fx.allAs)}屬性成員都會出手`);
     if (fx.skyfall) Object.entries(fx.skyfall).forEach(([a, p]) => t.push(`${N(a)}符石掉落機率大幅提升（約 ${Math.round((p + (1 - p) / 6) * 100)}%）`));
+    if (fx.comboUp) t.push(`每多 1 combo，傷害再多 ${Math.round(fx.comboUp * 100)}%`);
+    if (fx.vsDemon) t.push(`對魔族敵人的傷害 ${fx.vsDemon} 倍`);
+    if (fx.regen) t.push(`每次轉珠後回復最大生命力 ${Math.round(fx.regen * 100)}%`);
+    if (fx.survive) t.push(`每場戰鬥 ${fx.survive} 次，受到致命傷害時保留 1 點生命`);
     if (fx.multiAttr) t.push(`同時消除 ${fx.multiAttr.n} 種或以上屬性符石時，全隊攻擊力再 ${fx.multiAttr.x} 倍`);
     return t.join("；");
   }
   function actDesc(fx, attr) {
     const t = [];
     if (fx.convert) t.push(`${N(fx.convert[0])}符石轉化為${N(fx.convert[1])}符石`);
+    if (fx.boardTo) t.push(`心符石以外的所有符石轉化為${N(fx.boardTo)}符石`);
     if (fx.rainbow) t.push("所有符石重新排列，六種符石各 5 粒");
     if (fx.healPct) t.push(`回復最大生命力 ${Math.round(fx.healPct * 100)}%`);
     if (fx.delay) t.push(`所有敵人的攻擊延遲 ${fx.delay} 回合`);
@@ -201,7 +207,7 @@ window.TIERS = {
     return t.join("，");
   }
   Object.values(CARDS).forEach(c => {
-    if (!c.lead.desc) c.lead.desc = leadDesc(c.lead.fx);
+    if (!c.lead.desc) c.lead.desc = leadDesc(c.lead.fx, c.attr);
     if (!c.act.desc) c.act.desc = actDesc(c.act.fx, c.attr);
   });
 })();

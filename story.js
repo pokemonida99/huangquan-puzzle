@@ -7,8 +7,8 @@
    ========================================================================= */
 
 Object.assign(window.ENEMIES, {
-  moqi:    { name: "魔氣", attr: "dark", img: "art/enemy-moqi.webp", hp: 26000, atk: 700, cd: 2 },
-  yutongD: { name: "魔化的語彤", attr: "dark", img: "art/enemy-yutong.webp", hp: 240000, atk: 1800, cd: 3, boss: true,
+  moqi:    { demon: true, name: "魔氣", attr: "dark", img: "art/enemy-moqi.webp", hp: 26000, atk: 700, cd: 2 },
+  yutongD: { demon: true, name: "魔化的語彤", attr: "dark", img: "art/enemy-yutong.webp", hp: 240000, atk: 1800, cd: 3, boss: true,
              title: "請給我黑令旗", warn: "三途川市役所 ‧ 魔氣暴走", quote: "霸凌我的人，因為未成年被法院輕判，我卻再也見不到我爸爸了" },
   gang:    { name: "辣雞的跟班", attr: "wood", img: "art/enemy-lajigang.webp", hp: 45000, atk: 1000, cd: 2 },
   lajiH:   { name: "辣雞", attr: "fire", img: "art/enemy-laji2.webp", hp: 130000, atk: 1500, cd: 2 },

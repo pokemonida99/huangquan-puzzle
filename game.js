@@ -213,6 +213,7 @@ function startBattle(skipStory) {
     cd: team.map(id => CARDS[id].act.cd)
   };
   B.guard = 0;
+  B.survive = leaderFx().reduce((a, fx) => a + (fx.survive || 0), 0);
   renderParty(); updateHp();
   initBoard();
   $(".field-bg").style.backgroundImage = `url(${CH.bg})`;
@@ -272,10 +273,28 @@ async function loadWave(w) {
     $$(".enemy").forEach((x, j) => x.classList.toggle("target", j === B.target));
   });
   const boss = B.enemies.find(e => e.boss);
-  if (boss) { await bossIntro(boss, $(".enemy.boss")); return; }
-  music.play("battle");
-  banner(`第 ${w + 1} 波`);
-  sfx.wave();
+  if (boss) await bossIntro(boss, $(".enemy.boss"));
+  else { music.play("battle"); banner(`第 ${w + 1} 波`); sfx.wave(); }
+  await openStrike();
+}
+/* 進場攻擊（觀音的隊長技）：每一波敵人一出現，隊長／戰友先打全體一下 */
+async function openStrike() {
+  for (const i of [0, 5]) {
+    const c = CARDS[team[i]], n = c.lead.fx.openStrike;
+    if (!n || !alive().length) continue;
+    await sleep(500);
+    banner(c.lead.name);
+    sfx.skill(); vibe([30, 40, 60]); flash("rgba(255,240,200,.5)", 350);
+    const el = $$(".party .icon")[i];
+    el.classList.remove("atk"); void el.offsetWidth; el.classList.add("atk");
+    await Promise.all(alive().map(t => hitEnemy(t, c.atk * n, c.attr, el)));
+  }
+  // 進場就把這一波全打倒了：直接換下一波或過關
+  if (!alive().length) {
+    await sleep(600);
+    if (B.wave + 1 < CH.waves.length) await loadWave(B.wave + 1);
+    else await win();
+  }
 }
 
 /* ---------------- 撒旦登場：暗場、地鳴、三聲重擊、咆哮現身 ---------------- */
@@ -571,6 +590,12 @@ async function playerTurn() {
   B.busy = true; board.classList.add("locked");
   const groups = await resolveBoard();
   if (groups.length) await attack(groups);
+  const regen = leaderFx().reduce((a, fx) => a + (fx.regen || 0), 0);   // 基路伯、阿芙羅黛蒂：每次轉珠後回復
+  if (groups.length && regen && B.hp < B.hpMax) {
+    const heal = B.hpMax * regen; B.hp += heal; updateHp(); sfx.heal();
+    const hb = $(".hpbar").getBoundingClientRect(), fb = $(".field").getBoundingClientRect();
+    floatText(hb.left - fb.left + hb.width / 2, hb.top - fb.top - 34, "+" + fmt(heal), "heart", "heal");
+  }
   $(".combo").classList.remove("show");
   B.buff = 1;
   if (groups.length) { B.cd = B.cd.map(v => Math.max(0, v - 1)); updateParty(); }
@@ -592,7 +617,8 @@ function leaderMul(attr, groups) {
 function typeMul(a, d) { return BEATS[a] === d ? 2 : BEATS[d] === a && a !== "light" && a !== "dark" ? .5 : 1; }
 
 async function attack(groups) {
-  const combo = groups.length, comboMul = 1 + (combo - 1) * .25;
+  const comboUp = leaderFx().reduce((a, fx) => a + (fx.comboUp || 0), 0);   // 路西法：combo 加成更高
+  const combo = groups.length, comboMul = 1 + (combo - 1) * (.25 + comboUp);
   const partyEls = $$(".party .icon");
   // 回復
   const hearts = groups.filter(g => g.attr === "heart");
@@ -624,7 +650,8 @@ async function attack(groups) {
 async function hitEnemy(t, raw, attr, fromEl) {
   const e = B.enemies[t], el = enemyEl(t);
   await shoot(fromEl, $(".pic", el), attr);
-  const tm = typeMul(attr, e.attr), dmg = Math.round(raw * tm);
+  const vd = e.demon ? leaderFx().reduce((a, fx) => a * (fx.vsDemon || 1), 1) : 1;   // 哈索爾：打魔族加倍
+  const tm = typeMul(attr, e.attr) * vd, dmg = Math.round(raw * tm);
   e.hpNow -= dmg;
   const p = centerOf($(".pic", el), $(".field"));
   floatText(p.x + (Math.random() * 40 - 20), p.y - 20 + Math.random() * 30, fmt(dmg), attr, tm > 1 ? "big" : "");
@@ -644,6 +671,7 @@ async function checkWave() {
   await win(); return true;
 }
 async function enemyTurn() {
+  B.saved = false;
   for (const i of alive()) {
     const e = B.enemies[i];
     e.cdNow--;
@@ -651,7 +679,7 @@ async function enemyTurn() {
       const el = enemyEl(i);
       el.classList.remove("atk"); void el.offsetWidth; el.classList.add("atk");
       await sleep(250);
-      const dmg = Math.round(e.atk * (B.guard > 0 ? .5 : 1));
+      const dmg = B.saved ? 0 : Math.round(e.atk * (B.guard > 0 ? .5 : 1));   // 剛保命過，這回合後面的攻擊都擋下
       B.hp -= dmg; updateHp();
       if (e.boss) { quake(16, 500); flash("rgba(200,0,0,.4)", 400); }
       else quake(6, 240);
@@ -662,6 +690,11 @@ async function enemyTurn() {
       await sleep(350);
     }
     updateEnemy(i);
+    if (B.hp <= 0 && B.survive > 0) {   // 基路伯：致命傷時保留 1 點生命
+      B.survive--; B.hp = 1; B.saved = true; updateHp();
+      banner(leaderFx().find(fx => fx.survive) ? [0, 5].map(k => CARDS[team[k]]).find(c => c.lead.fx.survive).lead.name : "");
+      flash("rgba(255,255,255,.7)", 500); sfx.heal(); await sleep(600);
+    }
     if (B.hp <= 0) { lose(); return; }
   }
   if (B.guard > 0) { B.guard--; $(".hpbar").classList.toggle("guarded", B.guard > 0); }
@@ -688,6 +721,7 @@ async function castSkill(i) {
     const [from, to] = fx.convert;
     grid.flat().filter(o => o.attr === from).forEach(o => setAttr(o, to));
   }
+  if (fx.boardTo) grid.flat().filter(o => o.attr !== "heart" && o.attr !== fx.boardTo).forEach(o => setAttr(o, fx.boardTo));
   if (fx.rainbow) {
     const pool = ORB_TYPES.flatMap(a => Array(5).fill(a));
     for (let k = pool.length - 1; k > 0; k--) { const j = Math.floor(Math.random() * (k + 1)); [pool[k], pool[j]] = [pool[j], pool[k]]; }
