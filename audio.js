@@ -410,6 +410,27 @@ const SFX = {
     noise({ dur: 1.8, vol: .5, freq: 900, f1: 200, q: 1.5, wet: .6 });
     I.gong(sfxBus, t + .05, .45);
   },
+  /* ---- 片頭 ---- */
+  sword() {   // 拔刀出鞘：金屬摩擦聲往上滑，接一聲清亮的「鏘」
+    const t = A.currentTime;
+    const src = A.createBufferSource(), f = A.createBiquadFilter(), g = A.createGain();
+    src.buffer = noiseBuf; f.type = "bandpass"; f.Q.value = 9;
+    f.frequency.setValueAtTime(1400, t); f.frequency.exponentialRampToValueAtTime(7500, t + .32);
+    g.gain.setValueAtTime(.0001, t); g.gain.exponentialRampToValueAtTime(.5, t + .05); g.gain.exponentialRampToValueAtTime(.0001, t + .36);
+    src.connect(f).connect(g); out(g, sfxBus, .3); src.start(t); src.stop(t + .4);
+    [[2210, .22], [3340, .14], [5120, .09], [7400, .05]].forEach(([fq, v], k) => {
+      const o = A.createOscillator(), og = A.createGain(), lfo = A.createOscillator(), lg = A.createGain();
+      o.frequency.value = fq; lfo.frequency.value = 7 + k; lg.gain.value = fq * .004; lfo.connect(lg).connect(o.frequency);
+      og.gain.setValueAtTime(.0001, t + .3); og.gain.exponentialRampToValueAtTime(v, t + .31); og.gain.exponentialRampToValueAtTime(.0001, t + 1.6 - k * .2);
+      o.connect(og); out(og, sfxBus, .6); o.start(t + .3); lfo.start(t + .3); o.stop(t + 1.7); lfo.stop(t + 1.7);
+    });
+  },
+  logoHit() {   // 斬下去：破風聲＋太鼓＋銅鑼
+    const t = A.currentTime;
+    noise({ dur: .18, vol: .45, freq: 400, f1: 6000, q: .7, type: "lowpass", wet: .2 });
+    I.taiko(sfxBus, t + .04, 1, .7); I.taiko(sfxBus, t + .06, .8, .45);
+    I.gong(sfxBus, t + .08, .4);
+  },
   slam() { SFX.hurt(true); const t = A.currentTime; I.taiko(sfxBus, t, 1, .5); }
 };
 const sfx = new Proxy(SFX, { get: (o, k) => (...a) => { if (!SET.sound) return; try { ac(); o[k](...a); } catch (e) {} } });

@@ -4,7 +4,7 @@ from PIL import Image, ImageDraw, ImageFilter
 root = Path(__file__).resolve().parent.parent
 art = root / "art"
 for p in art.glob("*.png"):
-    if p.stem.startswith("orb-"):
+    if p.stem.startswith("orb-") or p.stem == "emblem":
         continue
     if p.stem.startswith("enemy-"):
         # 敵人：邊緣做橢圓羽化透明，直接疊在戰場背景上
@@ -25,16 +25,17 @@ for p in art.glob("*.png"):
         im = im.resize((w, round(im.height * w / im.width)), Image.LANCZOS)
     im.save(p.with_suffix(".webp"), quality=72 if bg else 76, method=6)
 # 符石：找出圓球範圍、裁成正方形、加圓形透明遮罩
-for p in art.glob("orb-*.png"):
+for p in [*art.glob("orb-*.png"), art / "emblem.png"]:
     im = Image.open(p).convert("RGB")
     gray = im.convert("L").point(lambda v: 255 if v > 40 else 0)
     box = gray.getbbox()
     cx, cy = (box[0] + box[2]) / 2, (box[1] + box[3]) / 2
     r = max(box[2] - box[0], box[3] - box[1]) / 2
-    im = im.crop((round(cx - r), round(cy - r), round(cx + r), round(cy + r))).resize((192, 192), Image.LANCZOS)
+    size = 640 if p.stem == "emblem" else 192
+    im = im.crop((round(cx - r), round(cy - r), round(cx + r), round(cy + r))).resize((size, size), Image.LANCZOS)
     big = Image.new("L", (768, 768), 0)
     ImageDraw.Draw(big).ellipse((6, 6, 762, 762), fill=255)
-    mask = big.resize((192, 192), Image.LANCZOS).filter(ImageFilter.GaussianBlur(.6))
+    mask = big.resize((size, size), Image.LANCZOS).filter(ImageFilter.GaussianBlur(.6 * size / 192))
     im.putalpha(mask)
     im.save(p.with_suffix(".webp"), quality=90)
 # 劇情立繪：高度 1100（李國志含禮帽 1278）的縮成 0.85 倍，比例不變

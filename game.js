@@ -1341,5 +1341,63 @@ function showEnemy(k) {
 }
 
 renderTeam();
-music.play("title");
+
+/* ---------------- 片頭：點一下進入（同時解鎖聲音）→ 拔刀斬出 Logo → 標題 ---------------- */
+(() => {
+  const sp = $("#splash");
+  for (let k = 0; k < 26; k++) {   // 往上飄的火星
+    const e = document.createElement("i");
+    e.style.cssText = `left:${Math.random() * 100}%;animation-delay:${(Math.random() * 6).toFixed(2)}s;animation-duration:${(4 + Math.random() * 4).toFixed(2)}s;--sz:${(2 + Math.random() * 3).toFixed(1)}px`;
+    $(".sp-embers", sp).appendChild(e);
+  }
+  /* 先下載「一開始就會用到」的東西：片頭、標題、符石、初始隊伍、第一章的圖與配樂。
+     載完（或最多等 15 秒）才顯示「點一下進入」；其他章節之後在背景慢慢抓。 */
+  const gate = $(".sp-gate b"), bar = document.createElement("div");
+  bar.className = "sp-load"; bar.innerHTML = "<i></i><span>載入中 0%</span>";
+  $(".sp-gate", sp).appendChild(bar);
+  const ch1 = CHAPTERS[0];
+  const linesOf = ch => [ch.pre, ch.post, ...ch.waves.map(w => w.lines || [])].flat();
+  const imgsOf = ch => [ch.bg, ...ch.waves.flatMap(w => w.enemies).map(k => ENEMIES[k].img),
+    ...linesOf(ch).filter(l => l[0] === "@scene" && l[1]).map(l => l[1]),
+    ...linesOf(ch).filter(l => l[0] && l[0][0] !== "@" && VN[l[0]]).map(l => `art/vn/${VN[l[0]]}-${l[3] || "normal"}.webp`)];
+  const ESSENTIAL = [...new Set([
+    "art/emblem.webp", "art/vn/lee-normal.webp", "art/vn/yutong-normal.webp", "art/bg-battle.webp",
+    ...["water", "fire", "wood", "light", "dark", "heart"].map(a => `art/orb-${a}.webp`),
+    ...team.map(id => CARDS[id].art), ...imgsOf(ch1),
+    "audio/title.m4a", `audio/${(ch1.music && ch1.music.battle) || "battle1"}.m4a`
+  ])];
+  const loadOne = url => /\.m4a$/.test(url)
+    ? fetch(url).then(r => r.blob()).catch(() => {})
+    : new Promise(r => { const im = new Image(); im.onload = im.onerror = r; im.src = url; });
+  let done = 0, ready = false;
+  const showReady = () => { if (ready) return; ready = true; bar.classList.add("done"); gate.classList.add("on");
+    // 進得去之後，其餘章節的圖在背景慢慢抓
+    setTimeout(() => CHAPTERS.slice(1).forEach(ch => imgsOf(ch).forEach(u => { const im = new Image(); im.src = u; })), 1500); };
+  (async () => {
+    const q = [...ESSENTIAL];
+    const worker = async () => { while (q.length) { await loadOne(q.shift()); done++; $("i", bar).style.width = `${done / ESSENTIAL.length * 100}%`; $("span", bar).textContent = `載入中 ${Math.round(done / ESSENTIAL.length * 100)}%`; } };
+    await Promise.all([1, 2, 3, 4, 5].map(worker));
+    showReady();
+  })();
+  setTimeout(showReady, 15000);   // 網路太慢也不要卡死
+  let stage = 0;
+  const finish = () => {
+    if (stage === 2) return; stage = 2;
+    sp.classList.add("out");
+    setTimeout(() => { sp.classList.remove("active", "out"); go("title"); }, 600);
+  };
+  sp.addEventListener("click", async () => {
+    if (stage === 1) { finish(); return; }   // 演出中再點一下就略過
+    if (stage || !ready) return;
+    stage = 1;
+    music.unlock();
+    sp.classList.add("go");
+    sfx.sword(); vibe(15);
+    await sleep(420); if (stage !== 1) return;
+    sp.classList.add("cut");
+    sfx.logoHit(); vibe([40, 30, 80]);
+    $("#app").animate([{ transform: "translate(6px,-4px)" }, { transform: "translate(-6px,4px)" }, { transform: "translate(3px,0)" }, { transform: "none" }], { duration: 320 });
+    await sleep(2900); finish();
+  });
+})();
 })();
