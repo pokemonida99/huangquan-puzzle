@@ -481,10 +481,11 @@ board.addEventListener("pointercancel", endDrag);
 let timerRAF = 0;
 function startTimer() {
   drag.t0 = performance.now();
+  drag.limit = MOVE_TIME + (B.timeUp || 0) * 1000; B.timeUp = 0;   // 主動技「延長轉珠時間」只作用一次
   $(".timer").classList.add("on");
   const tick = now => {
     if (!drag) return;
-    const left = 1 - (now - drag.t0) / MOVE_TIME;
+    const left = 1 - (now - drag.t0) / drag.limit;
     $(".timer-fill").style.width = Math.max(0, left * 100) + "%";
     if (left <= 0) { endDrag(); return; }
     timerRAF = requestAnimationFrame(tick);
@@ -724,6 +725,8 @@ async function castSkill(i) {
     const [from, to] = fx.convert;
     grid.flat().filter(o => o.attr === from).forEach(o => setAttr(o, to));
   }
+  if (fx.rowTo) grid[ROWS - 1].forEach(o => setAttr(o, fx.rowTo));
+  if (fx.timeUp) B.timeUp = (B.timeUp || 0) + fx.timeUp;
   if (fx.boardTo) grid.flat().filter(o => o.attr !== "heart" && o.attr !== fx.boardTo).forEach(o => setAttr(o, fx.boardTo));
   if (fx.rainbow) {
     const pool = ORB_TYPES.flatMap(a => Array(5).fill(a));
@@ -741,6 +744,19 @@ async function castSkill(i) {
   if (fx.healPct) { B.hp += B.hpMax * fx.healPct; updateHp(); }
   if (fx.guard) { B.guard = Math.max(B.guard, fx.guard); $(".hpbar").classList.add("guarded"); }
   if (fx.delay) { B.enemies.forEach(e => e.cdNow += fx.delay); alive().forEach(updateEnemy); }
+  if (fx.fixedDmg) {   // 固定傷害：不受屬性與倍率影響
+    for (const t of alive()) {
+      const e = B.enemies[t], el = enemyEl(t);
+      e.hpNow -= fx.fixedDmg;
+      const p = centerOf($(".pic", el), $(".field"));
+      floatText(p.x, p.y - 20, fmt(fx.fixedDmg), c.attr);
+      el.classList.remove("hit"); void el.offsetWidth; el.classList.add("hit");
+      updateEnemy(t);
+    }
+    sfx.hit(true);
+    await sleep(500);
+    if (await checkWave()) return;
+  }
   if (fx.nuke) {
     const el = $$(".party .icon")[i];
     await Promise.all(alive().map(t => hitEnemy(t, c.atk * fx.nuke, c.attr, el)));

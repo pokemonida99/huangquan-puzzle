@@ -33,29 +33,30 @@ window.SERIES = [
 
 /*
   卡片欄位
-  id / who 角色 / title 稱號 / attr 屬性 / race 種族 / star 星數
-  hp atk rec / art 卡面 / evo 下一階段 id / lead 隊長技 / act 主動技 {name, cd, desc, fx}
+  id / who 角色 / title 稱號 / attr 屬性 / race 種族
+  art 卡面 / evo 下一階段 id / lead 隊長技 / act 主動技 {name, cd, desc, fx}
+  星數、生命、攻擊、回復由 cards.js 的「戰力階級」統一算出，不寫在這裡
   lore 一句話（取自劇情）
 */
 window.CARDS = {
   /* ---------------- 李國志：白李米店 → 刀鋸使 → 業鏡羅漢 ---------------- */
   lee1: {
-    who: "李國志", title: "白李米店", attr: "light", race: "人類", star: 4,
-    hp: 1400, atk: 520, rec: 220, art: "art/lee1.webp", evo: "lee2", stage: 1,
+    who: "李國志", title: "白李米店", attr: "light", race: "人類",
+    art: "art/lee1.webp", evo: "lee2", stage: 1,
     lore: "七十多年前，不忍村裡百姓餓死，偷偷把米賣給窮人。",
     lead: { name: "偷賣米", desc: "光屬性攻擊力 2 倍", fx: { attrAtk: { light: 2 } } },
     act: { name: "開倉放糧", cd: 6, desc: "心符石轉化為光符石", fx: { convert: ["heart", "light"] } }
   },
   lee2: {
-    who: "李國志", title: "刀鋸使", attr: "light", race: "地府官差", star: 5,
-    hp: 2200, atk: 760, rec: 300, art: "art/lee2.webp", evo: "lee3", stage: 2,
+    who: "李國志", title: "刀鋸使", attr: "light", race: "地府官差",
+    art: "art/lee2.webp", evo: "lee3", stage: 2,
     lore: "到地府第一天也去要了黑令旗，後來在刀鋸地獄當刀鋸使。",
     lead: { name: "刀鋸使聽令", desc: "全隊攻擊力 2.5 倍", fx: { allAtk: 2.5 } },
     act: { name: "刀鋸地獄", cd: 8, desc: "暗符石轉化為光符石，並對全體敵人造成自身攻擊力 20 倍的光屬性傷害", fx: { convert: ["dark", "light"], nuke: 20 } }
   },
   lee3: {
-    who: "李國志", title: "業鏡羅漢", attr: "light", race: "地府官差", star: 6,
-    hp: 3200, atk: 1050, rec: 420, art: "art/lee3.webp", evo: "lee4", stage: 3,
+    who: "李國志", title: "業鏡羅漢", attr: "light", race: "地府官差",
+    art: "art/lee3.webp", evo: "lee4", stage: 3,
     lore: "村民替他蓋了義民廟，累積六萬功德，被稱為「業鏡羅漢」。",
     lead: { name: "業鏡審判", desc: "全隊攻擊力 3 倍、生命力 1.5 倍；同時消除 4 種或以上屬性符石時，全隊攻擊力再 1.5 倍",
       fx: { allAtk: 3, allHp: 1.5, multiAttr: { n: 4, x: 1.5 } } },
@@ -63,8 +64,8 @@ window.CARDS = {
   },
 
   lee4: {
-    who: "李國志", title: "業鏡羅漢（禮帽）", attr: "light", race: "地府官差", star: 6,
-    hp: 3200, atk: 1050, rec: 420, art: "art/lee4.webp", evo: null, stage: 4,
+    who: "李國志", title: "業鏡羅漢（禮帽）", attr: "light", race: "地府官差",
+    art: "art/lee4.webp", evo: null, stage: 4,
     lore: "戴禮帽、穿西裝的燒肉店老闆。地府不允許魔存在，他以羅漢之名擔保，把語彤帶回燒肉店。",
     lead: { name: "羅漢之名擔保", desc: "全隊攻擊力 3 倍、生命力 1.5 倍；同時消除 4 種或以上屬性符石時，全隊攻擊力再 1.8 倍",
       fx: { allAtk: 3, allHp: 1.5, multiAttr: { n: 4, x: 1.8 } } },
@@ -73,32 +74,32 @@ window.CARDS = {
 
   /* ---------------- 基礎隊員 ---------------- */
   xiaobai: {
-    who: "吳小白", title: "初代の吳小白", attr: "dark", race: "魔族", star: 4,
-    hp: 1500, atk: 700, rec: 160, art: "art/xiaobai.webp", evo: null,
+    who: "吳小白", title: "初代の吳小白", attr: "dark", race: "魔族",
+    art: "art/xiaobai.webp", evo: null,
     lore: "EP3 單曲 MV 的樂團成員，第四季以惡魔造型再登場。",
     planned: ["樂團的小白", "初代の吳小白"],
     lead: { name: "再登場", desc: "暗屬性攻擊力 2 倍", fx: { attrAtk: { dark: 2 } } },
-    act: { name: "魔界獨奏", cd: 6, desc: "心符石轉化為暗符石", fx: { convert: ["heart", "dark"] } }
+    act: { name: "魔界獨奏", cd: 5, desc: "最下面一排符石轉化為暗符石", fx: { rowTo: "dark" } }
   },
   xiaoyu: {
-    who: "小雨", title: "燒肉店店員", attr: "water", race: "人類", star: 4,
-    hp: 2200, atk: 420, rec: 830, art: "art/xiaoyu.webp", evo: null,
+    who: "小雨", title: "燒肉店店員", attr: "water", race: "人類",
+    art: "art/xiaoyu.webp", evo: null,
     lore: "替每一位客人端上遺願馬卡龍。",
     planned: ["燒肉店店員", "代理店長"],
     lead: { name: "先吃遺願馬卡龍", desc: "回復力 2 倍", fx: { allRec: 2 } },
     act: { name: "遺願馬卡龍", cd: 6, desc: "回復最大生命力 50%，並把木符石轉化為水符石", fx: { healPct: 0.5, convert: ["wood", "water"] } }
   },
   dabao: {
-    who: "大寶", title: "消防小隊長", attr: "fire", race: "人類", star: 4,
-    hp: 1520, atk: 920, rec: 160, art: "art/dabao.webp", evo: null,
+    who: "大寶", title: "消防小隊長", attr: "fire", race: "人類",
+    art: "art/dabao.webp", evo: null,
     lore: "總是把存下來的功德花在別人身上。",
     planned: ["消防小隊長", "托夢照相館", "天煞孤星"],
     lead: { name: "嘴賤講義氣", desc: "火屬性攻擊力 2 倍", fx: { attrAtk: { fire: 2 } } },
     act: { name: "把功德花光", cd: 7, desc: "本回合全隊攻擊力 2 倍", fx: { buff: 2 } }
   },
   afu: {
-    who: "阿副", title: "長髮消防員", attr: "wood", race: "人類", star: 4,
-    hp: 2100, atk: 600, rec: 300, art: "art/afu.webp", evo: null,
+    who: "阿副", title: "長髮消防員", attr: "wood", race: "人類",
+    art: "art/afu.webp", evo: null,
     lore: "大寶的兄弟，在 EP9 被提到打呼很大聲的「黃副」可能就是他。",
     planned: ["長髮消防員", "陽光手機門市"],
     lead: { name: "兄弟", desc: "木屬性攻擊力 2 倍", fx: { attrAtk: { wood: 2 } } },
