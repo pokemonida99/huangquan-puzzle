@@ -418,3 +418,51 @@ h1 small { display: block; font-size: 18px; letter-spacing: .5em; color: var(--i
 .dlg-intro b { display: block; font-size: 24px; letter-spacing: .15em; font-family: "Songti TC", serif; }
 .dlg-intro em { display: block; font-style: normal; font-size: 12px; color: var(--gold); margin-top: 2px; }
 .dlg-intro p { font-size: 14px; line-height: 1.7; color: #e6dccb; margin: 10px 0 0; text-align: left; }
+
+/* ---------------- 收集：功德、托夢照相館、三星評價、挑戰關 ---------------- */
+.merit-chip { margin-left: auto; font-size: 12px; padding: 3px 10px; border-radius: 999px; background: #000a; border: 1px solid var(--line); color: var(--dim); letter-spacing: .1em; white-space: nowrap; }
+.merit-chip b { color: var(--gold); font-size: 14px; }
+.shop-note { margin-bottom: 0; }
+.shop-grid { padding-bottom: 24px; }
+.shop-grid .pk-head { margin: 14px 16px 0; }
+.dex-grid.inner { padding: 8px 16px 4px; }
+.dcard.unowned img { filter: grayscale(1) brightness(.4); }
+.dcard.unowned .cap { opacity: .65; }
+.own-tag { position: absolute; left: 0; right: 0; top: 38%; text-align: center; font-size: 12px; font-weight: 700; letter-spacing: .15em; color: #fff; text-shadow: 0 1px 4px #000; pointer-events: none; }
+.own-tag small { display: block; margin-top: 2px; font-size: 11px; letter-spacing: .05em; color: var(--gold); }
+.own-tag.price { top: 6px; left: auto; right: 6px; width: auto; padding: 2px 8px; border-radius: 999px; background: #000b; color: var(--gold); font-size: 13px; letter-spacing: 0; }
+.own-tag.price small { display: inline; margin-left: 2px; font-size: 9px; }
+.own-tag.price.poor { color: #e88; }
+.evo .dim .icon { filter: grayscale(1) brightness(.5); }
+.evo { flex-wrap: wrap; }
+.evo-btn { margin: 0 0 0 auto; min-width: 0; padding: 8px 18px; }
+.evo-btn small { display: block; font-size: 10px; font-weight: 400; }
+.buy { margin-top: 14px; }
+.buy .btn { width: 100%; }
+.own-msg { color: #e88; min-height: 18px; }
+.ch-item { display: flex; flex-direction: column; }
+.ch-chal { margin: -6px 10px 0; padding: 10px 14px 8px; text-align: left; border: 1px solid var(--gold2); border-top: 0; border-radius: 0 0 12px 12px;
+  background: rgba(230,194,122,.08); color: #e8d9bf; font-size: 13px; cursor: pointer; position: relative; }
+.ch-chal b { color: var(--gold); margin-right: 8px; }
+.ch-chal em { position: absolute; right: 12px; top: 10px; font-style: normal; font-size: 11px; color: var(--dim); }
+.ch-chal.got em { color: #9effa8; }
+.rate { color: #ffd84a; letter-spacing: .1em; font-style: normal; }
+.rate.big { font-size: 38px; margin: 6px 0 2px; text-shadow: 0 0 14px rgba(255,216,74,.5); }
+.rules { list-style: none; margin: 4px 0 8px; padding: 0; font-size: 13px; color: var(--dim); }
+.rules li.ok { color: #9effa8; }
+.merit-gain { color: var(--gold); font-weight: 700; letter-spacing: .1em; margin: 6px 0; }
+.joined { margin: 8px 0; padding: 8px; border-radius: 10px; background: rgba(230,194,122,.08); border: 1px solid var(--gold2); }
+.j-title { font-size: 12px; color: var(--gold); letter-spacing: .2em; margin-bottom: 6px; }
+.j-grid { display: flex; flex-wrap: wrap; gap: 8px; justify-content: center; }
+.j { width: 56px; font-size: 10px; color: var(--dim); }
+.j span { display: block; margin-top: 2px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.chal-box { margin: 8px 16px 0; padding: 8px 12px; border-radius: 10px; border: 1px solid var(--gold); background: rgba(230,194,122,.1); font-size: 13px; line-height: 1.5; }
+.chal-box[hidden], .chal-tag[hidden] { display: none; }
+.chal-box b { display: block; color: var(--gold); }
+.chal-box .ok { color: #9effa8; }
+.chal-box .bad { color: #e88; }
+.chal-box small { display: block; color: var(--dim); font-size: 11px; }
+.chal-tag { position: absolute; left: 12px; top: 40px; z-index: 3; font-size: 12px; padding: 2px 10px; border-radius: 999px; background: #000a; border: 1px solid var(--gold); color: var(--gold); }
+.pre.lack { opacity: .5; }
+.pre em { display: block; font-style: normal; font-size: 10.5px; color: #e88; margin-top: 3px; }
+.pk.off .icon { filter: grayscale(1) brightness(.45); }

@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, user-scalable=no">
 <title>黃泉燒肉店 轉珠試玩版</title>
-<link rel="stylesheet" href="style.css?v=29">
+<link rel="stylesheet" href="style.css?v=30">
 </head>
 <body>
 <div id="app">
@@ -18,6 +18,7 @@
       <h1>黃泉燒肉店<small>轉珠試玩版</small></h1>
       <p class="title-motto">如入火聚，得清涼門</p>
       <button class="btn gold" data-go="chapters">主線劇情</button>
+      <button class="btn" data-go="shop">托夢照相館</button>
       <button class="btn" data-go="dex">卡片圖鑑</button>
       <p class="title-note">試玩版 v0.1 ‧ 非官方粉絲作品</p>
     </div>
@@ -25,24 +26,25 @@
 
   <!-- 章節 -->
   <section id="chapters" class="screen">
-    <header class="bar"><button class="back" data-go="title">‹</button><h2>主線劇情</h2></header>
+    <header class="bar"><button class="back" data-go="title">‹</button><h2>主線劇情</h2><span class="merit-chip"></span></header>
     <div class="ch-list"></div>
   </section>
 
   <!-- 隊伍 -->
   <section id="team" class="screen">
-    <header class="bar"><button class="back" data-go="chapters">‹</button><h2>出擊隊伍</h2></header>
+    <header class="bar"><button class="back" data-go="chapters">‹</button><h2>出擊隊伍</h2><span class="merit-chip"></span></header>
     <div class="stage-card">
       <div class="stage-place"></div>
       <div class="stage-name"></div>
       <div class="stage-intro"></div>
       <div class="stage-waves"></div>
     </div>
+    <div class="chal-box" hidden></div>
     <div class="presets"></div>
     <div class="team-slots"></div>
     <div class="team-sum"></div>
     <div class="team-lead"></div>
-    <p class="hint">選一組推薦隊伍，或點任一格（隊長、戰友也可以）換成 50 位角色裡的任何一張卡。</p>
+    <p class="hint">選一組推薦隊伍，或點任一格（隊長、戰友也可以）換成你擁有的任何一張卡。</p>
     <button class="btn gold wide" id="go-battle">出擊</button>
   </section>
 
@@ -51,6 +53,7 @@
     <div class="field">
       <div class="field-bg"></div>
       <div class="wave-tag"></div>
+      <div class="chal-tag" hidden></div>
       <button class="gear" data-settings aria-label="設定">⚙</button>
       <button class="menu-btn" id="quit">✕</button>
       <div class="enemies"></div>
@@ -63,9 +66,16 @@
     <div class="board-wrap"><div class="board"></div></div>
   </section>
 
+  <!-- 托夢照相館 -->
+  <section id="shop" class="screen">
+    <header class="bar"><button class="back" data-go="title">‹</button><h2>托夢照相館</h2><span class="merit-chip"></span></header>
+    <p class="hint shop-note">用「功德」把喜歡的角色請回店裡。通關章節會自動加入劇情裡的角色。</p>
+    <div class="shop-grid"></div>
+  </section>
+
   <!-- 圖鑑 -->
   <section id="dex" class="screen">
-    <header class="bar"><button class="back" data-go="title">‹</button><h2>卡片圖鑑</h2></header>
+    <header class="bar"><button class="back" data-go="title">‹</button><h2>卡片圖鑑</h2><span class="merit-chip"></span></header>
     <div class="dex-tabs"></div>
     <div class="dex-head"></div>
     <div class="dex-grid"></div>
@@ -89,11 +99,11 @@
     <button class="dlg-skip">略過 ››</button>
   </div>
 </div>
-<script src="data.js?v=29"></script>
-<script src="cards.js?v=29"></script>
-<script src="profiles.js?v=29"></script>
-<script src="story.js?v=29"></script>
-<script src="audio.js?v=29"></script>
-<script src="game.js?v=29"></script>
+<script src="data.js?v=30"></script>
+<script src="cards.js?v=30"></script>
+<script src="profiles.js?v=30"></script>
+<script src="story.js?v=30"></script>
+<script src="audio.js?v=30"></script>
+<script src="game.js?v=30"></script>
 </body>
 </html>
