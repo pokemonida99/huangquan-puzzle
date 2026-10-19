@@ -9,81 +9,12 @@ const fmt = n => Math.round(n).toLocaleString("en-US");
 const stars = n => "★".repeat(n);
 const attrVars = a => `--c:${ATTR[a].color};--cd:${ATTR[a].dark}`;
 
-/* ---------------- 設定（音效、震動；記在這支手機的瀏覽器） ---------------- */
-const SET = { sound: true, vibe: true };
-try { Object.assign(SET, JSON.parse(localStorage.getItem("hq-settings") || "{}")); } catch (e) {}
-function saveSet() { try { localStorage.setItem("hq-settings", JSON.stringify(SET)); } catch (e) {} }
-const canVibe = "vibrate" in navigator;
-function vibe(p) { if (SET.vibe && canVibe) try { navigator.vibrate(p); } catch (e) {} }
-
-/* ---------------- 音效（WebAudio 即時合成，不用音檔） ---------------- */
-let actx, master, noiseBuf;
-function ac() {
-  if (!actx) {
-    actx = new (window.AudioContext || window.webkitAudioContext)();
-    master = actx.createGain(); master.gain.value = .55;
-    const comp = actx.createDynamicsCompressor();
-    master.connect(comp).connect(actx.destination);
-    noiseBuf = actx.createBuffer(1, actx.sampleRate * .5, actx.sampleRate);
-    const d = noiseBuf.getChannelData(0);
-    for (let i = 0; i < d.length; i++) d[i] = Math.random() * 2 - 1;
-  }
-  if (actx.state === "suspended") actx.resume();
-  return actx;
-}
-// 一個音：頻率可以滑動（f0→f1），有起音與衰減
-function tone({ f0, f1 = f0, dur = .12, type = "sine", vol = .3, delay = 0, attack = .005 }) {
-  const t = actx.currentTime + delay, o = actx.createOscillator(), g = actx.createGain();
-  o.type = type; o.frequency.setValueAtTime(f0, t);
-  if (f1 !== f0) o.frequency.exponentialRampToValueAtTime(f1, t + dur);
-  g.gain.setValueAtTime(.0001, t); g.gain.exponentialRampToValueAtTime(vol, t + attack);
-  g.gain.exponentialRampToValueAtTime(.0001, t + dur);
-  o.connect(g).connect(master); o.start(t); o.stop(t + dur + .02);
-}
-// 一段雜訊：經過濾波，用來做爆裂、打擊、火焰聲
-function noise({ dur = .15, vol = .3, freq = 1200, q = 1, type = "bandpass", f1, delay = 0 }) {
-  const t = actx.currentTime + delay, src = actx.createBufferSource(), f = actx.createBiquadFilter(), g = actx.createGain();
-  src.buffer = noiseBuf; f.type = type; f.Q.value = q; f.frequency.setValueAtTime(freq, t);
-  if (f1) f.frequency.exponentialRampToValueAtTime(f1, t + dur);
-  g.gain.setValueAtTime(vol, t); g.gain.exponentialRampToValueAtTime(.0001, t + dur);
-  src.connect(f).connect(g).connect(master); src.start(t); src.stop(t + dur + .02);
-}
-const SCALE = [0, 2, 4, 7, 9, 12, 14, 16, 19, 21, 24, 26, 28, 31];   // 五聲音階，combo 越多越高
-const sfx = new Proxy({
-  click() { tone({ f0: 900, f1: 700, dur: .06, type: "triangle", vol: .18 }); },
-  pick() { tone({ f0: 520, f1: 780, dur: .08, type: "triangle", vol: .2 }); },
-  swap() { tone({ f0: 1300 + Math.random() * 200, dur: .035, type: "sine", vol: .08 }); noise({ dur: .03, vol: .05, freq: 4000, q: 3 }); },
-  drop() { tone({ f0: 300, f1: 160, dur: .1, type: "sine", vol: .2 }); },
-  pop(n) {   // 消除：清脆的玻璃碎裂＋往上爬的音階
-    const f = 523.25 * Math.pow(2, SCALE[Math.min(n - 1, SCALE.length - 1)] / 12);
-    tone({ f0: f, dur: .22, type: "triangle", vol: .28 });
-    tone({ f0: f * 2, dur: .16, type: "sine", vol: .14, delay: .01 });
-    tone({ f0: f * 3.01, dur: .09, type: "sine", vol: .06, delay: .015 });
-    noise({ dur: .12, vol: .22, freq: 5200, q: .8, type: "highpass" });
-    noise({ dur: .08, vol: .18, freq: 900, f1: 300, q: 2 });
-  },
-  hit(big) {
-    noise({ dur: big ? .22 : .14, vol: big ? .4 : .28, freq: 1800, f1: 200, q: 1.2 });
-    tone({ f0: big ? 180 : 240, f1: 60, dur: .16, type: "square", vol: big ? .2 : .12 });
-  },
-  hurt() {
-    noise({ dur: .35, vol: .45, freq: 600, f1: 80, q: .7, type: "lowpass" });
-    tone({ f0: 110, f1: 40, dur: .35, type: "sawtooth", vol: .25 });
-  },
-  heal() { [0, 4, 7, 12].forEach((k, i) => tone({ f0: 784 * Math.pow(2, k / 12), dur: .3, vol: .12, delay: i * .06 })); },
-  skill() {
-    noise({ dur: .5, vol: .2, freq: 300, f1: 6000, q: 2 });
-    [0, 7, 12, 19].forEach((k, i) => tone({ f0: 440 * Math.pow(2, k / 12), dur: .45, type: "triangle", vol: .14, delay: i * .07 }));
-  },
-  wave() { tone({ f0: 196, dur: .5, type: "sawtooth", vol: .12 }); tone({ f0: 294, dur: .5, type: "sawtooth", vol: .1, delay: .12 }); noise({ dur: .4, vol: .15, freq: 200, q: 1, type: "lowpass" }); },
-  win() { [0, 4, 7, 12, 16, 19, 24].forEach((k, i) => tone({ f0: 523 * Math.pow(2, k / 12), dur: .5, type: "triangle", vol: .16, delay: i * .09 })); },
-  lose() { [12, 8, 5, 0].forEach((k, i) => tone({ f0: 220 * Math.pow(2, k / 12), dur: .6, type: "sine", vol: .2, delay: i * .22 })); },
-  evo() { noise({ dur: 1, vol: .25, freq: 200, f1: 8000, q: 3 }); [0, 4, 7, 11, 12, 16, 19, 24].forEach((k, i) => tone({ f0: 392 * Math.pow(2, k / 12), dur: .6, vol: .12, delay: .15 + i * .08 })); }
-}, { get: (o, k) => (...a) => { if (!SET.sound) return; try { ac(); o[k](...a); } catch (e) {} } });
+const { SET, saveSet, canVibe, vibe, sfx, music } = HQ;
 
 /* ---------------- 畫面切換 ---------------- */
 function go(id) {
   $$(".screen").forEach(s => s.classList.toggle("active", s.id === id));
+  if (id !== "battle") music.play("title");
   if (id === "team") renderTeam();
   if (id === "dex") renderDex();
 }
@@ -156,7 +87,9 @@ function startBattle() {
   };
   renderParty(); updateHp();
   initBoard();
-  loadWave(0);
+  $("#battle").classList.remove("boss-field");
+  B.busy = true; board.classList.add("locked");
+  loadWave(0).then(() => { B.busy = false; board.classList.remove("locked"); });
 }
 
 function renderParty() {
@@ -182,13 +115,13 @@ function updateHp() {
 }
 
 /* ---------------- 敵人 ---------------- */
-function loadWave(w) {
+async function loadWave(w) {
   B.wave = w; B.target = null;
   B.enemies = STAGE.waves[w].map(k => ({ ...ENEMIES[k], key: k, hpNow: ENEMIES[k].hp, cdNow: ENEMIES[k].cd }));
   $(".wave-tag").textContent = `${STAGE.name}　${w + 1} / ${STAGE.waves.length}`;
   const box = $(".enemies");
   box.innerHTML = B.enemies.map((e, i) => `
-    <div class="enemy ${e.boss ? "boss" : ""}" data-i="${i}" style="${attrVars(e.attr)}">
+    <div class="enemy ${e.boss ? "boss lurk" : ""}" data-i="${i}" style="${attrVars(e.attr)}">
       <span class="ecd">CD <b>${e.cdNow}</b></span>
       <img class="pic" src="${e.img}" alt="${e.name}">
       <div class="ehp"><i></i></div>
@@ -199,8 +132,58 @@ function loadWave(w) {
     B.target = B.target === i ? null : i;
     $$(".enemy").forEach((x, j) => x.classList.toggle("target", j === B.target));
   });
-  banner(B.enemies.some(e => e.boss) ? "BOSS" : `第 ${w + 1} 波`);
+  const boss = B.enemies.find(e => e.boss);
+  if (boss) { await bossIntro(boss, $(".enemy.boss")); return; }
+  music.play("battle");
+  banner(`第 ${w + 1} 波`);
   sfx.wave();
+}
+
+/* ---------------- 撒旦登場：暗場、地鳴、三聲重擊、咆哮現身 ---------------- */
+function quake(px, ms) {
+  const k = [];
+  for (let n = 0; n < 10; n++) {
+    const f = 1 - n / 10;
+    k.push({ transform: `translate(${(Math.random() * 2 - 1) * px * f}px, ${(Math.random() * 2 - 1) * px * f}px) rotate(${(Math.random() * 2 - 1) * px * f * .08}deg)` });
+  }
+  k.push({ transform: "none" });
+  $("#app").animate(k, { duration: ms, easing: "linear" });
+}
+function flash(color, ms = 400) {
+  const d = document.createElement("div");
+  d.className = "flash"; d.style.background = color; d.style.animationDuration = ms + "ms";
+  $("#app").appendChild(d); setTimeout(() => d.remove(), ms);
+}
+async function bossIntro(boss, el) {
+  const bt = $("#battle");
+  music.stop(1.2);
+  const veil = document.createElement("div");
+  veil.className = "boss-veil";
+  veil.innerHTML = `<div class="warn"><span>WARNING</span><span>魔界第三王國 ‧ 七宗罪之憤怒</span><span>WARNING</span></div>
+    <div class="boss-title"><small>憤怒魔王</small><b>${boss.name}</b>
+    ${PROFILE[boss.name] && PROFILE[boss.name].quotes[0] ? `<q>${PROFILE[boss.name].quotes[0][1]}</q>` : ""}</div>`;
+  bt.appendChild(veil);
+  await sleep(300);
+  sfx.rumble(2.8);
+  bt.classList.add("tremor");
+  vibe([40, 160, 40, 160, 40, 160]);
+  for (const [k, px] of [[.6, 6], [.8, 10], [1, 14]]) {
+    await sleep(800);
+    sfx.boom(k); quake(px, 380); flash("rgba(160,0,0,.45)", 380); vibe(70 + px * 4);
+  }
+  await sleep(500);
+  bt.classList.remove("tremor");
+  // 現身
+  sfx.roar();
+  el.classList.remove("lurk"); el.classList.add("reveal");
+  veil.classList.add("show-title");
+  quake(22, 900); flash("rgba(255,60,20,.75)", 600); vibe([250, 60, 400]);
+  bt.classList.add("boss-field");
+  await sleep(2600);
+  veil.classList.add("out");
+  music.play("boss", .2);
+  await sleep(600);
+  veil.remove(); el.classList.remove("reveal");
 }
 function enemyEl(i) { return $$(".enemy")[i]; }
 function updateEnemy(i) {
@@ -508,8 +491,8 @@ async function checkWave() {
   if (alive().length) return false;
   await sleep(500);
   if (B.wave + 1 < STAGE.waves.length) {
-    loadWave(B.wave + 1);
-    await sleep(900);
+    await loadWave(B.wave + 1);
+    await sleep(600);
     B.busy = false; board.classList.remove("locked");
     return true;
   }
@@ -524,10 +507,11 @@ async function enemyTurn() {
       el.classList.remove("atk"); void el.offsetWidth; el.classList.add("atk");
       await sleep(250);
       B.hp -= e.atk; updateHp();
-      document.querySelector("#battle").animate([{ transform: "translateX(-6px)" }, { transform: "translateX(6px)" }, { transform: "none" }], { duration: 220 });
+      if (e.boss) { quake(16, 500); flash("rgba(200,0,0,.4)", 400); }
+      else quake(6, 240);
       const hb = $(".hpbar").getBoundingClientRect(), fb = $(".field").getBoundingClientRect();
       floatText(hb.left - fb.left + hb.width / 2, hb.top - fb.top - 34, "-" + fmt(e.atk), e.attr);
-      sfx.hurt(); vibe([60, 40, 90]);
+      if (e.boss) { sfx.slam(); vibe([120, 40, 200]); } else { sfx.hurt(); vibe([60, 40, 90]); }
       e.cdNow = e.cd;
       await sleep(350);
     }
@@ -583,12 +567,13 @@ async function castSkill(i) {
 
 /* ---------------- 結算 ---------------- */
 function win() {
+  music.stop(.4);
   sfx.win(); vibe([40, 60, 40, 60, 120]);
   modal(`<div class="result"><h3>過關</h3><p>撒旦被打回第三王國了。<br>三途川的燈，又亮了一晚。</p>
     <div class="row"><button class="btn" data-goto="team">回隊伍</button><button class="btn gold" data-goto="again">再玩一次</button></div></div>`);
 }
 function lose() {
-  B.busy = true; sfx.lose(); vibe(300);
+  B.busy = true; music.stop(.8); sfx.lose(); vibe(300);
   modal(`<div class="result"><h3>全隊陣亡</h3><p>如入火聚，得清涼門。再試一次吧。</p>
     <div class="row"><button class="btn" data-goto="team">回隊伍</button><button class="btn gold" data-goto="again">重新挑戰</button></div></div>`);
 }
@@ -602,6 +587,7 @@ function settingsDialog() {
   const row = (k, label, note, ok = true) => `<div class="set-row"><div>${label}<small>${note}</small></div>
     <button class="switch ${SET[k] && ok ? "on" : ""}" data-k="${k}" ${ok ? "" : "disabled"} aria-label="${label}"></button></div>`;
   modal(`<h3>設定</h3>
+    ${row("music", "配樂", "標題、戰鬥與王關的背景音樂")}
     ${row("sound", "音效", "轉珠、消除、攻擊與技能的聲音")}
     ${row("vibe", "震動", canVibe ? "消除、受傷、發動技能時手機會震動" : "這支手機的瀏覽器不支援震動（iPhone 的瀏覽器都不支援）", canVibe)}
     <div class="row"><button class="btn gold" data-close>完成</button></div>`);
@@ -610,6 +596,7 @@ function settingsDialog() {
     b.classList.toggle("on", SET[b.dataset.k]);
     if (b.dataset.k === "vibe" && SET.vibe) vibe([30, 40, 30]);
     if (b.dataset.k === "sound" && SET.sound) sfx.pop(3);
+    if (b.dataset.k === "music") music.refresh();
   });
 }
 document.addEventListener("click", e => { if (e.target.closest("[data-settings]") && !(B && B.busy)) settingsDialog(); });
@@ -727,4 +714,7 @@ function showEnemy(k) {
 }
 
 renderTeam();
+music.play("title");
+// 瀏覽器要求使用者先碰過畫面才能出聲
+document.addEventListener("pointerdown", () => music.unlock(), true);
 })();

@@ -24,8 +24,10 @@
 2. `tools/gen.sh <id> "<提示詞>" refs/<圖>` → 跑 `tools/assets.py`
 3. 在 `data.js` 的 `CARDS` 加一筆；進化用 `evo` 串下一階段，同一個 `who` 會在圖鑑排成進化鏈
 
-## 音效與震動
+## 配樂、音效與震動（`audio.js`）
 
-- 音效全部用 WebAudio 即時合成（`game.js` 的 `sfx`），沒有音檔。
+- 全部用 WebAudio 即時合成，沒有音檔。樂器有太鼓、古箏、二胡、銅管、銅鑼、和聲墊，加一層殘響。
+- 配樂三首，都是 8 小節循環：`title` 標題（D 小調慢板，古箏琶音）、`battle` 戰鬥（132 BPM，太鼓＋二胡主旋律）、`boss` 撒旦（148 BPM，C 小調加降 D 和弦，破音貝斯、銅管重音）。旋律寫在 `SONGS` 的 `lead`，格式是 `[音高(MIDI), 長度(十六分音符格數)]`。
+- 撒旦登場（`game.js` 的 `bossIntro`）：暗場＋WARNING 警示帶、地鳴、三聲越來越重的重擊（畫面震動＋紅閃）、咆哮現身、名字砸下來，接著王關配樂。撒旦攻擊時也會大震。
 - 震動用 `navigator.vibrate`，Android 的 Chrome 可以，iPhone 的瀏覽器都不支援。
-- 設定（標題右上、戰鬥畫面的齒輪）存在瀏覽器 localStorage 的 `hq-settings`。
+- 設定（標題右上、戰鬥畫面的齒輪）：配樂、音效、震動三個開關，存在 localStorage 的 `hq-settings`。
