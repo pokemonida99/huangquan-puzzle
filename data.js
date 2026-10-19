@@ -118,6 +118,7 @@ window.PRESETS = [
   { name: "業鏡五屬隊", note: "禮帽西裝的李國志帶隊，一次消四種顏色攻擊力再加成。光剋暗：第一章", team: DEMO_TEAM },
   { name: "嫉妒魔王水隊", note: "利維坦：任何顏色都算水。血多、回復高、攻擊低。水剋火：第五章", team: ["leviathan", "nova", "mimi", "jiuwei", "yangzi", "leviathan"] },
   { name: "醫神木隊", note: "華佗：木屬性攻擊大增、回復高、每次轉珠後回血。木剋水：第四章", team: ["huatuo", "afu", "qianliyan", "heitang", "lvyi", "huatuo"] },
+  { name: "小月老暗隊", note: "語彤（覺醒）：暗屬性攻擊大增、血量加成，隊友全是暗屬性。轉光為暗、全隊加攻擊的主動技。暗光互剋", team: ["yutong5", "du", "rat", "moti", "reaperc", "yutong5"] },
   { name: "赤帝火隊", note: "祝融：火珠大量掉落。攻擊高、血少、回復低。火剋木：第二章", team: ["zhurong", "dabao", "aizen", "akasaka", "huji", "zhurong"] }
 ];
 

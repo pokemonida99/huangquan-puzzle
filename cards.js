@@ -7,15 +7,16 @@
    ========================================================================= */
 (() => {
 // 進化鏈的階段（同一角色在圖鑑、換卡器依這個排序）
-const STAGE_OF = { yutong1: 1, yutong: 2, yutong3: 3, yutong4: 4, xiaoyu2: 2, dabao2: 2, dabao3: 3, afu2: 2 };
+const STAGE_OF = { yutong1: 1, yutong: 2, yutong3: 3, yutong4: 4, yutong5: 5, xiaoyu2: 2, dabao2: 2, dabao3: 3, afu2: 2 };
 const ROWS = [
   /* 黃泉燒肉店 */
-  // 語彤是主角，四階進化依劇中衣著的時期：高中生 → 燒肉店 → 狐姬改造後 → 實習月老
+  // 語彤是主角，四階進化依劇中衣著的時期：高中生 → 燒肉店 → 狐姬改造後 → 實習月老 → 覺醒（EP5-13 同一套漢服外加白紗）
   ["yutong1", "語彤", "呆丸高中生", "dark", "半魔", "shop", "atk", "黑令旗", { attrAtk: { dark: 2 } }, "魔氣", 6, { convert: ["heart", "dark"] }, null],
   ["yutong", "語彤", "燒肉店的乾女兒", "dark", "半魔", "shop", "bal", "胎記是神的印章", { attrAtk: { dark: 2 }, allRec: 1.3 }, "巧克力醬菜單", 5, { convert: ["light", "dark"], healPct: .2 },
     "Lin Yutong, a teenage girl with a short mint-green bob with dark roots and blunt bangs, round black glasses, a dark red birthmark around one eye, wearing the dark grey Huangquan Yakiniku staff shirt with a small gold embroidered shop name on the chest, standing in the warm yakiniku restaurant. No robe, no red thread"],
   ["yutong3", "語彤", "赤戀星空", "dark", "半魔", "shop", "bal", "赤戀星空", { attrAtk: { dark: 2.5 } }, "暈船雷達", 7, { convert: ["heart", "dark"], buff: 1.3 }, null],
   ["yutong4", "語彤", "實習月老", "dark", "半魔", "shop", "atk", "恨之歌", { attrAtk: { dark: 2.5 }, allHp: 1.2 }, "月老廟的香火", 8, { convert: ["light", "dark"], nuke: 15 }, null],
+  ["yutong5", "語彤", "有了神性的小月老", "dark", "半魔", "shop", "atk", "是你嗎？林語彤", { attrAtk: { dark: 3 }, allHp: 1.3 }, "愛戀文印", 6, { convert: ["light", "dark"], nuke: 30, buff: 1.8 }, null],
   ["baimei", "白妹", "碧落髮廊", "wood", "人類", "shop", "rec", "等了幾十年", { allRec: 2 }, "百元快剪", 5, { convert: ["dark", "wood"] },
     "Bai Mei, a woman with long purple hair and big black glasses, black kimono-style barber outfit, holding scissors and a comb, old-fashioned underworld hair salon with warm lamps"],
   /* 呆丸消防隊 */
@@ -165,7 +166,7 @@ ROWS.forEach(([id, who, title, attr, race, series, kind, leadName, leadFx, actNa
 });
 })();
 // 進化順序（語彤四階；小雨、大寶、阿副的進化）
-[["yutong1", "yutong"], ["yutong", "yutong3"], ["yutong3", "yutong4"], ["xiaoyu", "xiaoyu2"], ["dabao", "dabao2"], ["dabao2", "dabao3"], ["afu", "afu2"]]
+[["yutong1", "yutong"], ["yutong", "yutong3"], ["yutong3", "yutong4"], ["yutong4", "yutong5"], ["xiaoyu", "xiaoyu2"], ["dabao", "dabao2"], ["dabao2", "dabao3"], ["afu", "afu2"]]
   .forEach(([a, b]) => { CARDS[a].evo = b; CARDS[a].stage = CARDS[a].stage || 1; });
 
 /* =========================================================================
@@ -203,10 +204,10 @@ window.TIERS = {
     "趙大人": "D", "翠花": "D", "綠衣女子": "D", "梁安恆的媽媽": "D", "庚寅筱晴": "D", "白蛛會角頭": "D", "狀元糕老伯": "D"
   };
   // 李國志三階：業鏡羅漢照表是 B；刀鋸使、米店老闆依劇情往下
-  const BY_ID = { lee1: "D", lee2: "C", lee3: "B", lee4: "B", yutong1: "D", yutong: "D", yutong3: "C", yutong4: "C",
+  const BY_ID = { lee1: "D", lee2: "C", lee3: "B", lee4: "B", yutong1: "D", yutong: "D", yutong3: "C", yutong4: "C", yutong5: "B",
     xiaoyu2: "C", dabao2: "D", dabao3: "C", afu2: "C" };
   // 同一階級裡，進化後的卡再強一點
-  const EVO_UP = { lee2: 1.06, lee3: 1.06, lee4: 1.12, yutong: 1.06, yutong3: 1.0, yutong4: 1.08, dabao2: 1.08, dabao3: 1.06 };
+  const EVO_UP = { lee2: 1.06, lee3: 1.06, lee4: 1.12, yutong: 1.06, yutong3: 1.0, yutong4: 1.08, yutong5: 1.08, dabao2: 1.08, dabao3: 1.06 };
   const ON_CHART = new Set(["撒旦", "瘟疫", "路西法", "祝融", "基路伯", "觀音菩薩", "利維坦", "阿芙羅黛蒂", "哈索爾", "千里眼", "鼠軍師", "月老", "愛染明王", "華佗", "九尾", "語彤", "陽滋公主", "諾瓦", "狐姬", "七號"]);
   const KIND_ID = { lee1: "bal", lee2: "atk", lee3: "bal", lee4: "bal", xiaobai: "atk", xiaoyu: "rec", dabao: "atk", afu: "hp" };
   const KIND = { atk: [.9, 1.2, .8], hp: [1.3, .9, .9], rec: [1, .85, 1.5], bal: [1.05, 1, 1.05] };
@@ -216,7 +217,7 @@ window.TIERS = {
     const tier = BY_ID[id] || BY_WHO[c.who] || "D", t = TIERS[tier];
     const kind = KIND_ID[id] || c.kind || "bal", km = KIND[kind], ab = BIAS[c.attr] || [1, 1, 1];
     const j = 1 + ((k * 37) % 9 - 4) / 100, e = EVO_UP[id] || 1;   // j 每張卡微調、e 進化加成
-    c.tier = tier; c.onChart = (ON_CHART.has(c.who) && !/^yutong/.test(id)) || id === "lee4" || id === "yutong4"; c.star = t.star;
+    c.tier = tier; c.onChart = (ON_CHART.has(c.who) && !/^yutong/.test(id)) || id === "lee4" || id === "yutong4" || id === "yutong5"; c.star = t.star;
     c.hp = Math.round(BASE[0] * t.m * km[0] * ab[0] * j * e / 10) * 10;
     c.atk = Math.round(BASE[1] * t.m * km[1] * ab[1] / j * e / 5) * 5;
     c.rec = Math.round(BASE[2] * t.m * km[2] * ab[2] * j * e / 5) * 5;
@@ -257,6 +258,7 @@ window.TIERS = {
     aphrodite: [{ attrAtk: { light: 3.2 }, allRec: 2, regen: .1 }, 5, { healPct: .6, buff: 2 }],
     leviathan: [{ attrAtk: { water: 3 }, allHp: 1.3, allAs: "water" }, 6, { nuke: 35, buff: 1.8 }],
     satanc:    [{ attrAtk: { fire: 3.2 }, allHp: 1.2 }, 6, { board: ["fffddd", "fffddd", "fffddd", "fffddd", "fffddd"], boardDesc: "左半邊火符石、右半邊暗符石", buff: 2 }],
+    yutong5:   [{ attrAtk: { dark: 3 }, allHp: 1.3 }, 6, { convert: ["light", "dark"], nuke: 30, buff: 1.8 }],
     lee3:      [{ allAtk: 2.7, allHp: 1.43, multiAttr: { n: 4, x: 1.43 } }, 5, { rainbow: true, buff: 1.8 }],
     lee4:      [{ allAtk: 2.7, allHp: 1.43, multiAttr: { n: 4, x: 1.68 } }, 5, { rainbow: true, buff: 2 }],
     yuelao:    [{ attrAtk: { light: 3.2, wood: 3.2 }, allHp: 1.3 }, 5, { board: ["lglglg", "lglglg", "lglglg", "lglglg", "lglglg"], boardDesc: "光符石與木符石一直排一直排交錯", buff: 1.8 }],
@@ -326,4 +328,4 @@ window.TIERS = {
 })();
 
 /* 五星以上發招特寫用的去背姿勢圖（art/skill/<id>.webp）；不在名單上的先用卡面 */
-window.SKILL_POSE = ["lee4"];
+window.SKILL_POSE = ["lee4", "yutong5"];
