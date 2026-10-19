@@ -258,10 +258,35 @@ function tick() {
     if (!music.step) music.loop++;
   }
 }
+/* 音檔配樂（配樂資料夾壓縮後放在 audio/）：title 標題、battle1/2 戰鬥、boss1/2 王關。
+   沒有音檔的名稱才退回上面的合成配樂。 */
+const TRACKS = { title: "audio/title.m4a", battle1: "audio/battle1.m4a", battle2: "audio/battle2.m4a", boss1: "audio/boss1.m4a", boss2: "audio/boss2.m4a" };
+const TRACK_VOL = .6;
+const tracks = {};
+function trackOf(name) {
+  if (!TRACKS[name]) return null;
+  if (!tracks[name]) {
+    const a = new Audio(TRACKS[name]);
+    a.loop = true; a.preload = "auto"; a.setAttribute("playsinline", "");
+    const g = A.createGain(); g.gain.value = .0001;
+    try { A.createMediaElementSource(a).connect(g).connect(master); } catch (e) {}
+    tracks[name] = { a, g };
+  }
+  return tracks[name];
+}
+function rampTo(g, v, sec) { const t = A.currentTime; g.gain.cancelScheduledValues(t); g.gain.setValueAtTime(Math.max(g.gain.value, .0001), t); g.gain.linearRampToValueAtTime(v, t + sec); }
 music.play = function (name, fade = .6) {
   music.want = name;
   if (!SET.music || !A || music.cur === name) return;
   music.stop(fade);
+  const tr = trackOf(name);
+  if (tr) {
+    music.cur = name; music.track = tr;
+    tr.a.currentTime = 0;
+    tr.a.play().catch(() => {});
+    rampTo(tr.g, TRACK_VOL, fade);
+    return;
+  }
   const song = SONGS[name];
   song.len = 60 / song.bpm / 4;
   music.cur = name; music.bus = makeBus(.0001); music.bus.set(song.vol, fade);
@@ -269,6 +294,11 @@ music.play = function (name, fade = .6) {
   clearInterval(music.timer); music.timer = setInterval(tick, 25); tick();
 };
 music.stop = function (fade = .5) {
+  if (music.track) {   // 音檔：淡出後暫停
+    const tr = music.track; rampTo(tr.g, .0001, fade);
+    setTimeout(() => { if (music.track !== tr) tr.a.pause(); }, fade * 1000 + 100);
+    music.track = null;
+  }
   if (music.bus) { const b = music.bus; b.set(.0001, fade); setTimeout(() => { b.dry.disconnect(); b.wet.disconnect(); }, fade * 1000 + 3000); }
   clearInterval(music.timer); music.cur = null; music.bus = null;
 };
@@ -294,6 +324,11 @@ music.unlock = function () {
       silentTag = document.createElement("audio");
       silentTag.src = silentWav(); silentTag.loop = true; silentTag.setAttribute("playsinline", "");
       silentTag.play().catch(() => { silentTag = null; });
+    }
+    // iPhone 每個 <audio> 都要在使用者點擊時先播過一次才能自動播放：第一次點擊時全部靜音播一下再停
+    if (!music.primed) {
+      music.primed = true;
+      Object.keys(TRACKS).forEach(n => { const tr = trackOf(n); tr.a.play().then(() => { if (music.cur !== n) tr.a.pause(); }).catch(() => {}); });
     }
     if (music.want && !music.cur) music.play(music.want);
   } catch (e) {}

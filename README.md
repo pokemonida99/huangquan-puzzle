@@ -34,6 +34,9 @@
 
 ## 配樂、音效與震動（`audio.js`）
 
+- 配樂音檔：原檔在 `配樂/`（不進 git），壓縮成 AAC 80kbps、音量統一 −18 LUFS、修掉頭尾靜音後放 `audio/`：`title` 標題與選單、`battle1/2` 戰鬥、`boss1/2` 王關。每章用哪首寫在 `story.js` 各章的 `music`。
+- 重新壓縮：`ffmpeg -i 配樂/xx.mp3 -vn -af loudnorm=I=-18:TP=-1.5:LRA=11 -c:a aac -b:a 80k audio/xx.m4a`
+
 - 全部用 WebAudio 即時合成，沒有音檔。樂器有太鼓、古箏、二胡、銅管、銅鑼、和聲墊，加一層殘響。
 - 配樂三首，都是 8 小節循環：`title` 標題（D 小調慢板，古箏琶音）、`battle` 戰鬥（132 BPM，太鼓＋二胡主旋律）、`boss` 撒旦（148 BPM，C 小調加降 D 和弦，破音貝斯、銅管重音）。旋律寫在 `SONGS` 的 `lead`，格式是 `[音高(MIDI), 長度(十六分音符格數)]`。
 - 撒旦登場（`game.js` 的 `bossIntro`）：暗場＋WARNING 警示帶、地鳴、三聲越來越重的重擊（畫面震動＋紅閃）、咆哮現身、名字砸下來，接著王關配樂。撒旦攻擊時也會大震。

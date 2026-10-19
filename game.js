@@ -390,7 +390,7 @@ async function loadWave(w) {
   const boss = B.enemies.find(e => e.boss);
   if (boss) await bossIntro(boss, $(".enemy.boss"));
   if (!B) return;
-  else { music.play("battle"); banner(`第 ${w + 1} 波`); sfx.wave(); }
+  else { music.play((CH.music && CH.music.battle) || "battle1"); banner(`第 ${w + 1} 波`); sfx.wave(); }
   B.enemies.forEach((e, i) => { if (e.shield) { updateEnemy(i); } });
   const sh = B.enemies.find(e => e.shield);
   if (sh) { await sleep(300); banner(sh.shield.name); }
@@ -462,7 +462,7 @@ async function bossIntro(boss, el) {
   bt.classList.add("boss-field");
   await sleep(2600);
   veil.classList.add("out");
-  music.play("boss", .2);
+  music.play((CH.music && CH.music.boss) || "boss1", .2);
   await sleep(600);
   veil.remove(); el.classList.remove("reveal");
 }
