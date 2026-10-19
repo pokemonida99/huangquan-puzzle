@@ -144,6 +144,7 @@ function dialog(lines) {
         slot[side] = who; last = side;
         img.onerror = () => { if (p.fallback && img.getAttribute("src") !== p.fallback) { img.src = p.fallback; v.classList.remove("vn-pic"); v.classList.add("card"); } };
         if (img.getAttribute("src") !== p.src) img.src = p.src;
+        v.style.setProperty("--vs", (VN_SCALE[who] || 1));
         v.classList.toggle("vn-pic", p.kind === "vn"); v.classList.toggle("card", p.kind === "card"); v.classList.toggle("enemy", p.kind === "enemy");
         if (entering) { v.classList.remove("in"); void v.offsetWidth; v.classList.add("in"); }
         $$(".vn", D).forEach(x => { const s = x.classList.contains("vn-l") ? "l" : "r"; x.classList.toggle("on", !!slot[s] && s === side); x.classList.toggle("off", !!slot[s] && s !== side); });

@@ -15,7 +15,7 @@
 | `cards.js` | 第二批 45 位角色的卡片（稱號、屬性、技能、生圖描述） |
 | `profiles.js` | 自動產生（`node tools/gen_profiles.js > profiles.js`）：新角色的故事與資料，取自資料館 |
 | `story.js` | 三章劇情、對話、波次與新敵人；`VN` 是立繪代號 |
-| `tools/vn_prompts.sh` `tools/vn_queue.sh` `tools/vn_cut.py` | 劇情立繪：洋紅底生圖（同角色其他表情拿 normal 當參考）→ 去背成 `art/vn/<代號>-<表情>.webp` |
+| `tools/vn_prompts.sh` `tools/vn_queue.sh` `tools/vn_cut.py` `tools/vn_norm.py` | 劇情立繪：洋紅底生圖（同角色其他表情拿 normal 當參考）→ 去背 → 統一取景（頭頂往下 4.5 個頭長），輸出 `art/vn/<代號>-<表情>.webp` |
 | `tools/queue.js` `tools/run_queue.py` | 產生生圖佇列、平行生圖（已有的跳過） |
 | `data.js` | 屬性、系列、卡片數值與技能、敵人、關卡、角色檔案（背景故事、別名、登場集數、關係、台詞） |
 | `art/` | 卡面、敵人（GPT 依劇照重繪）、符石 `orb-*`（GPT 生成後去背）、`av/` 預定角色頭像 |

@@ -346,7 +346,7 @@ h1 small { display: block; font-size: 18px; letter-spacing: .5em; color: var(--i
   background: linear-gradient(transparent 30%, rgba(0,0,0,.75) 75%); padding: 0 12px calc(16px + env(safe-area-inset-bottom)); }
 .dialog.on { display: flex; }
 /* 立繪：左右各一位，說話的人亮、另一位暗下來 */
-.vn { position: absolute; bottom: 150px; width: 70%; height: 62%; display: flex; align-items: flex-end; justify-content: center; pointer-events: none;
+.vn { position: absolute; bottom: 150px; width: 70%; height: 60%; display: flex; align-items: flex-end; justify-content: center; pointer-events: none;
   opacity: 0; transition: filter .25s, transform .25s, opacity .25s; }
 .vn-l { left: -8%; }
 .vn-r { right: -8%; }
@@ -354,6 +354,8 @@ h1 small { display: block; font-size: 18px; letter-spacing: .5em; color: var(--i
 .vn.on { z-index: 2; filter: drop-shadow(0 0 18px rgba(0,0,0,.6)); }
 .vn.off { z-index: 1; filter: brightness(.38) saturate(.6); transform: scale(.94); }
 .vn img { max-width: 100%; max-height: 100%; object-fit: contain; }
+/* 立繪一律依高度縮放（不受寬度限制），每個人的身形大小才會一致 */
+.vn.vn-pic img { height: 100%; width: auto; max-width: none; max-height: none; transform-origin: 50% 100%; transform: scale(var(--vs, 1)); }
 .vn.vn-pic img { -webkit-mask-image: linear-gradient(#000 82%, transparent); mask-image: linear-gradient(#000 82%, transparent); }
 .vn.card img { width: 100%; height: 100%; object-fit: cover; object-position: 50% 15%; border-radius: 16px 16px 0 0;
   -webkit-mask-image: linear-gradient(#000 70%, transparent); mask-image: linear-gradient(#000 70%, transparent); }
