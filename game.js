@@ -125,6 +125,7 @@ function renderChapters() {
   $$(".ch-chal").forEach(b => b.onclick = () => { CH = CHAPTERS[+b.dataset.chal]; chal = { idx: +b.dataset.chal }; go("team"); });
 }
 function leaderFx() { return [CARDS[team[0]].lead.fx, CARDS[team[5]].lead.fx]; }
+const allAnimal = () => team.every(id => CARDS[id].animal);   // 隱藏：全隊動物，每位隊長攻擊 6.25 倍
 function teamHp() {
   let hp = team.reduce((s, id) => s + CARDS[id].hp, 0);
   leaderFx().forEach(fx => { if (fx.allHp) hp *= fx.allHp; });
@@ -402,6 +403,7 @@ async function loadWave(w) {
   B.enemies.forEach((e, i) => { if (e.shield) { updateEnemy(i); } });
   const sh = B.enemies.find(e => e.shield);
   if (sh) { await sleep(300); banner(sh.shield.name); }
+  if (w === 0 && allAnimal()) { await sleep(300); banner("動物大團結！"); vibe([30, 40, 30]); await sleep(600); }
   await openStrike();
 }
 /* 進場攻擊（觀音的隊長技）：每一波敵人一出現，隊長／戰友先打全體一下 */
@@ -860,6 +862,7 @@ function leaderMul(attr, groups) {
     if (fx.attrAtk && fx.attrAtk[attr]) m *= fx.attrAtk[attr];
     if (fx.multiAttr && kinds >= fx.multiAttr.n) m *= fx.multiAttr.x;
   });
+  if (allAnimal()) m *= 6.25 * 6.25;
   return m;
 }
 function typeMul(a, d) { return BEATS[a] === d ? 2 : BEATS[d] === a && a !== "light" && a !== "dark" ? .5 : 1; }

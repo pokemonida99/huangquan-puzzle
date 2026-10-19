@@ -320,6 +320,8 @@ window.TIERS = {
     if (fx.buff) t.push(`本回合全隊攻擊力 ${fx.buff} 倍`);
     return t.join("，");
   }
+  // 隱藏設定（不寫進說明）：全隊都是動物時，每位動物隊長讓全隊攻擊力 6.25 倍，雙隊長相乘
+  ["mimi", "cat918", "gongwan", "heitang", "maoguai", "rat"].forEach(id => CARDS[id].animal = true);
   // 破盾功能卡：刀鋸使李國志（光）、秦王（暗）
   CARDS.lee2.act.fx.breakShield = true; delete CARDS.lee2.act.desc;
   CARDS.qinwang.act.fx.breakShield = true; delete CARDS.qinwang.act.desc;
