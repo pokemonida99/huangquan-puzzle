@@ -79,7 +79,7 @@ window.CARDS = {
   },
   xiaoyu: {
     who: "小雨", title: "燒肉店店員", attr: "water", race: "人類", star: 4,
-    hp: 1700, atk: 560, rec: 520, art: "art/xiaoyu.webp", evo: null,
+    hp: 2200, atk: 420, rec: 830, art: "art/xiaoyu.webp", evo: null,
     lore: "替每一位客人端上遺願馬卡龍。",
     planned: ["燒肉店店員", "代理店長"],
     lead: { name: "先吃遺願馬卡龍", desc: "回復力 2 倍", fx: { allRec: 2 } },
@@ -87,7 +87,7 @@ window.CARDS = {
   },
   dabao: {
     who: "大寶", title: "消防小隊長", attr: "fire", race: "人類", star: 4,
-    hp: 1900, atk: 680, rec: 250, art: "art/dabao.webp", evo: null,
+    hp: 1520, atk: 920, rec: 160, art: "art/dabao.webp", evo: null,
     lore: "總是把存下來的功德花在別人身上。",
     planned: ["消防小隊長", "托夢照相館", "天煞孤星"],
     lead: { name: "嘴賤講義氣", desc: "火屬性攻擊力 2 倍", fx: { attrAtk: { fire: 2 } } },
@@ -105,6 +105,13 @@ window.CARDS = {
 
 /* 試玩隊伍：頭尾都是李國志 */
 window.DEMO_TEAM = ["lee3", "xiaobai", "xiaoyu", "dabao", "afu", "lee3"];
+
+/* 推薦隊伍：選了之後每一格都還能自由換卡 */
+window.PRESETS = [
+  { name: "業鏡五屬隊", note: "李國志帶隊，五種屬性一起消，全隊攻擊力再加成", team: DEMO_TEAM },
+  { name: "嫉妒魔王水隊", note: "血多、回復高、攻擊低，穩穩打。水剋火：適合第三章的撒旦", team: ["leviathan", "nova", "mimi", "jiuwei", "yangzi", "leviathan"] },
+  { name: "赤帝火隊", note: "攻擊高、血少、回復低，速戰速決。火剋木：適合第二章", team: ["zhurong", "dabao", "aizen", "akasaka", "huji", "zhurong"] }
+];
 
 window.ENEMIES = {
   bat:    { name: "蝙蝠惡魔", attr: "fire", img: "art/enemy-bat.webp", hp: 45000, atk: 1400, cd: 2 },

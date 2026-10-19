@@ -10,4 +10,4 @@ log=work/gen-$name.log
   "Generate one image with your image generation tool: $prompt Do not run any shell commands." "${args[@]}" > $log 2>&1 </dev/null
 sid=$(grep -m1 -o 'session id: [0-9a-f-]*' $log | awk '{print $3}')
 img=$(ls -t ~/.codex/generated_images/$sid/*.png(N) 2>/dev/null | head -1)
-if [[ -n $img ]]; then cp "$img" art/$name.png; echo "OK $name"; else echo "FAIL $name (see $log)"; fi
+if [[ -n $sid && -n $img && -f $img ]] && cp "$img" art/$name.png && [[ -f art/$name.png ]]; then echo "OK $name"; else echo "FAIL $name (see $log)"; fi

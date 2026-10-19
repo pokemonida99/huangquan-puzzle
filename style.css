@@ -377,3 +377,12 @@ h1 small { display: block; font-size: 18px; letter-spacing: .5em; color: var(--i
 
 .hpbar.guarded { box-shadow: 0 0 0 2px #7fd6ff, 0 0 12px #7fd6ff; }
 .boss-title b.long { font-size: 44px; letter-spacing: .15em; margin-right: -.15em; }
+
+/* 推薦隊伍 */
+.presets { display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; margin: 12px 16px 0; }
+.pre-title { grid-column: 1 / -1; font-size: 12px; color: var(--dim); letter-spacing: .2em; }
+.pre { text-align: left; padding: 8px 9px; border-radius: 10px; border: 1px solid var(--line); background: rgba(255,255,255,.04); cursor: pointer; line-height: 1.35; }
+.pre b { display: block; font-size: 13px; color: var(--gold); }
+.pre small { display: block; font-size: 10.5px; color: var(--dim); margin-top: 3px; }
+.pre.on { background: rgba(230,194,122,.16); border-color: var(--gold); box-shadow: 0 0 12px rgba(230,194,122,.25); }
+.slot .swap { font-size: 10px; color: var(--gold); margin-top: 2px; opacity: .8; }

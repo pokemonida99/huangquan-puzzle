@@ -7,33 +7,33 @@
 (() => {
 const ROWS = [
   /* 黃泉燒肉店 */
-  ["yutong", "語彤", "實習月老", "dark", "半魔", 5, "shop", "atk", "恨之歌", { attrAtk: { dark: 2.5 } }, "暈船雷達", 7, { convert: ["heart", "dark"], buff: 1.3 },
-    "Lin Yutong, a teenage girl with a short mint-green bob, round glasses and a reddish birthmark on one cheek, wearing a red-and-white Taiwanese matchmaker deity robe and holding a red thread, soft purple demonic aura around her, moonlit Taiwanese temple"],
+  ["yutong", "語彤", "燒肉店的乾女兒", "dark", "半魔", 5, "shop", "atk", "恨之歌", { attrAtk: { dark: 2.5 } }, "暈船雷達", 7, { convert: ["heart", "dark"], buff: 1.3 },
+    "Lin Yutong, a teenage girl with a short mint-green bob with dark roots and blunt bangs, round black glasses, a dark red birthmark around one eye, wearing the dark grey Huangquan Yakiniku staff shirt with a small gold embroidered shop name on the chest, standing in the warm yakiniku restaurant. No robe, no red thread"],
   ["baimei", "白妹", "碧落髮廊", "wood", "人類", 4, "shop", "rec", "等了幾十年", { allRec: 2 }, "百元快剪", 5, { convert: ["dark", "wood"] },
     "Bai Mei, a woman with long purple hair and big black glasses, black kimono-style barber outfit, holding scissors and a comb, old-fashioned underworld hair salon with warm lamps"],
   /* 呆丸消防隊 */
   ["akasaka", "赤坂", "消防隊長", "fire", "人類", 4, "fire", "hp", "隊長與小隊長", { attrAtk: { fire: 2 } }, "替我擋住火勢", 6, { guard: 2 },
-    "Akasaka, a fire captain with glasses and short dark hair, wearing a firefighter turnout coat, serious and caring, burning building and water spray behind him"],
+    "Akasaka, the fire captain: dark hair with red streaks tied back, black rectangular glasses, wearing a plain white polo shirt, calm and reliable expression, fire station office at night"],
   ["samurai", "紅衣武士", "赤坂的前世", "fire", "人類", 5, "fire", "atk", "三輩子的約定", { attrAtk: { fire: 2.5 } }, "救下白狐", 8, { nuke: 18 },
     "a samurai warrior with long black hair and glasses in red lacquered Japanese armor, katana drawn, cherry blossoms and embers, a small white fox at his feet"],
   /* 人間 */
   ["linbobo", "林伯伯", "木雕師傅", "wood", "人類", 4, "human", "hp", "最好的爸爸", { attrAtk: { wood: 2 } }, "第六十一籤", 7, { healPct: .4 },
     "Uncle Lin, a middle-aged Taiwanese father with short graying hair, holding a walking cane and a wood-carving chisel beside a half-carved wooden goddess statue, warm workshop full of wood shavings"],
   ["bohong", "王柏宏", "百米冠軍", "fire", "人類", 4, "human", "atk", "跑進十秒", { attrAtk: { fire: 2 } }, "就算我跑的再快", 6, { buff: 1.8 },
-    "Wang Bohong, an athletic teenage sprinter with short spiky black hair in a track uniform, on a stadium track at dusk under floodlights"],
+    "Wang Bohong, a teenage sprinter with short spiky black hair, wearing a black zip-up athletic track jacket with white stripes, determined face, running track at dusk"],
   ["xiaoqing", "筱晴", "杜先生的未婚妻", "water", "人類", 4, "human", "rec", "巧克力牛奶", { allRec: 2 }, "醫院志工", 6, { healPct: .5 },
     "Xiaoqing, a young woman with light brown hair under a straw sun hat, gentle smile, wearing a hospital volunteer vest and holding a carton of chocolate milk, soft sunlight"],
   ["afugf", "阿副的女友", "戴紅毛帽的女孩", "wood", "人類", 4, "human", "bal", "叫了救護車", { allHp: 1.5 }, "已經叫警察了", 6, { delay: 1, healPct: .2 },
     "a young woman with a short black bob wearing a red knit beanie and a casual jacket, determined look, harbor at night with city lights"],
   ["moti", "茉蒂", "龐克女孩", "dark", "人類", 4, "human", "atk", "樂團同伴", { attrAtk: { dark: 2 } }, "我坐火車來看你", 6, { convert: ["light", "dark"] },
-    "Moti, a punk girl with black bangs, a white knit beanie and a lip piercing, band t-shirt and leather jacket, holding an electric guitar on a smoky concert stage"],
+    "Moti, a girl with a black bob with bangs under a white knit beanie, a small lip ring, wearing a black tank top and a silver cross necklace, night street"],
   ["daniu", "大牛", "老闆生前的兄弟", "light", "人類", 4, "human", "hp", "傻兄弟", { attrAtk: { light: 2 } }, "輪迴許可", 6, { healPct: .3, delay: 1 },
     "Da Niu, a bald stocky man in a white tank top with a rugged kind face, holding a wooden reincarnation permit plaque, 1940s Taiwanese village street"],
   /* 三途川居民 */
   ["mimi", "咪咪", "917號引渡貓", "water", "貓", 4, "sanzu", "bal", "記得多喝水", { attrAtk: { water: 2 } }, "三花幫", 6, { convert: ["fire", "water"] },
-    "Mimi, a cat spirit in human girl form with long black hair and small cat ears, sailor school uniform, holding a station lantern, old steam-train platform of the Sanzu River"],
+    "Mimi, a girl with long straight black hair, wearing a navy-and-white sailor school uniform with a navy neckerchief, gentle sad eyes, old train station platform of the underworld. Human ears only, no cat ears, nothing in her hands"],
   ["heitang", "黑糖", "慰靈犬", "wood", "犬", 4, "sanzu", "rec", "托夢之恩", { attrAtk: { wood: 2 } }, "別吃綠色的糖", 6, { convert: ["dark", "wood"] },
-    "Heitang, a black-and-white border collie dog spirit wearing a small red scarf, loyal and happy, sitting on an underworld train platform with paper lanterns"],
+    "Heitang, a black-and-white border collie dog with a white blaze on his face and white chest, tongue out happily, sitting on a stone path in the underworld. No scarf, no collar accessories"],
   ["huji", "狐姬", "萬能打工王", "fire", "妖", 5, "sanzu", "atk", "等了三輩子", { attrAtk: { fire: 2.5 } }, "百年妖狐", 7, { nuke: 15 },
     "Huji, a fox spirit girl with long dark hair, a pink cat-ear headband and a fluffy pink fox tail, pink outfit, pink fox fire floating around her, night street of lanterns"],
   ["no7", "七號", "戲之魂偶", "water", "魂偶", 4, "sanzu", "rec", "開心而哭", { attrAtk: { water: 2 } }, "推薦甜點", 6, { healPct: .35 },
@@ -41,15 +41,15 @@ const ROWS = [
   ["no2", "二號", "女魂偶", "dark", "魂偶", 4, "sanzu", "bal", "對戲", { attrAtk: { dark: 2 } }, "很想很想他", 6, { buff: 1.6 },
     "No.2, a female soul puppet with a dark bob and an ornate jeweled headpiece, porcelain-smooth skin with subtle doll joints, mechanical fingers, rehearsal room with soft spotlight"],
   ["du", "杜先生", "紋身師", "dark", "人類", 5, "sanzu", "atk", "愛戀文印", { attrAtk: { dark: 2.5 } }, "一天兩次文印", 8, { convert: ["water", "dark"], buff: 1.5 },
-    "Mr. Du, a middle-aged tattoo artist with glasses and stubble, black shirt, holding a tattoo machine, glowing red rune tattoos floating in the air, dim tattoo parlor"],
+    "Mr. Du, a middle-aged man with short grey hair and round thin-framed glasses, wearing a plain cream t-shirt, warm tired smile, a dim tattoo parlor with faint glowing red rune tattoos floating in the air"],
   ["paofu", "泡芙", "刀鋸使領班", "dark", "地府官差", 4, "sanzu", "hp", "刀鋸地獄同事", { attrAtk: { dark: 2 } }, "帶走", 6, { delay: 2 },
-    "Paofu, a Black man with short hair, the foreman of the Saw Hell, white t-shirt with a leather work apron, a large iron saw over his shoulder, blue-black hell cavern with chains"],
+    "Paofu, a Black man with very short hair, wearing a red Chinese-style tunic with black trim and frog buttons (the Saw Hell foreman uniform), expressive face, blue-black hell cavern with an old steam train behind"],
   ["mi", "謎", "守宮精靈", "wood", "精靈", 4, "sanzu", "rec", "健康的守宮", { allRec: 2 }, "甘露寶瓶", 5, { healPct: .4 },
     "Mi, a small cute white gecko spirit wearing a yellow construction hard hat, standing on a sketchbook beside pencils, Gecko Plaza full of drawings"],
   ["xiaomi", "小米", "市役所櫃台", "light", "人類", 4, "sanzu", "hp", "對付奧客的專家", { allHp: 1.5 }, "還不能申請", 6, { delay: 2 },
     "Xiaomi, a young woman with a neat black bob and a call-center headset, office uniform, standing at the counter of the underworld city hall"],
   ["gu", "辜老師", "戲劇天才", "dark", "人類", 5, "sanzu", "atk", "幻想的美好", { attrAtk: { dark: 2.5 } }, "穿界門", 8, { nuke: 18 },
-    "Teacher Gu, an older man with a black bowler hat, dark sunglasses and a goatee, long dark coat, holding colorful glowing soul cores, theater stage with puppet strings"],
+    "Teacher Gu, an older man with a grey goatee, dark sunglasses and a tall black top hat, burgundy coat, holding several colorful glowing soul cores, theater stage with red curtains"],
   ["cat918", "918號引渡貓", "灰色引渡貓", "water", "貓", 4, "sanzu", "bal", "隔壁的", { attrAtk: { water: 2 } }, "被圍毆", 5, { convert: ["heart", "water"] },
     "a grey British shorthair cat with round orange eyes and a collar tag numbered 918, sitting on a train station bench of the underworld"],
   ["gongwan", "貢丸君", "295號引渡貓", "dark", "貓", 4, "sanzu", "bal", "引渡", { attrAtk: { dark: 2 } }, "車站值班", 5, { convert: ["light", "dark"] },
@@ -78,12 +78,12 @@ const ROWS = [
   ["shencha", "神差", "柴犬神", "light", "神", 4, "gods", "bal", "埃及死神", { attrAtk: { light: 2 } }, "排隊買和菓子", 5, { delay: 1, buff: 1.3 },
     "Shencha, a Shiba Inu-headed Egyptian god of death with a striped golden nemes headdress and a curved khopesh sword, friendly face, Egyptian pillars"],
   ["cherub", "基路伯", "智天使", "light", "天族", 5, "gods", "hp", "責任天使", { allHp: 1.8 }, "解除咫尺天涯", 8, { healPct: .7 },
-    "Cherub, a handsome man with short dark hair in a white hoodie with a gold chain, large wings of white light, heavenly light rays"],
+    "Cherub, a man with short dark hair, wearing a white hooded robe and a gold pendant necklace, kind confident smile, soft heavenly light behind him. No wings"],
   ["zhurong", "祝融", "赤帝", "fire", "半神", 5, "gods", "atk", "半神隊長", { attrAtk: { fire: 3 } }, "殲滅邪神帝", 9, { nuke: 25 },
     "Zhurong, the Red Emperor demigod: long wild blond hair, burning eyes, red and gold divine armor, flames swirling, ancient war battlefield"],
   /* 魔界 */
   ["leviathan", "利維坦", "嫉妒魔王", "water", "魔族", 5, "demon", "atk", "無上戰技", { attrAtk: { water: 3 } }, "剪刀石頭石頭石頭", 8, { nuke: 25 },
-    "Leviathan, the Demon King of Envy: long silver-blue hair, pale handsome face, headphones around his neck, black coat with ice crystals, a giant ice serpent behind him"],
+    "Leviathan, a pale man with long silver hair with blue tips, glittery blue makeup on one cheek, black jacket, black headphones hanging around his neck, cool smile, ice crystals and a dark sea behind him"],
   ["nova", "諾瓦", "獨角鯨惡魔", "water", "魔族", 4, "demon", "bal", "鯨落", { attrAtk: { water: 2 } }, "從漫畫開始學藝術", 6, { convert: ["fire", "water"] },
     "Nova, a small demon girl with short black hair and heterochromia eyes, wearing a blue narwhal-shaped hood hat, holding a paintbrush, painting of a whale fall glowing underwater"],
   ["rat", "鼠軍師", "第二王國總參謀", "dark", "魔族", 4, "demon", "bal", "幫本軍師抬轎", { allAtk: 2 }, "麻將拳", 6, { nuke: 12 },
@@ -92,7 +92,7 @@ const ROWS = [
     "Lucifer, the strongest warrior of heaven turned Demon King of Pride: long white hair, stern face, golden ornate armor, huge white wings, light and shadow split"],
   /* 異時空（大秦、庚寅地球） */
   ["youshuzhang", "右庶長", "朱雀將軍", "fire", "人類", 5, "other", "atk", "楚墨宗主", { attrAtk: { fire: 2.5 } }, "去月下慶祝", 7, { buff: 2 },
-    "Yue Xiaze, the Vermilion Bird General: young man with long black hair tied up, Qin dynasty armor with a vermilion bird emblem, war banners, full moon"],
+    "Yue Xiaze, a young man with long messy black hair, a dirt-smudged face, wearing a dark worn Qin dynasty robe, resolute expression, torch-lit prison corridor. No armor"],
   ["liudaniu", "劉大牛", "伍長", "wood", "人類", 4, "other", "hp", "楚國沛縣人", { attrAtk: { wood: 2 } }, "快逃", 5, { delay: 1, guard: 1 },
     "Liu Daniu, a stocky Qin dynasty soldier with a topknot and a rough honest face, holding a ring of prison keys, torch-lit prison corridor"],
   ["liangan", "梁安恆", "月老借住的身體", "light", "人類", 4, "other", "rec", "難過就哭", { allRec: 2 }, "三層愛戀文印", 6, { convert: ["dark", "light"] },
@@ -106,8 +106,10 @@ const ROWS = [
 ];
 const BASE = { 4: { hp: 1600, atk: 600, rec: 300 }, 5: { hp: 2300, atk: 820, rec: 380 } };
 const KIND = { atk: [.9, 1.2, .8], hp: [1.3, .9, .9], rec: [1, .85, 1.5], bal: [1.05, 1, 1.05] };
+// 屬性傾向 [生命, 攻擊, 回復]：水屬性血多、回復高、攻擊低；火屬性攻擊高、血少、回復低
+const ATTR_BIAS = { water: [1.3, .75, 1.6], fire: [.8, 1.35, .65] };
 ROWS.forEach(([id, who, title, attr, race, star, series, kind, leadName, leadFx, actName, cd, actFx, desc], k) => {
-  const b = BASE[star], m = KIND[kind], j = 1 + ((k * 37) % 9 - 4) / 100;   // 每張卡微調一點點，數值才不會一模一樣
+  const b = BASE[star], k0 = KIND[kind], ab = ATTR_BIAS[attr] || [1, 1, 1], m = k0.map((v, n) => v * ab[n]), j = 1 + ((k * 37) % 9 - 4) / 100;   // 每張卡微調一點點，數值才不會一模一樣
   CARDS[id] = {
     who, title, attr, race, star, series,
     hp: Math.round(b.hp * m[0] * j / 10) * 10, atk: Math.round(b.atk * m[1] / j / 5) * 5, rec: Math.round(b.rec * m[2] * j / 5) * 5,

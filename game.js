@@ -74,11 +74,17 @@ function renderTeam() {
   $(".stage-card").style.backgroundImage = `linear-gradient(120deg, rgba(120,30,40,.35), rgba(30,20,40,.6)), url(${CH.bg})`;
   $(".stage-waves").innerHTML = CH.waves.map((w, i) =>
     `<span>第 ${i + 1} 波 ‧ ${w.enemies.map(k => ENEMIES[k].name).join("、")}</span>`).join("");
+  $(".presets").innerHTML = `<div class="pre-title">推薦隊伍</div>` + PRESETS.map((p, i) =>
+    `<button class="pre ${p.team.join() === team.join() ? "on" : ""}" data-p="${i}"><b>${p.name}</b><small>${p.note}</small></button>`).join("");
+  $$(".pre").forEach(b => b.onclick = () => {
+    PRESETS[+b.dataset.p].team.forEach((id, k) => team[k] = id);
+    store.set("hq-team", team); vibe(20); renderTeam();
+  });
   const roles = ["隊長", "隊員", "隊員", "隊員", "隊員", "戰友"];
   $(".team-slots").innerHTML = team.map((id, i) => {
     const c = CARDS[id];
     return `<div class="slot ${i === 0 || i === 5 ? "lead" : ""}" data-i="${i}"><div class="role">${roles[i]}</div>
-      ${iconHTML(id)}<div class="nm">${c.title}<br>${c.who}</div></div>`;
+      ${iconHTML(id)}<div class="nm">${c.title}<br>${c.who}</div><div class="swap">更換</div></div>`;
   }).join("");
   const atk = team.reduce((s, id) => s + CARDS[id].atk, 0);
   $(".team-sum").innerHTML = `<div>生命力 <b>${fmt(teamHp())}</b></div><div>攻擊力 <b>${fmt(atk)}</b></div><div>回復力 <b>${fmt(teamRec())}</b></div>`;
