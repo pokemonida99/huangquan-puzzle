@@ -617,3 +617,4 @@ h1 small { display: block; font-size: 18px; letter-spacing: .5em; color: var(--i
 .sp-load.done { opacity: 0; height: 0; margin: 0; overflow: hidden; }
 .btn.danger { border-color: #c8443a; color: #ff8a7a; }
 .btn.gold.danger { background: linear-gradient(180deg, #ff8a7a, #b8322a); color: #fff; border-color: #ff8a7a; }
+.slot.trial .swap { color: #7fe3d6; }
