@@ -18,6 +18,8 @@ function go(id) {
   if (id === "team") renderTeam();
   if (id === "chapters") renderChapters();
   if (id === "dex") renderDex();
+  if (id === "shop") renderShop();
+  renderMerit();
 }
 document.addEventListener("click", e => {
   if (e.target.closest("button")) sfx.click();
@@ -39,22 +41,83 @@ const store = {
 };
 const team = (t => Array.isArray(t) && t.length === 6 && t.every(id => CARDS[id]) ? t : [...DEMO_TEAM])(store.get("hq-team"));
 let CH = CHAPTERS[0];
-let cleared = Math.max(0, Math.min(CHAPTERS.length, Math.floor(+store.get("hq-progress", { cleared: 0 }).cleared) || 0));   // 已通關到第幾章
+const prog = (p => ({ ...p, cleared: p.cleared || 0, stars: p.stars || [], chal: p.chal || [] }))(store.get("hq-progress", {}));
+let cleared = Math.max(0, Math.min(CHAPTERS.length, Math.floor(+prog.cleared) || 0));   // 已通關到第幾章（夾在合理範圍）
+const saveProg = () => store.set("hq-progress", { ...prog, cleared });
+
+/* ---------------- 收集：擁有的卡、功德（地府的貨幣）、三星評價、挑戰關 ---------------- */
+const START_OWNED = [...new Set([...DEMO_TEAM, ...Object.keys(CARDS).filter(id => CARDS[id].who === "李國志"), "yutong1"])];   // 李國志四階都算擁有
+const owned = new Set((() => {
+  const saved = store.get("hq-owned", null), set = new Set(Array.isArray(saved) ? saved : START_OWNED);
+  CHAPTERS.slice(0, cleared).forEach(ch => (ch.unlock || []).forEach(id => set.add(id)));   // 舊存檔：已通關的章節補發角色
+  if (!Array.isArray(saved)) team.forEach(id => set.add(id));                                // 舊存檔：原本編好的隊伍不拿走
+  return [...set].filter(id => CARDS[id]);
+})());
+const saveOwned = () => store.set("hq-owned", [...owned]);
+saveOwned();
+team.forEach((id, i) => { if (!owned.has(id)) team[i] = DEMO_TEAM[i]; });
+let merit = store.get("hq-merit", 0);
+function addMerit(n) { merit += n; store.set("hq-merit", merit); renderMerit(); }
+function renderMerit() { $$(".merit-chip").forEach(el => el.innerHTML = `功德 <b>${fmt(merit)}</b>`); }
+const PRICE = { 3: 40, 4: 80, 5: 150, 6: 240, 7: 360 };      // 托夢照相館：依星數
+const EVO_COST = { 3: 50, 4: 100, 5: 180, 6: 260, 7: 380 };   // 進化：依進化後的星數
+const REWARD = { first: 150, again: 40, star: 30, chalFirst: 100, chalAgain: 40 };
+const buyable = id => !owned.has(id) && !(CARDS[id].stage > 1);   // 進化階段只能靠進化取得
+const GODS = new Set(SERIES.find(s => s.id === "gods").members);
+const CHAL_TURNS = [10, 10, 12, 12, 14];
+let chal = null;   // 目前選的挑戰關：{ idx } 或 null
+// 挑戰關限制三選一，依章節輪替
+function chalDef(idx) {
+  const kind = ["star3", "turns", "nogod"][idx % 3];
+  if (kind === "star3") return { kind, label: "只能用 3 星卡", bad: id => CARDS[id].star > 3 };
+  if (kind === "nogod") return { kind, label: "不能帶神明與天族的角色", bad: id => GODS.has(CARDS[id].who) };
+  const turns = CHAL_TURNS[idx] || 14;
+  return { kind, label: `${turns} 回合內過關`, turns };
+}
+function chalCheck() {   // 出擊前檢查：回傳不符合的說明，空字串表示通過
+  if (!chal) return "";
+  const d = chalDef(chal.idx);
+  if (!d.bad) return "";
+  const bad = [...new Set(team.filter(d.bad).map(id => CARDS[id].who))];
+  return bad.length ? `隊伍裡有不符合條件的卡：${bad.join("、")}` : "";
+}
+function setChalTag() {
+  const el = $(".chal-tag"); if (!el) return;
+  const d = chal && chalDef(chal.idx);
+  el.hidden = !d;
+  if (d) el.textContent = `挑戰 ‧ ${d.label}${d.turns ? `（${(B && B.turns) || 0} / ${d.turns}）` : ""}`;
+}
+function trackTurn(groups) {   // 每次轉珠後記錄回合數與最高 combo（三星評價用）
+  if (!groups.length) return;
+  B.turns = (B.turns || 0) + 1; B.maxCombo = Math.max(B.maxCombo || 0, groups.length);
+  setChalTag();
+}
+function chalExpired() {   // 挑戰關限回合：用完還沒過關就失敗
+  const d = chal && chalDef(chal.idx);
+  if (!d || !d.turns || B.turns <= d.turns) return false;
+  B.busy = true; music.stop(.8); sfx.lose(); vibe(300);
+  modal(`<div class="result"><h3>挑戰失敗</h3><p>超過 ${d.turns} 回合了。</p>
+    <div class="row"><button class="btn" data-goto="team">換隊伍</button><button class="btn gold" data-goto="again">重新挑戰</button></div></div>`);
+  return true;
+}
 
 /* ---------------- 章節選單 ---------------- */
 function renderChapters() {
   $(".ch-list").innerHTML = CHAPTERS.map((ch, i) => {
-    const st = i < cleared ? "done" : i === cleared ? "open" : "lock";
-    return `<button class="ch-card ${st}" data-ch="${i}" style="background-image:linear-gradient(90deg,#000d 30%,#0004),url(${ch.bg})">
+    const st = i < cleared ? "done" : i === cleared ? "open" : "lock", n = prog.stars[i] || 0;
+    const d = chalDef(i);
+    return `<div class="ch-item"><button class="ch-card ${st}" data-ch="${i}" style="background-image:linear-gradient(90deg,#000d 30%,#0004),url(${ch.bg})">
       <span class="ch-no">${ch.no}</span><b>${ch.name}</b><span class="ch-sub">${ch.sub} ‧ ${ch.place}</span>
       <span class="ch-intro">${ch.intro}</span>
-      <span class="ch-st">${st === "done" ? "已通關" : st === "open" ? "挑戰" : "🔒 通關上一章後開放"}</span></button>`;
+      <span class="ch-st">${st === "done" ? `已通關 <i class="rate">${"★".repeat(n)}${"☆".repeat(3 - n)}</i>` : st === "open" ? "挑戰" : "🔒 通關上一章後開放"}</span></button>
+      ${st === "done" ? `<button class="ch-chal ${prog.chal[i] ? "got" : ""}" data-chal="${i}"><b>⚔ 挑戰關</b>${d.label}<em>${prog.chal[i] ? "已完成" : `獎勵 ${REWARD.chalFirst} 功德`}</em></button>` : ""}</div>`;
   }).join("");
   $$(".ch-card").forEach(b => b.onclick = () => {
     const i = +b.dataset.ch;
     if (i > cleared) { b.animate([{ transform: "translateX(-6px)" }, { transform: "translateX(6px)" }, { transform: "none" }], { duration: 250 }); vibe(40); return; }
-    CH = CHAPTERS[i]; go("team");
+    CH = CHAPTERS[i]; chal = null; go("team");
   });
+  $$(".ch-chal").forEach(b => b.onclick = () => { CH = CHAPTERS[+b.dataset.chal]; chal = { idx: +b.dataset.chal }; go("team"); });
 }
 function leaderFx() { return [CARDS[team[0]].lead.fx, CARDS[team[5]].lead.fx]; }
 function teamHp() {
@@ -69,14 +132,23 @@ function teamRec() {
 }
 function renderTeam() {
   $(".stage-place").textContent = CH.place;
-  $(".stage-name").textContent = `${CH.no}　${CH.name}`;
+  $(".stage-name").textContent = `${CH.no}　${CH.name}${chal ? "　挑戰關" : ""}`;
+  const cb = $(".chal-box"), cd = chal && chalDef(chal.idx), cmsg = chalCheck();
+  cb.hidden = !chal;
+  if (chal) cb.innerHTML = `<b>⚔ 挑戰條件：${cd.label}</b><span class="${cmsg ? "bad" : "ok"}">${cd.turns ? "過關回合數會計算" : cmsg ? "✘ " + cmsg : "✔ 隊伍符合條件"}</span>
+    <small>${prog.chal[chal.idx] ? `已完成，再次過關 ${REWARD.chalAgain} 功德` : `首次過關 ${REWARD.chalFirst} 功德`}；劇情自動略過</small>`;
   $(".stage-intro").textContent = CH.intro;
   $(".stage-card").style.backgroundImage = `linear-gradient(120deg, rgba(120,30,40,.35), rgba(30,20,40,.6)), url(${CH.bg})`;
   $(".stage-waves").innerHTML = CH.waves.map((w, i) =>
     `<span>第 ${i + 1} 波 ‧ ${w.enemies.map(k => ENEMIES[k].name).join("、")}</span>`).join("");
-  $(".presets").innerHTML = `<div class="pre-title">推薦隊伍</div>` + PRESETS.map((p, i) =>
-    `<button class="pre ${p.team.join() === team.join() ? "on" : ""}" data-p="${i}"><b>${p.name}</b><small>${p.note}</small></button>`).join("");
+  const lacking = p => [...new Set(p.team.filter(id => !owned.has(id)).map(id => CARDS[id].who))];
+  $(".presets").innerHTML = `<div class="pre-title">推薦隊伍</div>` + PRESETS.map((p, i) => {
+    const miss = lacking(p);
+    return `<button class="pre ${p.team.join() === team.join() ? "on" : ""} ${miss.length ? "lack" : ""}" data-p="${i}"><b>${p.name}</b><small>${p.note}</small>
+      ${miss.length ? `<em>尚未獲得：${miss.join("、")}</em>` : ""}</button>`;
+  }).join("");
   $$(".pre").forEach(b => b.onclick = () => {
+    if (lacking(PRESETS[+b.dataset.p]).length) { b.animate([{ transform: "translateX(-5px)" }, { transform: "translateX(5px)" }, { transform: "none" }], { duration: 250 }); vibe(30); return; }
     PRESETS[+b.dataset.p].team.forEach((id, k) => team[k] = id);
     store.set("hq-team", team); vibe(20); renderTeam();
   });
@@ -94,12 +166,14 @@ function renderTeam() {
   }).join("");
   $$(".slot").forEach(s => s.onclick = () => openPicker(+s.dataset.i));
 }
-/* 換卡：依系列列出全部卡片 */
+/* 換卡：依系列列出擁有的卡片 */
 function openPicker(slot) {
-  const roles = ["隊長", "隊員", "隊員", "隊員", "隊員", "戰友"];
-  modal(`<h3>選擇${roles[slot]}</h3><div class="picker">${SERIES.map(s => `<div class="pk-head" style="color:${s.color}">${s.name}</div>
-    <div class="pk-grid">${s.members.flatMap(who => cardsOf(who)).map(id =>
-      `<button class="pk ${team[slot] === id ? "cur" : ""}" data-id="${id}">${iconHTML(id)}<span>${CARDS[id].who}</span></button>`).join("")}</div>`).join("")}</div>
+  const roles = ["隊長", "隊員", "隊員", "隊員", "隊員", "戰友"], d = chal && chalDef(chal.idx);
+  const groups = SERIES.map(s => ({ s, ids: s.members.flatMap(who => cardsOf(who)).filter(id => owned.has(id)) })).filter(g => g.ids.length);
+  modal(`<h3>選擇${roles[slot]}</h3><div class="picker">${groups.map(({ s, ids }) => `<div class="pk-head" style="color:${s.color}">${s.name}</div>
+    <div class="pk-grid">${ids.map(id =>
+      `<button class="pk ${team[slot] === id ? "cur" : ""} ${d && d.bad && d.bad(id) ? "off" : ""}" data-id="${id}">${iconHTML(id)}<span>${CARDS[id].who}</span></button>`).join("")}</div>`).join("")}</div>
+    <p class="hint">${d && d.bad ? `挑戰條件「${d.label}」：變暗的卡不能帶。` : "沒看到想要的角色？通關章節可以解鎖，也能到托夢照相館用功德兌換。"}</p>
     <div class="row"><button class="btn" data-close>取消</button><button class="btn" id="pk-info">卡片資料</button></div>`);
   $$(".pk").forEach(b => b.onclick = () => {
     team[slot] = b.dataset.id; store.set("hq-team", team);
@@ -107,7 +181,14 @@ function openPicker(slot) {
   });
   $("#pk-info").onclick = () => showCard(team[slot]);
 }
-$("#go-battle").onclick = () => { go("battle"); startBattle(); };
+$("#go-battle").onclick = () => {
+  const bad = chalCheck();
+  if (bad) {
+    modal(`<h3>不符合挑戰條件</h3><p>「${chalDef(chal.idx).label}」</p><p class="unlock">${bad}</p><div class="row"><button class="btn gold" data-close>回去換隊伍</button></div>`);
+    vibe(40); return;
+  }
+  go("battle"); setChalTag(); startBattle(!!chal);
+};
 
 /* ================================================================
    劇情對話框
@@ -215,7 +296,7 @@ function startBattle(skipStory) {
     wave: 0, enemies: [], target: null, buff: 1, busy: false,
     cd: team.map(id => CARDS[id].act.cd)
   };
-  B.guard = 0;
+  B.guard = 0; B.turns = 0; B.maxCombo = 0; setChalTag();
   B.survive = leaderFx().reduce((a, fx) => a + (fx.survive || 0), 0);
   renderParty(); updateHp();
   initBoard();
@@ -693,6 +774,8 @@ async function playerTurnInner() {
   B.busy = true; board.classList.add("locked");
   const groups = await resolveBoard();
   if (B !== b) return;
+  trackTurn(groups);
+  if (chalExpired()) return;
   if (groups.length) await attack(groups);
   if (B !== b) return;
   const regen = leaderFx().reduce((a, fx) => a + (fx.regen || 0), 0);   // 基路伯、阿芙羅黛蒂：每次轉珠後回復
@@ -899,11 +982,33 @@ async function win() {
   banner("過關");
   await sleep(1400);
   music.play("title");
-  await dialog(CH.post);
-  const idx = CHAPTERS.indexOf(CH), first = idx >= cleared;
-  cleared = Math.max(cleared, idx + 1); store.set("hq-progress", { cleared });
-  const next = CHAPTERS[idx + 1];
+  if (!chal) await dialog(CH.post);
+  showResult();
+}
+/* 結算：星數、功德、新加入的角色、挑戰關獎勵 */
+function showResult() {
+  const idx = CHAPTERS.indexOf(CH), next = CHAPTERS[idx + 1];
+  if (chal) {
+    const d = chalDef(idx), first = !prog.chal[idx], gain = first ? REWARD.chalFirst : REWARD.chalAgain;
+    prog.chal[idx] = true; saveProg(); addMerit(gain);
+    modal(`<div class="result"><h3>挑戰成功</h3><p>「${CH.name}」‧ ${d.label}</p>
+      <p class="merit-gain">功德 +${gain}${first ? "（首次）" : ""}</p>
+      <div class="row"><button class="btn" data-goto="chapters">回章節</button><button class="btn gold" data-goto="again">再打一次</button></div></div>`);
+    return;
+  }
+  const first = idx >= cleared;
+  const goalT = CH.waves.length * 5, hpRate = B.hp / B.hpMax;
+  const rules = [[`回合數 ${B.turns} ／ ${goalT} 以內`, B.turns <= goalT], [`剩餘血量 ${Math.round(hpRate * 100)}%（需 50% 以上）`, hpRate >= .5], [`最高 ${B.maxCombo} combo（需 6 以上）`, B.maxCombo >= 6]];
+  const n = Math.max(1, rules.filter(r => r[1]).length), prev = prog.stars[idx] || 0;
+  const joined = (CH.unlock || []).filter(id => !owned.has(id));
+  joined.forEach(id => owned.add(id)); saveOwned();
+  const gain = (first ? REWARD.first : REWARD.again) + REWARD.star * Math.max(0, n - prev);
+  prog.stars[idx] = Math.max(prev, n); cleared = Math.max(cleared, idx + 1); saveProg(); addMerit(gain);
   modal(`<div class="result"><h3>${CH.no} 通關</h3><p>「${CH.name}」</p>
+    <div class="rate big">${"★".repeat(n)}${"☆".repeat(3 - n)}</div>
+    <ul class="rules">${rules.map(([t, ok]) => `<li class="${ok ? "ok" : ""}">${ok ? "✔" : "✘"} ${t}</li>`).join("")}</ul>
+    <p class="merit-gain">功德 +${gain}${n > prev && prev ? `（星數提升 +${REWARD.star * (n - prev)}）` : ""}</p>
+    ${joined.length ? `<div class="joined"><div class="j-title">新加入的角色</div><div class="j-grid">${joined.map(id => `<div class="j">${iconHTML(id)}<span>${CARDS[id].who}</span></div>`).join("")}</div></div>` : ""}
     ${first && next ? `<p class="unlock">${next.no}「${next.name}」開放了</p>` : ""}${!next ? `<p class="unlock">主線劇情全部通關，謝謝你玩到最後。</p>` : ""}
     <div class="row"><button class="btn" data-goto="chapters">回章節</button>${next ? `<button class="btn gold" data-goto="next">下一章</button>` : `<button class="btn gold" data-goto="again">再打一次</button>`}</div></div>`);
 }
@@ -946,7 +1051,7 @@ $("#modal").addEventListener("click", e => {
     closeModal();
     const to = g.dataset.goto;
     if (to === "again") startBattle(true);
-    else if (to === "next") { CH = CHAPTERS[CHAPTERS.indexOf(CH) + 1]; B = null; go("team"); }
+    else if (to === "next") { CH = CHAPTERS[CHAPTERS.indexOf(CH) + 1]; chal = null; B = null; go("team"); }
     else { B = null; go(to); }
   }
 });
@@ -970,10 +1075,21 @@ function renderDex() {
   }
   $(".dex-grid").innerHTML = s.members.map(who => {
     const ids = cardsOf(who);
-    return ids.map(id => { const c = CARDS[id]; return `<div class="dcard" data-id="${id}" style="${attrVars(c.attr)}">
-      <img src="${c.art}" alt="${c.who}"><span class="dtier tier t${c.tier.replace("+", "p").replace("-", "m")}">${c.tier}</span><div class="cap"><small>${c.title}</small>${c.who}<div class="st">${stars(c.star)}</div></div></div>`; }).join("");
+    return ids.map(id => { const c = CARDS[id]; return `<div class="dcard ${owned.has(id) ? "" : "unowned"}" data-id="${id}" style="${attrVars(c.attr)}">
+      <img src="${c.art}" alt="${c.who}">${owned.has(id) ? "" : `<span class="own-tag">未獲得<small>${buyable(id) ? PRICE[c.star] + " 功德" : "進化取得"}</small></span>`}<span class="dtier tier t${c.tier.replace("+", "p").replace("-", "m")}">${c.tier}</span><div class="cap"><small>${c.title}</small>${c.who}<div class="st">${stars(c.star)}</div></div></div>`; }).join("");
   }).join("");
   $$(".dcard[data-id]").forEach(el => el.onclick = () => showCard(el.dataset.id));
+}
+
+/* 托夢照相館：用功德兌換還沒獲得的角色 */
+function renderShop() {
+  const groups = SERIES.map(s => ({ s, ids: s.members.flatMap(who => cardsOf(who)).filter(buyable).sort((a, b) => CARDS[a].star - CARDS[b].star) })).filter(g => g.ids.length);
+  $(".shop-grid").innerHTML = groups.length ? groups.map(({ s, ids }) => `<div class="pk-head" style="color:${s.color}">${s.name}</div>
+    <div class="dex-grid inner">${ids.map(id => { const c = CARDS[id]; return `<div class="dcard shopc" data-id="${id}" style="${attrVars(c.attr)}">
+      <img src="${c.art}" alt="${c.who}"><span class="own-tag price ${merit >= PRICE[c.star] ? "" : "poor"}">${PRICE[c.star]}<small>功德</small></span>
+      <div class="cap"><small>${c.title}</small>${c.who}<div class="st">${stars(c.star)}</div></div></div>`; }).join("")}</div>`).join("")
+    : `<p class="hint">所有角色都收集齊了。</p>`;
+  $$(".shopc").forEach(el => el.onclick = () => showCard(el.dataset.id));
 }
 
 /* 卡片詳情：一頁式。上半立繪，下半用「能力／故事／資料」切換，不需要捲動 */
@@ -1013,15 +1129,20 @@ function showCard(id) {
   let evo = "";
   if (chain.length > 1) {
     evo = `<div class="evo">${chain.map((x, k) => (k ? `<span class="arrow">›</span>` : "") +
-      `<div data-evo="${x}" class="${x === id ? "cur" : ""}">${iconHTML(x)}</div>`).join("")}
-      ${c.evo ? `<button class="btn gold evo-btn" id="do-evo">進化</button>` : `<span class="plan">已是最終進化</span>`}</div>`;
+      `<div data-evo="${x}" class="${x === id ? "cur" : ""} ${owned.has(x) ? "" : "dim"}">${iconHTML(x)}</div>`).join("")}
+      ${!c.evo ? `<span class="plan">已是最終進化</span>`
+        : owned.has(c.evo) ? `<span class="plan">下一階已獲得</span>`
+        : owned.has(id) ? `<button class="btn gold evo-btn" id="do-evo">進化<small>${EVO_COST[CARDS[c.evo].star]} 功德</small></button>`
+        : `<span class="plan">需先獲得這一階</span>`}</div>`;
   } else if (c.planned) {
     evo = `<div class="evo plan">進化路線：${c.planned.join(" › ")}（立繪製作中）</div>`;
   }
   const sk = (e.skills || []).map(s => `<div class="skill"><span class="k">技能</span> ${skillText(s)}</div>`).join("");
   const skill = `<div class="stats"><div>生命力<b>${fmt(c.hp)}</b></div><div>攻擊力<b>${fmt(c.atk)}</b></div><div>回復力<b>${fmt(c.rec)}</b></div></div>
     <div class="skill"><span class="k">隊長技能</span> <b>${c.lead.name}</b><br>${c.lead.desc}</div>
-    <div class="skill"><span class="k">主動技能</span> <b>${c.act.name}</b><span class="cdv">CD ${c.act.cd}</span><br>${c.act.desc}</div>${evo}`;
+    <div class="skill"><span class="k">主動技能</span> <b>${c.act.name}</b><span class="cdv">CD ${c.act.cd}</span><br>${c.act.desc}</div>${evo}
+    ${buyable(id) ? `<div class="buy"><button class="btn gold" id="do-buy">用 ${PRICE[c.star]} 功德兌換</button></div>` : !owned.has(id) ? `<p class="hint">還沒獲得，要從前一階進化才能取得。</p>` : ""}
+    <p class="hint own-msg" id="own-msg"></p>`;
   cardShell({
     attr: c.attr, art: c.art, star: stars(c.star), title: c.title, name: c.who, race: c.race,
     topRight: `<span class="tier t${c.tier.replace("+", "p").replace("-", "m")}" title="${c.onChart ? "依戰力表" : "依劇情判斷"}">戰力 ${c.tier}${c.onChart ? "" : "<small>※</small>"}</span>`,
@@ -1030,7 +1151,17 @@ function showCard(id) {
            { id: "info", label: "角色資料", html: infoHTML(c.who) }]
   });
   $$("[data-evo]").forEach(el => el.onclick = () => showCard(el.dataset.evo));
-  if (c.evo) $("#do-evo").onclick = async () => {
+  const short = (need) => { $("#own-msg").textContent = `功德不足，還差 ${need - merit}`; vibe(40); };
+  if ($("#do-buy")) $("#do-buy").onclick = () => {
+    const p = PRICE[c.star];
+    if (merit < p) return short(p);
+    addMerit(-p); owned.add(id); saveOwned(); sfx.pick(); vibe([30, 40, 60]);
+    showCard(id); renderDex(); renderShop();
+  };
+  if ($("#do-evo")) $("#do-evo").onclick = async () => {
+    const cost = EVO_COST[CARDS[c.evo].star];
+    if (merit < cost) return short(cost);
+    addMerit(-cost); owned.add(c.evo); saveOwned(); renderDex(); renderShop();
     const f = document.createElement("div"); f.className = "evo-flash"; $("#app").appendChild(f);
     sfx.evo(); vibe([30, 40, 30, 40, 30, 40, 150]);
     await sleep(480); showCard(c.evo); await sleep(800); f.remove();

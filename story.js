@@ -65,6 +65,7 @@ window.INTRO = {
 window.CHAPTERS = [
   {
     id: "ch1", no: "第一章", name: "請給我黑令旗", sub: "語彤魔化", place: "三途川市役所", bg: "art/bg-ch1.webp",
+    unlock: ["heitang", "xiaomi", "yuelao", "shencha"],   // 通關後加入的角色（第一階卡）
     intro: "被霸凌溺死的女孩來到地府，第一件事就是去要黑令旗。",
     pre: [
       ["@scene", "art/scenes/shop.webp"],
@@ -115,6 +116,7 @@ window.CHAPTERS = [
   },
   {
     id: "ch2", no: "第二章", name: "刀鋸地獄", sub: "打辣雞", place: "人間港邊 ‧ 刀鋸地獄", bg: "art/bg-ch2.webp",
+    unlock: ["linbobo", "bohong"],   // 通關後加入的角色（第一階卡）
     intro: "推語彤下水的議員之子，靠著未成年和精神病手冊脫了身。",
     pre: [
       [null, "人間。語彤的爸爸，一直想知道女兒死去那天到底發生了什麼。"],
@@ -172,6 +174,7 @@ window.CHAPTERS = [
   },
   {
     id: "ch3", no: "第三章", name: "大秦右庶長", sub: "月老外傳", place: "戰國 ‧ 秦國", bg: "art/bg-ch3.webp", vn: { "語彤": "yutongh" },
+    unlock: ["youshuzhang", "guanyin", "liudaniu", "yangzi"],   // 通關後加入的角色（第一階卡）
     intro: "月老不是生來就是神。兩千多年前，他是一位楚國人，叫岳夏澤。",
     pre: [
       ["@scene", "art/scenes/150.webp"],
@@ -238,6 +241,7 @@ window.CHAPTERS = [
   },
   {
     id: "ch4", no: "第四章", name: "魔界的獨角鯨", sub: "利維坦來訪", place: "三途川 ‧ 陽間海邊", bg: "art/bg-ch4.webp", vn: { "語彤": "yutongh" },
+    unlock: ["leviathan", "qianliyan", "nova"],   // 通關後加入的角色（第一階卡）
     intro: "一艘魔界飛船降落在三途川。來的是七宗罪之一的嫉妒魔王。",
     pre: [
       ["@scene", "art/scenes/053.webp"],
@@ -287,6 +291,7 @@ window.CHAPTERS = [
   },
   {
     id: "ch5", no: "第五章", name: "第三王國入侵", sub: "打撒旦", place: "三途川", bg: "art/bg-battle.webp",
+    unlock: ["huji", "gu", "rat"],   // 通關後加入的角色（第一階卡）
     intro: "穿界門被打開了，撒旦帶著第三王國的軍隊闖進三途川。",
     pre: [
       [null, "魔王利維坦在三途川住了下來。觀音請狐姬當他的導遊，業鏡羅漢當保鏢。"],
