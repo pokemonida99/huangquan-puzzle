@@ -326,4 +326,4 @@ window.TIERS = {
 })();
 
 /* 五星以上發招特寫用的去背姿勢圖（art/skill/<id>.webp）；不在名單上的先用卡面 */
-window.SKILL_POSE = ["lee4"];
+window.SKILL_POSE = ["lee4", "lee3", "cherub", "zhurong", "lucifer", "guanyin", "hathor", "aphrodite", "leviathan", "satanc", "yuelao", "huatuo", "jiuwei", "qianliyan", "aizen", "shencha", "rat", "gengyin", "plaguec"];

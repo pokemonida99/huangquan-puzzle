@@ -9,5 +9,5 @@ log=work/gen-$name.log
 /Applications/ChatGPT.app/Contents/Resources/codex-cli/bin/codex exec --skip-git-repo-check \
   "Generate one image with your image generation tool: $prompt Do not run any shell commands." "${args[@]}" > $log 2>&1 </dev/null
 sid=$(grep -m1 -o 'session id: [0-9a-f-]*' $log | awk '{print $3}')
-img=$(ls -t ~/.codex/generated_images/$sid/*.png(N) 2>/dev/null | head -1)
+imgs=(~/.codex/generated_images/${sid:-NONE}/*.png(N.om)); img=${imgs[1]}   # 沒圖時不能用 ls（會列出目前資料夾）
 if [[ -n $sid && -n $img && -f $img ]] && cp "$img" art/$name.png && [[ -f art/$name.png ]]; then echo "OK $name"; else echo "FAIL $name (see $log)"; fi
