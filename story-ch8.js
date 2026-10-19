@@ -144,3 +144,6 @@ window.CHAPTERS.push({
     [null, "台下的觀眾喊著華佗加油。他跳起迪斯可風的忘憂舞。"]
   ]
 });
+
+/* 華佗的立繪在第十章生好了（同一套造型），這章也用 */
+{ const ch = window.CHAPTERS.find(c => c.id === "ch8"); ch.vn = { ...(ch.vn || {}), "華佗": "huatuo" }; }

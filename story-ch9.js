@@ -75,3 +75,6 @@ window.CHAPTERS.push({
     ["大寶", "你們可不能再有事", "EP6-02"]
   ]
 });
+
+/* 大寶的立繪在第十章生好了（第六季同一時期的家居造型），這章也用 */
+{ const ch = window.CHAPTERS.find(c => c.id === "ch9"); ch.vn = { ...(ch.vn || {}), "大寶": "dabao" }; }
