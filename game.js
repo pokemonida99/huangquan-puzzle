@@ -39,7 +39,7 @@ const store = {
 };
 const team = (t => Array.isArray(t) && t.length === 6 && t.every(id => CARDS[id]) ? t : [...DEMO_TEAM])(store.get("hq-team"));
 let CH = CHAPTERS[0];
-let cleared = store.get("hq-progress", { cleared: 0 }).cleared || 0;   // 已通關到第幾章
+let cleared = Math.max(0, Math.min(CHAPTERS.length, Math.floor(+store.get("hq-progress", { cleared: 0 }).cleared) || 0));   // 已通關到第幾章
 
 /* ---------------- 章節選單 ---------------- */
 function renderChapters() {
@@ -225,12 +225,30 @@ function startBattle(skipStory) {
   $("#battle").classList.remove("boss-field");
   B.busy = true; board.classList.add("locked");
   const b = B;
+  preloadChapter();
   (async () => {
-    if (!skipStory) { introSeen.clear(); music.play("title"); await dialog(CH.pre); }
-    if (B !== b) return;
-    await loadWave(0);
-    B.busy = false; board.classList.remove("locked");
+    try {
+      if (!skipStory) { introSeen.clear(); music.play("title"); await dialog(CH.pre); }
+      if (B !== b) return;
+      await loadWave(0);
+      if (B !== b || B.over) return;
+      B.busy = false; board.classList.remove("locked");
+    } catch (err) { if (B === b) throw err; }   // 玩家按 ✕ 離開後，殘留的流程不報錯
   })();
+}
+/* 進戰鬥前先把這一章會用到的圖拉進快取（不等載完） */
+const preloaded = [];
+function preloadChapter() {
+  const srcs = new Set([CH.bg]);
+  CH.waves.forEach(w => (w.enemies || []).forEach(k => ENEMIES[k] && srcs.add(ENEMIES[k].img)));
+  [CH.pre, CH.post, ...CH.waves.map(w => w.lines)].forEach(ls => (ls || []).forEach(l => {
+    if (l[0] === "@scene") { if (l[1]) srcs.add(l[1]); return; }
+    const who = l[0] === "@intro" ? l[1] : l[0];
+    if (!who || who[0] === "@") return;
+    const p = portraitOf(who, l[0] === "@intro" ? null : l[3]);
+    if (p) srcs.add(p.src);
+  }));
+  srcs.forEach(src => { if (!src) return; const im = new Image(); im.src = src; preloaded.push(im); });
 }
 
 function renderParty() {
@@ -257,9 +275,12 @@ function updateHp() {
 
 /* ---------------- 敵人 ---------------- */
 async function loadWave(w) {
+  if (!B) return;
+  const b = B;
   B.wave = w; B.target = null;
   const wave = CH.waves[w];
   if (wave.lines) { $(".enemies").innerHTML = ""; await dialog(wave.lines); }
+  if (B !== b) return;
   B.enemies = wave.enemies.map(k => ({ ...ENEMIES[k], key: k, hpNow: ENEMIES[k].hp, cdNow: ENEMIES[k].cd }));
   $(".wave-tag").textContent = `${CH.name}　${w + 1} / ${CH.waves.length}`;
   const box = $(".enemies");
@@ -277,15 +298,18 @@ async function loadWave(w) {
   });
   const boss = B.enemies.find(e => e.boss);
   if (boss) await bossIntro(boss, $(".enemy.boss"));
+  if (!B) return;
   else { music.play("battle"); banner(`第 ${w + 1} 波`); sfx.wave(); }
   await openStrike();
 }
 /* 進場攻擊（觀音的隊長技）：每一波敵人一出現，隊長／戰友先打全體一下 */
 async function openStrike() {
+  if (!B) return;
   for (const i of [0, 5]) {
     const c = CARDS[team[i]], n = c.lead.fx.openStrike;
     if (!n || !alive().length) continue;
     await sleep(500);
+    if (!B) return;
     banner(c.lead.name);
     sfx.skill(); vibe([30, 40, 60]); flash("rgba(255,240,200,.5)", 350);
     const el = $$(".party .icon")[i];
@@ -295,6 +319,7 @@ async function openStrike() {
   // 進場就把這一波全打倒了：直接換下一波或過關
   if (!alive().length) {
     await sleep(600);
+    if (!B) return;
     if (B.wave + 1 < CH.waves.length) await loadWave(B.wave + 1);
     else await win();
   }
@@ -316,6 +341,7 @@ function flash(color, ms = 400) {
   $("#app").appendChild(d); setTimeout(() => d.remove(), ms);
 }
 async function bossIntro(boss, el) {
+  if (!B) return;
   const bt = $("#battle");
   music.stop(1.2);
   const veil = document.createElement("div");
@@ -368,6 +394,7 @@ function centerOf(el, rel) {
 function floatText(x, y, text, attr, cls = "") {
   const d = document.createElement("div");
   d.className = "dmg " + cls; d.textContent = text;
+  if (cls.includes("weak")) { const w = document.createElement("small"); w.textContent = "弱點"; d.appendChild(w); }
   d.style.cssText = `left:${x}px;top:${y}px;${attrVars(attr)}`;
   $(".fx-layer").appendChild(d); setTimeout(() => d.remove(), 1000);
 }
@@ -383,9 +410,10 @@ async function shoot(fromEl, toEl, attr) {
   await sleep(260);   // 不等 animation.finished：分頁在背景時動畫會暫停
   s.remove();
 }
-function showCombo(n) {
+function showCombo(n, sky) {
   const c = $(".combo");
-  c.innerHTML = `${n}<small>COMBO</small>`;
+  c.innerHTML = `${n}<small>COMBO</small>${sky ? "<small class=\"sky-tag\">天降</small>" : ""}`;
+  c.classList.toggle("sky", !!sky);
   c.classList.remove("show"); void c.offsetWidth; c.classList.add("show");
 }
 
@@ -459,9 +487,14 @@ board.addEventListener("pointermove", e => {
   moveHeld(e);
   const { r, c } = cellAt(e.clientX, e.clientY);
   if (r === drag.r && c === drag.c) return;
-  // 一次只走一格（含斜角），跨太遠時沿路逐格交換
+  // 手指要進到新格子中心約 35% 半徑內才算移過去
+  const b = board.getBoundingClientRect(), w = b.width / COLS, h = b.height / ROWS;
+  const dx = e.clientX - (b.left + (c + .5) * w), dy = e.clientY - (b.top + (r + .5) * h);
+  if (Math.hypot(dx, dy) > Math.min(w, h) * .35) return;
+  // 一次走一格；跨太遠時先沿較長的那一軸走，兩軸一樣長才走斜角
   while (drag && (drag.r !== r || drag.c !== c)) {
-    const nr = drag.r + Math.sign(r - drag.r), nc = drag.c + Math.sign(c - drag.c);
+    const dr = r - drag.r, dc = c - drag.c;
+    const nr = drag.r + (Math.abs(dr) >= Math.abs(dc) ? Math.sign(dr) : 0), nc = drag.c + (Math.abs(dc) >= Math.abs(dr) ? Math.sign(dc) : 0);
     const other = grid[nr][nc];
     grid[drag.r][drag.c] = other; place(other, drag.r, drag.c);
     grid[nr][nc] = drag.o; drag.r = nr; drag.c = nc;
@@ -487,6 +520,11 @@ function startTimer() {
     if (!drag) return;
     const left = 1 - (now - drag.t0) / drag.limit;
     $(".timer-fill").style.width = Math.max(0, left * 100) + "%";
+    if (left * MOVE_TIME <= 1500) {   // 最後 1.5 秒：邊框閃紅，每秒滴答一聲
+      if (!board.classList.contains("danger")) { board.classList.add("danger"); drag.tick = 0; }
+      const k = Math.floor((1500 - left * MOVE_TIME) / 1000) + 1;
+      if (k > drag.tick) { drag.tick = k; sfx.tick(); }
+    }
     if (left <= 0) { endDrag(); return; }
     timerRAF = requestAnimationFrame(tick);
   };
@@ -496,6 +534,7 @@ function endDrag() {
   if (!drag) return;
   cancelAnimationFrame(timerRAF);
   $(".timer").classList.remove("on");
+  board.classList.remove("danger");
   $(".timer-fill").style.width = "100%";
   const d = drag; drag = null;
   d.o.el.classList.remove("held");
@@ -557,13 +596,14 @@ function shake(el, px) {
 }
 async function resolveBoard() {
   const all = [];
-  for (;;) {
+  for (let round = 0; ; round++) {
     const groups = findGroups();
     if (!groups.length) break;
     for (const g of groups) {
+      g.sky = round > 0;   // 第一輪是玩家自己消的，之後都是落珠後自動成立的天降
       all.push(g);
       g.cells.forEach(([r, c]) => { grid[r][c].el.classList.add("pop"); burst(r, c, g.attr, all.length); });
-      showCombo(all.length);
+      showCombo(all.length, g.sky);
       if (all.length >= 5) shake(board.parentNode, Math.min(2 + all.length * .4, 6));
       sfx.pop(all.length); vibe(Math.min(18 + all.length * 4, 45));
       await sleep(230);
@@ -591,9 +631,16 @@ async function resolveBoard() {
 
 /* ---------------- 回合 ---------------- */
 async function playerTurn() {
+  const b = B;
+  try { await playerTurnInner(); } catch (err) { if (B === b) throw err; }   // 中途離開戰鬥不報錯
+}
+async function playerTurnInner() {
+  const b = B;
   B.busy = true; board.classList.add("locked");
   const groups = await resolveBoard();
+  if (B !== b) return;
   if (groups.length) await attack(groups);
+  if (B !== b) return;
   const regen = leaderFx().reduce((a, fx) => a + (fx.regen || 0), 0);   // 基路伯、阿芙羅黛蒂：每次轉珠後回復
   if (groups.length && regen && B.hp < B.hpMax) {
     const heal = B.hpMax * regen; B.hp += heal; updateHp(); sfx.heal();
@@ -601,10 +648,11 @@ async function playerTurn() {
     floatText(hb.left - fb.left + hb.width / 2, hb.top - fb.top - 34, "+" + fmt(heal), "heart", "heal");
   }
   $(".combo").classList.remove("show");
-  B.buff = 1;
+  if (groups.length) B.buff = 1;   // 沒消除就保留主動技的加成到下一次
   if (groups.length) { B.cd = B.cd.map(v => Math.max(0, v - 1)); updateParty(); }
   if (await checkWave()) return;
   await enemyTurn();
+  if (B !== b || B.over) return;   // 輸了／離開：盤面維持鎖定
   B.busy = false; board.classList.remove("locked");
 }
 
@@ -621,6 +669,7 @@ function leaderMul(attr, groups) {
 function typeMul(a, d) { return BEATS[a] === d ? 2 : BEATS[d] === a && a !== "light" && a !== "dark" ? .5 : 1; }
 
 async function attack(groups) {
+  B.allShown = false;
   const comboUp = leaderFx().reduce((a, fx) => a + (fx.comboUp || 0), 0);   // 路西法：combo 加成更高
   const combo = groups.length, comboMul = 1 + (combo - 1) * (.25 + comboUp);
   const partyEls = $$(".party .icon");
@@ -644,6 +693,7 @@ async function attack(groups) {
     const base = mine.reduce((s, g) => s + 1 + (g.n - 3) * .25, 0);
     const toAll = mine.some(g => g.n >= 5);
     const raw = c.atk * base * comboMul * leaderMul(c.attr, groups) * B.buff;
+    if (toAll && !B.allShown) { B.allShown = true; banner("全體攻擊"); }
     const targets = toAll ? alive() : [B.target != null && B.enemies[B.target].hpNow > 0 ? B.target : alive()[0]];
     partyEls[i].classList.remove("atk"); void partyEls[i].offsetWidth; partyEls[i].classList.add("atk");
     await Promise.all(targets.map(t => hitEnemy(t, raw, c.attr, partyEls[i])));
@@ -652,23 +702,29 @@ async function attack(groups) {
   await sleep(250);
 }
 async function hitEnemy(t, raw, attr, fromEl) {
+  if (!B) return;
   const e = B.enemies[t], el = enemyEl(t);
   await shoot(fromEl, $(".pic", el), attr);
+  if (!B) return;
   const vd = e.demon ? leaderFx().reduce((a, fx) => a * (fx.vsDemon || 1), 1) : 1;   // 哈索爾：打魔族加倍
   const tm = typeMul(attr, e.attr) * vd, dmg = Math.round(raw * tm);
   e.hpNow -= dmg;
   const p = centerOf($(".pic", el), $(".field"));
-  floatText(p.x + (Math.random() * 40 - 20), p.y - 20 + Math.random() * 30, fmt(dmg), attr, tm > 1 ? "big" : "");
+  const lv = dmg / e.hp < .12 ? 1 : dmg / e.hp < .3 ? 2 : 3;   // 傷害量級：小／中／大
+  floatText(p.x + (Math.random() * 40 - 20), p.y - 20 + Math.random() * 30, fmt(dmg), attr, `lv${lv}${tm > 1 ? " weak" : ""}`);
   el.classList.remove("hit"); void el.offsetWidth; el.classList.add("hit");
   sfx.hit(tm > 1);
   updateEnemy(t);
 }
 async function checkWave() {
+  if (!B) return true;
   if (alive().length) return false;
   await sleep(500);
+  if (!B) return true;
   if (B.wave + 1 < CH.waves.length) {
     await loadWave(B.wave + 1);
     await sleep(600);
+    if (!B || B.over) return true;
     B.busy = false; board.classList.remove("locked");
     return true;
   }
@@ -715,6 +771,10 @@ function skillDialog(i) {
   if (ready) $("#cast").onclick = () => { closeModal(); castSkill(i); };
 }
 async function castSkill(i) {
+  const b = B;
+  try { await castSkillInner(i); } catch (err) { if (B === b) throw err; }
+}
+async function castSkillInner(i) {
   const c = CARDS[team[i]], fx = c.act.fx;
   B.cd[i] = c.act.cd; updateParty();
   banner(c.act.name);
@@ -763,11 +823,14 @@ async function castSkill(i) {
     await sleep(400);
     if (await checkWave()) return;
   }
+  if (!B || B.over) return;
   B.busy = false; board.classList.remove("locked");
 }
 
 /* ---------------- 結算 ---------------- */
 async function win() {
+  if (!B) return;
+  B.over = true; B.busy = true; board.classList.add("locked");
   music.stop(.4);
   sfx.win(); vibe([40, 60, 40, 60, 120]);
   banner("過關");
@@ -782,7 +845,7 @@ async function win() {
     <div class="row"><button class="btn" data-goto="chapters">回章節</button>${next ? `<button class="btn gold" data-goto="next">下一章</button>` : `<button class="btn gold" data-goto="again">再打一次</button>`}</div></div>`);
 }
 function lose() {
-  B.busy = true; music.stop(.8); sfx.lose(); vibe(300);
+  B.over = true; B.busy = true; board.classList.add("locked"); music.stop(.8); sfx.lose(); vibe(300);
   modal(`<div class="result"><h3>全隊陣亡</h3><p>如入火聚，得清涼門。再試一次吧。</p>
     <div class="row"><button class="btn" data-goto="team">換隊伍</button><button class="btn gold" data-goto="again">重新挑戰</button></div></div>`);
 }
@@ -814,7 +877,7 @@ document.addEventListener("click", e => { if (e.target.closest("[data-settings]"
 function modal(html, kind = "") { $(".modal-box").innerHTML = html; $("#modal").className = "modal on " + kind; }
 function closeModal() { $("#modal").className = "modal"; }
 $("#modal").addEventListener("click", e => {
-  if (e.target.id === "modal" || e.target.closest("[data-close]")) closeModal();
+  if ((e.target.id === "modal" && !(B && B.over)) || e.target.closest("[data-close]")) closeModal();   // 結算視窗只能按按鈕
   const g = e.target.closest("[data-goto]");
   if (g) {
     closeModal();
