@@ -18,6 +18,13 @@ case $key in
  liudaniu) D="Qin-dynasty squad leader / prison guard, same man and same outfit as in the references; only items shown in the references." ; R=(art/liudaniu.png src/qimiao-shiguang/assets/g/c053-1.jpg);;
  guanyin) D="Guanyin in a modern look: white suit, silver-purple hair, thin-frame glasses, same as the references; only items shown." ; R=(art/guanyin.png src/qimiao-shiguang/assets/g/c005-3.jpg src/qimiao-shiguang/assets/g/c005-4.jpg);;
  qianliyan) D="General with a green feather mask and feather battle robe, same as the references; only items shown." ; R=(art/qianliyan.png src/qimiao-shiguang/assets/g/c070-1.jpg);;
+
+ huatuo) D="Man in a dark red-brown hooded jacket over a dark tee, a brown knitted beanie, small round green-tinted sunglasses, black over-ear headphones around the neck, a thick gold chain with a gold pendant, a few rings; same face and outfit as the reference card; only items shown in the references." ; R=(work/refs10/huatuo.png work/refs10/s099.png);;
+ jiuwei) D="Young woman with a short dark-purple bob haircut, thin round glasses, a white fluffy fur-trim coat; large fluffy blue fox tails visible behind her shoulders; calm cool expression, same as the reference card; only items shown in the references." ; R=(work/refs10/jiuwei.png work/refs10/s195.png work/refs10/s095.png);;
+ xiaoyu) D="Young woman with long straight black hair and straight full bangs, wearing a loose cream-white sweatshirt cardigan at home; no apron, no accessories; same face as the reference card; only items shown in the references." ; R=(work/refs10/xiaoyu.png work/refs10/s198.png);;
+ dabao) D="Young man with short bleached blonde hair with black streaks on top, wearing a plain black oversized T-shirt and grey sweatpants; same face as the reference card; only items shown in the references; no jacket, no hoodie." ; R=(work/refs10/dabao3.png work/refs10/s198.png work/refs10/s100.png);;
+ mimi) D="Young woman with black hair tied in a high ponytail bun with straight bangs, wearing a black sheer lace dress embroidered with small white flowers over a black top, black knee socks and black mary-jane shoes; same face as the reference card; only items shown in the references." ; R=(work/refs10/mimi.png work/refs10/s100.png);;
+ huji) D="Young woman in a pink ruffled fluffy dress with a pink cat-ear headband, pink fluffy fox tail behind her, same face and outfit as the reference card; only items shown in the references." ; R=(work/refs10/huji.png work/refs10/s095.png work/refs10/s200.png);;
 esac
 declare -A E
 E[normal]="Calm neutral expression, mouth closed."

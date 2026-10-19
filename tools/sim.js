@@ -2,6 +2,7 @@
 // 「普通回合」＝4 combo：隊伍主色 2 組、次色 1 組、第三色或心 1 組，每組 3 顆（Fable 建議的假設）
 global.window = global;
 require("../data.js"); require("../cards.js"); require("../story.js");
+require("fs").readdirSync(require("path").join(__dirname, "..")).filter(f => /^story-ch.*\.js$/.test(f)).sort().forEach(f => require("../" + f));   // 各章獨立檔
 const BEATS = window.BEATS;
 const typeMul = (a, d) => BEATS[a] === d ? 2 : BEATS[d] === a && a !== "light" && a !== "dark" ? .5 : 1;
 function turnDamage(team, enemy, combos = 4) {
