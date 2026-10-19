@@ -18,7 +18,7 @@ case $key in
  liudaniu) D="Qin-dynasty squad leader / prison guard, same man and same outfit as in the references; only items shown in the references." ; R=(art/liudaniu.png src/qimiao-shiguang/assets/g/c053-1.jpg);;
  guanyin) D="Guanyin in a modern look: white suit, silver-purple hair, thin-frame glasses, same as the references; only items shown." ; R=(art/guanyin.png src/qimiao-shiguang/assets/g/c005-3.jpg src/qimiao-shiguang/assets/g/c005-4.jpg);;
  qianliyan) D="General with a green feather mask and feather battle robe, same as the references; only items shown." ; R=(art/qianliyan.png src/qimiao-shiguang/assets/g/c070-1.jpg);;
- baizhu) D="Middle-aged tough man, slicked-back black hair, a scar on one cheek, wearing a white suit jacket over a black shirt; same as the reference card, nothing added." ; R=(art/baizhu.png);;
+ baizhu) D="Middle-aged tough man, slicked-back black hair, with a distinctive black spider-web tattoo covering one cheek and temple as in the photo reference (not a scar), wearing a white suit jacket over a black shirt; same as the reference card, nothing added." ; R=(art/baizhu.png src/qimiao-shiguang/assets/g/c092-1.jpg);;
  shushi) D="Young man in a translucent yellow raincoat with the hood up, grinning; same as the reference card, nothing added." ; R=(art/shushi.png);;
  cherub) D="Calm man with short black hair in a white hooded robe with a gold cross-shaped pendant necklace; same as the reference card, nothing added." ; R=(art/cherub.png);;
  gyxiaoqing) D="Young woman with long blonde hair, a black lace hat and black lace long-sleeve dress, holding a white face mask; same as the reference card, nothing added." ; R=(art/gyxiaoqing.png);;

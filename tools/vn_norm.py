@@ -6,7 +6,7 @@ from PIL import Image
 root = Path(__file__).resolve().parent.parent
 HEAD = {"bohong": .175, "lee": .157, "leviathan": .195, "linbobo": .208, "yuelao": .208, "yutong": .15, "rat": None,
         "yutongh": .257, "youshuzhang": .171, "liudaniu": .142, "guanyin": .185, "qianliyan": .18, "yangzi": .184, "nova": .132,
-        "baizhu": .17, "shushi": .18, "cherub": .16, "gyxiaoqing": .128, "lucifer": .17, "zhurong": .15, "gengyin": .16}
+        "baizhu": .24, "shushi": .18, "cherub": .16, "gyxiaoqing": .128, "lucifer": .17, "zhurong": .15, "gengyin": .16}
 N = 4.5
 # 帽子高度（占整張高度比例，帽頂到髮際線）：帽子不算頭長，額外加在上方，輸出會比 1100 高
 HAT = {"lee": .114, "yangzi": .069, "liudaniu": .08, "youshuzhang": .035, "nova": .189, "gyxiaoqing": .125}
