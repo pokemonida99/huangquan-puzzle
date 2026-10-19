@@ -59,6 +59,8 @@ saveOwned();
 team.forEach((id, i) => { if (!owned.has(id)) team[i] = DEMO_TEAM[i]; });
 let merit = store.get("hq-merit", 0);
 function addMerit(n) { merit += n; store.set("hq-merit", merit); renderMerit(); }
+// 開局贈送 888 功德（每個存檔只送一次，舊存檔也補送）
+if (!store.get("hq-gift888", false)) { merit += 888; store.set("hq-merit", merit); store.set("hq-gift888", true); }
 function renderMerit() { $$(".merit-chip").forEach(el => el.innerHTML = `功德 <b>${fmt(merit)}</b>`); }
 const PRICE = { 3: 40, 4: 80, 5: 150, 6: 240, 7: 360 };      // 托夢照相館：依星數
 const EVO_COST = { 3: 50, 4: 100, 5: 180, 6: 260, 7: 380 };   // 進化：依進化後的星數
