@@ -123,17 +123,49 @@ function portraitOf(who, expr) {
   const e = Object.values(ENEMIES).find(x => x.name === who);
   return e ? { src: e.img, attr: e.attr, kind: "enemy" } : null;
 }
-function dialog(lines) {
+// 已經介紹過的人物（每次開始一章時清空）
+const introSeen = new Set();
+// 劇情裡的特殊行：["@scene", 圖檔或 null] 換場景劇照；["@intro", 角色] 人物登場卡
+function dialog(source) {
   return new Promise(done => {
-    if (!lines || !lines.length) return done();
+    if (!source || !source.length) return done();
+    // 第一次說話、還沒介紹過的角色，自動在台詞前插一張登場卡
+    const lines = [];
+    source.forEach(l => {
+      if (l[0] === "@intro") { if (introSeen.has(l[1])) return; introSeen.add(l[1]); }
+      else if (l[0] && l[0][0] !== "@" && INTRO[l[0]] && !introSeen.has(l[0])) { introSeen.add(l[0]); lines.push(["@intro", l[0]]); }
+      lines.push(l);
+    });
+    if (!lines.length) return done();
     const D = $("#dialog"), txt = $(".dlg-text", D);
+    $(".dlg-scene", D).classList.remove("on"); D.classList.remove("has-scene", "intro");
     const slot = { l: null, r: null };   // 舞台左右各站一個人
     let i = 0, timer = 0, full = "", last = "r";
     $$(".vn", D).forEach(v => { v.className = v.className.replace(/ (on|off|vn-pic|card|enemy|in)/g, ""); $("img", v).removeAttribute("src"); });
     const finish = () => { clearInterval(timer); timer = 0; txt.textContent = full; D.classList.add("ready"); };
     const close = () => { clearInterval(timer); D.classList.remove("on"); D.onclick = null; setTimeout(done, 150); };
     const show = () => {
-      const [who, text, ep, expr] = lines[i], p = portraitOf(who, expr);
+      const [who, text, ep, expr] = lines[i];
+      D.classList.remove("intro");
+      if (who === "@scene") {   // 換場景劇照，接著直接顯示下一行
+        const sc = $(".dlg-scene", D);
+        if (text) { $("img", sc).src = text; $(".dlg-scene-bg", D).style.backgroundImage = `url(${text})`; sc.classList.remove("on"); void sc.offsetWidth; sc.classList.add("on"); D.classList.add("has-scene"); }
+        else { sc.classList.remove("on"); D.classList.remove("has-scene"); }
+        i++; if (i >= lines.length) close(); else show();
+        return;
+      }
+      if (who === "@intro") {   // 人物登場卡
+        const p = portraitOf(text), c = INTRO[text] || "";
+        const card = Object.values(CARDS).find(x => x.who === text);
+        $(".dlg-intro", D).innerHTML = `<small>人物登場</small><div class="di-pic"><img src="${p ? (p.fallback || p.src) : ""}" alt=""></div>
+          <b>${text}</b>${card ? `<em>${card.title}</em>` : ""}<p>${c}</p>`;
+        if (p) D.style.cssText = attrVars(p.attr);
+        D.classList.add("intro", "ready"); clearInterval(timer); timer = 0;
+        $(".dlg-intro", D).classList.remove("pop"); void D.offsetWidth; $(".dlg-intro", D).classList.add("pop");
+        sfx.pick();
+        return;
+      }
+      const p = portraitOf(who, expr);
       D.classList.toggle("narr", !who); D.classList.remove("ready");
       $(".dlg-name", D).textContent = who || "";
       $(".dlg-ep", D).textContent = ep || "";
@@ -190,7 +222,7 @@ function startBattle(skipStory) {
   B.busy = true; board.classList.add("locked");
   const b = B;
   (async () => {
-    if (!skipStory) { music.play("title"); await dialog(CH.pre); }
+    if (!skipStory) { introSeen.clear(); music.play("title"); await dialog(CH.pre); }
     if (B !== b) return;
     await loadWave(0);
     B.busy = false; board.classList.remove("locked");
@@ -759,10 +791,6 @@ function renderDex() {
   }
   $(".dex-grid").innerHTML = s.members.map(who => {
     const ids = cardsOf(who);
-    if (!ids.length) {
-      return `<div class="dcard wip"><img src="art/av/${AVATAR[who]}.jpg" alt="${who}">
-        <span class="lock">製作中</span><div class="cap"><small>預定卡片</small>${who}</div></div>`;
-    }
     return ids.map(id => { const c = CARDS[id]; return `<div class="dcard" data-id="${id}" style="${attrVars(c.attr)}">
       <img src="${c.art}" alt="${c.who}"><span class="dtier tier t${c.tier.replace("+", "p").replace("-", "m")}">${c.tier}</span><div class="cap"><small>${c.title}</small>${c.who}<div class="st">${stars(c.star)}</div></div></div>`; }).join("");
   }).join("");
