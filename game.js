@@ -46,11 +46,12 @@ let cleared = Math.max(0, Math.min(CHAPTERS.length, Math.floor(+prog.cleared) ||
 const saveProg = () => store.set("hq-progress", { ...prog, cleared });
 
 /* ---------------- 收集：擁有的卡、功德（地府的貨幣）、三星評價、挑戰關 ---------------- */
-const START_OWNED = [...new Set([...DEMO_TEAM, ...Object.keys(CARDS).filter(id => CARDS[id].who === "李國志"), "yutong1"])];   // 李國志四階都算擁有
+const START_OWNED = [...new Set([...DEMO_TEAM, ...Object.keys(CARDS).filter(id => CARDS[id].who === "李國志"), "yutong1", "leviathan"])];   // 李國志四階都算擁有；開局送利維坦
 const owned = new Set((() => {
   const saved = store.get("hq-owned", null), set = new Set(Array.isArray(saved) ? saved : START_OWNED);
   CHAPTERS.slice(0, cleared).forEach(ch => (ch.unlock || []).forEach(id => set.add(id)));   // 舊存檔：已通關的章節補發角色
   if (!Array.isArray(saved)) team.forEach(id => set.add(id));                                // 舊存檔：原本編好的隊伍不拿走
+  set.add("leviathan");                                                                      // 開局贈送的利維坦，舊存檔也補發
   return [...set].filter(id => CARDS[id]);
 })());
 const saveOwned = () => store.set("hq-owned", [...owned]);
@@ -69,7 +70,7 @@ let chal = null;   // 目前選的挑戰關：{ idx } 或 null
 // 挑戰關限制三選一，依章節輪替
 function chalDef(idx) {
   const kind = ["star3", "turns", "nogod"][idx % 3];
-  if (kind === "star3") return { kind, label: "只能用 3 星卡（敵人生命 30%、攻擊 60%）", bad: id => CARDS[id].star > 3, weak: { hp: .3, atk: .6 } };
+  if (kind === "star3") return { kind, label: "只能用 3 星卡（敵人生命 25%、攻擊 60%）", bad: id => CARDS[id].star > 3, weak: { hp: .25, atk: .6 } };
   if (kind === "nogod") return { kind, label: "不能帶神明與天族的角色", bad: id => GODS.has(CARDS[id].who) };
   const turns = CHAL_TURNS[idx] || 14;
   return { kind, label: `${turns} 回合內過關`, turns };
@@ -210,7 +211,8 @@ function portraitOf(who, expr) {
   return e ? { src: e.img, attr: e.attr, kind: "enemy" } : null;
 }
 // 已經介紹過的人物（每次開始一章時清空）
-const introSeen = new Set();
+const introSeen = new Set(store.get("hq-intro", []));
+const saveIntro = () => store.set("hq-intro", [...introSeen]);
 // 劇情裡的特殊行：["@scene", 圖檔或 null] 換場景劇照；["@intro", 角色] 人物登場卡
 function dialog(source) {
   return new Promise(done => {
@@ -218,8 +220,8 @@ function dialog(source) {
     // 第一次說話、還沒介紹過的角色，自動在台詞前插一張登場卡
     const lines = [];
     source.forEach(l => {
-      if (l[0] === "@intro") { if (introSeen.has(l[1])) return; introSeen.add(l[1]); }
-      else if (l[0] && l[0][0] !== "@" && INTRO[l[0]] && !introSeen.has(l[0])) { introSeen.add(l[0]); lines.push(["@intro", l[0]]); }
+      if (l[0] === "@intro") { if (introSeen.has(l[1])) return; introSeen.add(l[1]); saveIntro(); }
+      else if (l[0] && l[0][0] !== "@" && INTRO[l[0]] && !introSeen.has(l[0])) { introSeen.add(l[0]); saveIntro(); lines.push(["@intro", l[0]]); }
       lines.push(l);
     });
     if (!lines.length) return done();
@@ -313,7 +315,7 @@ function startBattle(skipStory) {
   preloadChapter();
   (async () => {
     try {
-      if (!skipStory) { introSeen.clear(); music.play("title"); await dialog(CH.pre); }
+      if (!skipStory) { music.play("title"); await dialog(CH.pre); }
       if (B !== b) return;
       await loadWave(0);
       if (B === b && !B.over && tutWanted()) await tutorialRun(b);
@@ -795,7 +797,7 @@ async function playerTurnInner() {
     floatText(hb.left - fb.left + hb.width / 2, hb.top - fb.top - 34, "+" + fmt(heal), "heart", "heal");
   }
   $(".combo").classList.remove("show");
-  if (groups.length) B.buff = 1;   // 沒消除就保留主動技的加成到下一次
+  if (groups.length) { B.buff = 1; B.selfBuff = {}; }   // 沒消除就保留主動技的加成到下一次
   if (groups.length) { B.cd = B.cd.map(v => Math.max(0, v - 1)); updateParty(); }
   if (await checkWave()) return;
   await enemyTurn();
@@ -839,7 +841,7 @@ async function attack(groups) {
     if (!mine.length || !alive().length) continue;
     const base = mine.reduce((s, g) => s + 1 + (g.n - 3) * .25, 0);
     const toAll = mine.some(g => g.n >= 5);
-    const raw = c.atk * base * comboMul * leaderMul(c.attr, groups) * B.buff;
+    const raw = c.atk * base * comboMul * leaderMul(c.attr, groups) * B.buff * ((B.selfBuff && B.selfBuff[i]) || 1);
     if (toAll && !B.allShown) { B.allShown = true; banner("全體攻擊"); }
     const targets = toAll ? alive() : [B.target != null && B.enemies[B.target].hpNow > 0 ? B.target : alive()[0]];
     partyEls[i].classList.remove("atk"); void partyEls[i].offsetWidth; partyEls[i].classList.add("atk");
@@ -957,6 +959,7 @@ async function castSkillInner(i) {
     grid.flat().forEach((o, idx) => setAttr(o, (n ? best : pool)[idx]));
   }
   if (fx.buff) B.buff *= fx.buff;
+  if (fx.selfBuff) { B.selfBuff = B.selfBuff || {}; B.selfBuff[i] = (B.selfBuff[i] || 1) * fx.selfBuff; }
   if (fx.healPct) { B.hp += B.hpMax * fx.healPct; updateHp(); }
   if (fx.guard) { B.guard = Math.max(B.guard, fx.guard); $(".hpbar").classList.add("guarded"); }
   if (fx.delay) { B.enemies.forEach(e => e.cdNow += fx.delay); alive().forEach(updateEnemy); }

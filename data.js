@@ -69,7 +69,7 @@ window.CARDS = {
     lore: "戴禮帽、穿西裝的燒肉店老闆。地府不允許魔存在，他以羅漢之名擔保，把語彤帶回燒肉店。",
     lead: { name: "羅漢之名擔保", desc: "全隊攻擊力 3 倍、生命力 1.5 倍；同時消除 4 種或以上屬性符石時，全隊攻擊力再 1.8 倍",
       fx: { allAtk: 3, allHp: 1.5, multiAttr: { n: 4, x: 1.8 } } },
-    act: { name: "異界降臨", cd: 9, desc: "所有敵人的攻擊延遲 2 回合，並對全體敵人造成自身攻擊力 18 倍的光屬性傷害", fx: { delay: 2, nuke: 18 } }
+    act: { name: "異界降臨", cd: 9, fx: { nuke: 18, buff: 1.5 } }
   },
 
   /* ---------------- 基礎隊員 ---------------- */
@@ -103,7 +103,7 @@ window.CARDS = {
     lore: "大寶的兄弟，在 EP9 被提到打呼很大聲的「黃副」可能就是他。",
     planned: ["長髮消防員", "陽光手機門市"],
     lead: { name: "兄弟", desc: "木屬性攻擊力 2 倍", fx: { attrAtk: { wood: 2 } } },
-    act: { name: "我會記得你曾來過人間", cd: 6, desc: "所有敵人的攻擊延遲 2 回合", fx: { delay: 2 } }
+    act: { name: "我會記得你曾來過人間", cd: 6, fx: { selfBuff: 3 } }
   }
 };
 
@@ -118,11 +118,11 @@ window.PRESETS = [
 ];
 
 window.ENEMIES = {
-  bat:    { demon: true, name: "蝙蝠惡魔", attr: "fire", img: "art/enemy-bat.webp", hp: 42000, atk: 1500, cd: 2 },
-  reaper: { demon: true, name: "第三王國惡魔", attr: "dark", img: "art/enemy-reaper.webp", hp: 56000, atk: 2400, cd: 3 },
-  plague: { demon: true, name: "瘟疫", attr: "wood", img: "art/enemy-plague.webp", hp: 44000, atk: 2000, cd: 2,
+  bat:    { demon: true, name: "蝙蝠惡魔", attr: "fire", img: "art/enemy-bat.webp", hp: 82000, atk: 1500, cd: 2 },
+  reaper: { demon: true, name: "第三王國惡魔", attr: "dark", img: "art/enemy-reaper.webp", hp: 110000, atk: 2400, cd: 3 },
+  plague: { demon: true, name: "瘟疫", attr: "wood", img: "art/enemy-plague.webp", hp: 86000, atk: 2000, cd: 2,
             skills: [{ on: "attack", name: "瘟疫蔓延", convert: ["heart", "wood"], n: 3 }] },
-  satan:  { demon: true, name: "撒旦", attr: "fire", img: "art/enemy-satan.webp", hp: 663000, atk: 4800, cd: 3, boss: true }
+  satan:  { demon: true, name: "撒旦", attr: "fire", img: "art/enemy-satan.webp", hp: 935000, atk: 4800, cd: 3, boss: true }
 };
 
 window.STAGE = {
