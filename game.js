@@ -972,7 +972,6 @@ function showEnemy(k) {
   });
 }
 
-window.__t={get B(){return B},startBattle,go,setCH:c=>{CH=c},hitEnemy,enemyTurn,grid:()=>grid,CHAPTERS,ENEMIES,showEnemy,updateEnemy};
 renderTeam();
 music.play("title");
 })();
