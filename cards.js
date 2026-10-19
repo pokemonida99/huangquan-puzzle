@@ -84,7 +84,7 @@ const ROWS = [
     "Shencha, a Shiba Inu-headed Egyptian god of death with a striped golden nemes headdress and a curved khopesh sword, friendly face, Egyptian pillars"],
   ["cherub", "基路伯", "智天使", "light", "天族", "gods", "hp", "責任天使", { allAtk: 3, allHp: 2, regen: .15, survive: 1 }, "解除咫尺天涯", 8, { healPct: 1, guard: 2, convert: ["heart", "light"] },
     "Cherub, a man with short dark hair, wearing a white hooded robe and a gold pendant necklace, kind confident smile, soft heavenly light behind him. No wings"],
-  ["zhurong", "祝融", "赤帝", "fire", "半神", "gods", "atk", "半神隊長", { attrAtk: { fire: 3.5 }, allHp: 1.3, skyfall: { fire: .45 } }, "赤帝之火", 9, { boardTo: "fire", nuke: 20 },
+  ["zhurong", "祝融", "赤帝", "fire", "半神", "gods", "atk", "半神隊長", { attrAtk: { fire: 3 }, allHp: 1.3, skyfall: { fire: .45 } }, "赤帝之火", 9, { boardTo: "fire", nuke: 20 },
     "Zhurong, the Red Emperor demigod: long wild blond hair, burning eyes, red and gold divine armor, flames swirling, ancient war battlefield"],
   /* 魔界 */
   ["leviathan", "利維坦", "嫉妒魔王", "water", "魔族", "demon", "atk", "無上戰技", { attrAtk: { water: 2.5 }, allHp: 1.3, allAs: "water" }, "剪刀石頭石頭石頭", 8, { nuke: 35, delay: 1 },
@@ -127,7 +127,7 @@ ROWS.forEach(([id, who, title, attr, race, series, kind, leadName, leadFx, actNa
    ========================================================================= */
 window.TIERS = {
   "S+": { star: 7, m: 1.7 }, "S": { star: 6, m: 1.45 }, "S-": { star: 6, m: 1.3 },
-  "A": { star: 5, m: 1.15 }, "B": { star: 5, m: 1 }, "C": { star: 4, m: .88 }, "D": { star: 3, m: .78 }
+  "A": { star: 5, m: 1.15 }, "B": { star: 5, m: 1 }, "C": { star: 4, m: .94 }, "D": { star: 3, m: .9 }
 };
 (() => {
   const BY_WHO = {
@@ -157,7 +157,7 @@ window.TIERS = {
   const ON_CHART = new Set(["路西法", "祝融", "基路伯", "觀音菩薩", "利維坦", "阿芙羅黛蒂", "哈索爾", "千里眼", "鼠軍師", "月老", "愛染明王", "華佗", "九尾", "語彤", "陽滋公主", "諾瓦", "狐姬", "七號"]);
   const KIND_ID = { lee1: "bal", lee2: "atk", lee3: "bal", lee4: "bal", xiaobai: "atk", xiaoyu: "rec", dabao: "atk", afu: "hp" };
   const KIND = { atk: [.9, 1.2, .8], hp: [1.3, .9, .9], rec: [1, .85, 1.5], bal: [1.05, 1, 1.05] };
-  const BIAS = { water: [1.3, .75, 1.6], fire: [.8, 1.35, .65] };
+  const BIAS = { water: [1.3, .82, 1.6], fire: [.82, 1.2, .65] };
   const BASE = [1800, 680, 330];
   Object.entries(CARDS).forEach(([id, c], k) => {
     const tier = BY_ID[id] || BY_WHO[c.who] || "D", t = TIERS[tier];
@@ -173,6 +173,19 @@ window.TIERS = {
     if (!c.evo) return;
     const n = CARDS[c.evo];
     ["hp", "atk", "rec"].forEach(k => { n[k] = Math.max(n[k], Math.round(c[k] * 1.06 / 5) * 5); });
+  });
+})();
+
+/* 隊長技倍率壓縮：隊長＋戰友會相乘，原本兩張 3 倍的隊長疊起來就 9 倍，敵人一回合就倒。
+   所有倍率往 1 拉近（新倍率 = 1 + (原倍率 − 1) × 0.6），強弱順序不變。 */
+(() => {
+  const K = .6, sq = v => Math.round((1 + (v - 1) * K) * 100) / 100;
+  Object.values(CARDS).forEach(c => {
+    const fx = c.lead.fx;
+    ["allAtk", "allHp", "allRec", "vsDemon"].forEach(k => { if (fx[k]) fx[k] = sq(fx[k]); });
+    if (fx.attrAtk) Object.keys(fx.attrAtk).forEach(a => { fx.attrAtk[a] = sq(fx.attrAtk[a]); });
+    if (fx.multiAttr) fx.multiAttr.x = sq(fx.multiAttr.x);
+    delete c.lead.desc;   // 說明一律依新倍率重新產生
   });
 })();
 

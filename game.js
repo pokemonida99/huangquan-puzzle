@@ -69,7 +69,7 @@ let chal = null;   // 目前選的挑戰關：{ idx } 或 null
 // 挑戰關限制三選一，依章節輪替
 function chalDef(idx) {
   const kind = ["star3", "turns", "nogod"][idx % 3];
-  if (kind === "star3") return { kind, label: "只能用 3 星卡", bad: id => CARDS[id].star > 3 };
+  if (kind === "star3") return { kind, label: "只能用 3 星卡（敵人生命 30%、攻擊 60%）", bad: id => CARDS[id].star > 3, weak: { hp: .3, atk: .6 } };
   if (kind === "nogod") return { kind, label: "不能帶神明與天族的角色", bad: id => GODS.has(CARDS[id].who) };
   const turns = CHAL_TURNS[idx] || 14;
   return { kind, label: `${turns} 回合內過關`, turns };
@@ -142,10 +142,14 @@ function renderTeam() {
   $(".stage-waves").innerHTML = CH.waves.map((w, i) =>
     `<span>第 ${i + 1} 波 ‧ ${w.enemies.map(k => ENEMIES[k].name).join("、")}</span>`).join("");
   const lacking = p => [...new Set(p.team.filter(id => !owned.has(id)).map(id => CARDS[id].who))];
+  // 這一章的王是什麼屬性；推薦隊伍的隊長屬性剋它就標出來
+  const bossE = CH.waves.flatMap(w => w.enemies).map(k => ENEMIES[k]).find(e => e.boss);
+  if (bossE) $(".stage-waves").insertAdjacentHTML("beforeend", `<span class="boss-attr" style="${attrVars(bossE.attr)}">王：${bossE.name}（${ATTR[bossE.attr].name}屬性）</span>`);
+  const beatsBoss = p => bossE && BEATS[CARDS[p.team[0]].attr] === bossE.attr;
   $(".presets").innerHTML = `<div class="pre-title">推薦隊伍</div>` + PRESETS.map((p, i) => {
     const miss = lacking(p);
     return `<button class="pre ${p.team.join() === team.join() ? "on" : ""} ${miss.length ? "lack" : ""}" data-p="${i}"><b>${p.name}</b><small>${p.note}</small>
-      ${miss.length ? `<em>尚未獲得：${miss.join("、")}</em>` : ""}</button>`;
+      ${beatsBoss(p) ? `<i class="pre-beat">剋制本章的王</i>` : ""}${miss.length ? `<em>尚未獲得：${miss.join("、")}</em>` : ""}</button>`;
   }).join("");
   $$(".pre").forEach(b => b.onclick = () => {
     if (lacking(PRESETS[+b.dataset.p]).length) { b.animate([{ transform: "translateX(-5px)" }, { transform: "translateX(5px)" }, { transform: "none" }], { duration: 250 }); vibe(30); return; }
@@ -363,7 +367,8 @@ async function loadWave(w) {
   const wave = CH.waves[w];
   if (wave.lines) { $(".enemies").innerHTML = ""; await dialog(wave.lines); }
   if (B !== b) return;
-  B.enemies = wave.enemies.map(k => ({ ...ENEMIES[k], key: k, hpNow: ENEMIES[k].hp, cdNow: ENEMIES[k].cd, skills: ENEMIES[k].skills || [] }));
+  const weak = (chal && chalDef(chal.idx).weak) || { hp: 1, atk: 1 };   // 「只能用 3 星卡」挑戰關的敵人比較弱
+  B.enemies = wave.enemies.map(k => ({ ...ENEMIES[k], key: k, hp: Math.round(ENEMIES[k].hp * weak.hp), hpNow: Math.round(ENEMIES[k].hp * weak.hp), atk: Math.round(ENEMIES[k].atk * weak.atk), cdNow: ENEMIES[k].cd, skills: ENEMIES[k].skills || [] }));
   B.enemies.forEach(e => { const sp = e.skills.find(s => s.on === "spawn"); if (sp) e.shield = { ...sp, ...(sp.shield || {}) }; });
   $(".wave-tag").textContent = `${CH.name}　${w + 1} / ${CH.waves.length}`;
   const box = $(".enemies");
@@ -558,7 +563,9 @@ function showCombo(n, sky) {
 // 落珠：隊長／戰友有「某屬性掉落機率提升」時（例：祝融的火符石），先依機率決定要不要掉那個屬性
 function randAttr() {
   if (tut.fall && tut.fall.length) return tut.fall.shift();   // 教學：落珠照預設順序
-  for (const fx of leaderFx()) if (fx.skyfall) for (const [a, p] of Object.entries(fx.skyfall)) if (Math.random() < p) return a;
+  const sky = {};   // 隊長與戰友同一張卡時不疊加，取較高的機率
+  for (const fx of leaderFx()) if (fx.skyfall) for (const [a, p] of Object.entries(fx.skyfall)) sky[a] = Math.max(sky[a] || 0, p);
+  for (const [a, p] of Object.entries(sky)) if (Math.random() < p) return a;
   return ORB_TYPES[Math.floor(Math.random() * 6)];
 }
 // 符石：圖片＋一道定時掃過的反光（每顆的時間錯開）

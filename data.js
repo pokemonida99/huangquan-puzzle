@@ -112,17 +112,17 @@ window.DEMO_TEAM = ["lee4", "xiaobai", "xiaoyu", "dabao", "afu", "lee4"];
 
 /* 推薦隊伍：選了之後每一格都還能自由換卡 */
 window.PRESETS = [
-  { name: "業鏡五屬隊", note: "禮帽西裝的李國志帶隊，四種屬性一起消，攻擊力再加成", team: DEMO_TEAM },
-  { name: "嫉妒魔王水隊", note: "利維坦：任何顏色都算水。血多、回復高、攻擊低，水剋火：適合第三章", team: ["leviathan", "nova", "mimi", "jiuwei", "yangzi", "leviathan"] },
-  { name: "赤帝火隊", note: "祝融：火珠大量掉落。攻擊高、血少、回復低，火剋木：適合第二章", team: ["zhurong", "dabao", "aizen", "akasaka", "huji", "zhurong"] }
+  { name: "業鏡五屬隊", note: "禮帽西裝的李國志帶隊，一次消四種顏色攻擊力再加成。光剋暗：第一章", team: DEMO_TEAM },
+  { name: "嫉妒魔王水隊", note: "利維坦：任何顏色都算水。血多、回復高、攻擊低。水剋火：第五章", team: ["leviathan", "nova", "mimi", "jiuwei", "yangzi", "leviathan"] },
+  { name: "赤帝火隊", note: "祝融：火珠大量掉落。攻擊高、血少、回復低。火剋木：第二章", team: ["zhurong", "dabao", "aizen", "akasaka", "huji", "zhurong"] }
 ];
 
 window.ENEMIES = {
-  bat:    { demon: true, name: "蝙蝠惡魔", attr: "fire", img: "art/enemy-bat.webp", hp: 38000, atk: 1100, cd: 2 },
-  reaper: { demon: true, name: "第三王國惡魔", attr: "dark", img: "art/enemy-reaper.webp", hp: 135000, atk: 2000, cd: 3 },
-  plague: { demon: true, name: "瘟疫", attr: "wood", img: "art/enemy-plague.webp", hp: 100000, atk: 1600, cd: 2,
+  bat:    { demon: true, name: "蝙蝠惡魔", attr: "fire", img: "art/enemy-bat.webp", hp: 42000, atk: 1500, cd: 2 },
+  reaper: { demon: true, name: "第三王國惡魔", attr: "dark", img: "art/enemy-reaper.webp", hp: 56000, atk: 2400, cd: 3 },
+  plague: { demon: true, name: "瘟疫", attr: "wood", img: "art/enemy-plague.webp", hp: 44000, atk: 2000, cd: 2,
             skills: [{ on: "attack", name: "瘟疫蔓延", convert: ["heart", "wood"], n: 3 }] },
-  satan:  { demon: true, name: "撒旦", attr: "fire", img: "art/enemy-satan.webp", hp: 550000, atk: 3300, cd: 3, boss: true }
+  satan:  { demon: true, name: "撒旦", attr: "fire", img: "art/enemy-satan.webp", hp: 663000, atk: 4800, cd: 3, boss: true }
 };
 
 window.STAGE = {

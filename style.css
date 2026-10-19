@@ -507,3 +507,5 @@ h1 small { display: block; font-size: 18px; letter-spacing: .5em; color: var(--i
 .tut-finger { position: absolute; left: 0; top: 0; display: none; font-size: 38px; line-height: 1; filter: drop-shadow(0 2px 3px #000); }
 .party .icon.tut-hl { outline: 3px solid #ffe08a; outline-offset: 2px; box-shadow: 0 0 14px #ffcf4a; z-index: 2; }
 .btn.mini { display: inline-block; margin: 0; min-width: 0; padding: 8px 18px; font-size: 14px; }
+.stage-waves .boss-attr { border-color: var(--c); color: var(--c); font-weight: 700; }
+.pre .pre-beat { display: block; font-style: normal; font-size: 10.5px; color: #9effa8; margin-top: 3px; }

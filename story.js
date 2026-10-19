@@ -7,27 +7,27 @@
    ========================================================================= */
 
 Object.assign(window.ENEMIES, {
-  moqi:    { demon: true, name: "魔氣", attr: "dark", img: "art/enemy-moqi.webp", hp: 26000, atk: 700, cd: 2 },
-  yutongD: { demon: true, name: "魔化的語彤", attr: "dark", img: "art/enemy-yutong.webp", hp: 240000, atk: 1800, cd: 3, boss: true,
+  moqi:    { demon: true, name: "魔氣", attr: "dark", img: "art/enemy-moqi.webp", hp: 38000, atk: 1200, cd: 2 },
+  yutongD: { demon: true, name: "魔化的語彤", attr: "dark", img: "art/enemy-yutong.webp", hp: 404000, atk: 3000, cd: 3, boss: true,
              title: "請給我黑令旗", warn: "三途川市役所 ‧ 魔氣暴走", quote: "霸凌我的人，因為未成年被法院輕判，我卻再也見不到我爸爸了",
              skills: [{ on: "attack", name: "魔氣侵蝕", convert: ["heart", "dark"], n: 4 }, { on: "low", name: "魔氣暴走", hp: .3, cd: 1, atk: 1.5 }] },
-  gang:    { name: "辣雞的跟班", attr: "wood", img: "art/enemy-lajigang.webp", hp: 45000, atk: 1000, cd: 2 },
-  lajiH:   { name: "辣雞", attr: "fire", img: "art/enemy-laji2.webp", hp: 130000, atk: 1500, cd: 2 },
-  laji:    { name: "罪人 陳樂基", attr: "fire", img: "art/enemy-laji.webp", hp: 340000, atk: 2300, cd: 3, boss: true,
+  gang:    { name: "辣雞的跟班", attr: "wood", img: "art/enemy-lajigang.webp", hp: 44000, atk: 1500, cd: 2 },
+  lajiH:   { name: "辣雞", attr: "fire", img: "art/enemy-laji2.webp", hp: 84000, atk: 2400, cd: 2 },
+  laji:    { name: "罪人 陳樂基", attr: "wood", img: "art/enemy-laji.webp", hp: 445000, atk: 3600, cd: 3, boss: true,
              title: "議員之子", warn: "刀鋸地獄 ‧ 業鏡審判", quote: "你知道我爸是誰嗎",
-             skills: [{ on: "spawn", name: "議員的兒子", absorb: 40000, turns: 3 }, { on: "attack", name: "誣賴", convert: ["heart", "fire"], n: 4 }] }
+             skills: [{ on: "spawn", name: "議員的兒子", absorb: 40000, turns: 3 }, { on: "attack", name: "誣賴", convert: ["heart", "wood"], n: 4 }] }
 });
 Object.assign(window.ENEMIES, {
-  chu:     { name: "楚國追兵", attr: "wood", img: "art/enemy-chu.webp", hp: 30000, atk: 900, cd: 2 },
-  thug:    { name: "烏氏的手下", attr: "fire", img: "art/enemy-thug.webp", hp: 70000, atk: 1300, cd: 2 },
-  godeye:  { name: "古神之眼", attr: "dark", img: "art/enemy-godeye.webp", hp: 420000, atk: 2600, cd: 3, boss: true,
+  chu:     { name: "楚國追兵", attr: "wood", img: "art/enemy-chu.webp", hp: 30000, atk: 1200, cd: 2 },
+  thug:    { name: "烏氏的手下", attr: "fire", img: "art/enemy-thug.webp", hp: 42000, atk: 1600, cd: 2 },
+  godeye:  { name: "古神之眼", attr: "light", img: "art/enemy-godeye.webp", hp: 517000, atk: 4000, cd: 3, boss: true,
              title: "上古神祇", warn: "古神遺跡 ‧ 神魔禁地", quote: "人間小神也敢窺探古神",
-             skills: [{ on: "spawn", name: "神魔禁地", shield: { only: "light" }, turns: 2 }, { on: "low", name: "古神震怒", hp: .3, cd: 1, atk: 1.5 }] },
-  levi:    { name: "利維坦", attr: "water", img: "art/enemy-leviathan.webp", hp: 380000, atk: 2400, cd: 3, boss: true, demon: true,
+             skills: [{ on: "spawn", name: "神魔禁地", shield: { only: "dark" }, turns: 2 }, { on: "low", name: "古神震怒", hp: .3, cd: 1, atk: 1.5 }] },
+  levi:    { name: "利維坦", attr: "water", img: "art/enemy-leviathan.webp", hp: 436000, atk: 4000, cd: 3, boss: true, demon: true,
              title: "嫉妒魔王", warn: "魔界第二王國 ‧ 七宗罪之嫉妒", quote: "兩位殿堂級的主神，一起迎接我，已經不是用言語可以解決的吧",
              skills: [{ on: "attack", name: "嫉妒之水", convert: ["fire", "water"], n: 4 }] },
-  ghost:   { name: "抓交替的冤魂", attr: "dark", img: "art/enemy-ghost.webp", hp: 60000, atk: 1400, cd: 2 },
-  ghostB:  { name: "抓交替的冤魂", attr: "dark", img: "art/enemy-ghost.webp", hp: 110000, atk: 1900, cd: 2 }
+  ghost:   { name: "抓交替的冤魂", attr: "dark", img: "art/enemy-ghost.webp", hp: 38000, atk: 1300, cd: 2 },
+  ghostB:  { name: "抓交替的冤魂", attr: "dark", img: "art/enemy-ghost.webp", hp: 56000, atk: 1800, cd: 2 }
 });
 Object.assign(window.ENEMIES.satan, { title: "憤怒魔王", warn: "魔界第三王國 ‧ 七宗罪之憤怒", quote: "我不是針對生靈，我是指在座的各位，都是垃圾",
   skills: [{ on: "spawn", name: "拒神結界", absorb: 60000, turns: 3 }, { on: "low", name: "憤怒", hp: .3, cd: 1, atk: 1.5 }] });
