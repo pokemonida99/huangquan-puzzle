@@ -9,18 +9,77 @@ const fmt = n => Math.round(n).toLocaleString("en-US");
 const stars = n => "★".repeat(n);
 const attrVars = a => `--c:${ATTR[a].color};--cd:${ATTR[a].dark}`;
 
-/* ---------------- 音效（WebAudio 合成，不用音檔） ---------------- */
-let actx;
-function beep(freq, dur = .08, type = "triangle", vol = .08) {
-  try {
-    actx = actx || new (window.AudioContext || window.webkitAudioContext)();
-    const o = actx.createOscillator(), g = actx.createGain();
-    o.type = type; o.frequency.value = freq;
-    g.gain.setValueAtTime(vol, actx.currentTime);
-    g.gain.exponentialRampToValueAtTime(.0001, actx.currentTime + dur);
-    o.connect(g).connect(actx.destination); o.start(); o.stop(actx.currentTime + dur);
-  } catch (e) {}
+/* ---------------- 設定（音效、震動；記在這支手機的瀏覽器） ---------------- */
+const SET = { sound: true, vibe: true };
+try { Object.assign(SET, JSON.parse(localStorage.getItem("hq-settings") || "{}")); } catch (e) {}
+function saveSet() { try { localStorage.setItem("hq-settings", JSON.stringify(SET)); } catch (e) {} }
+const canVibe = "vibrate" in navigator;
+function vibe(p) { if (SET.vibe && canVibe) try { navigator.vibrate(p); } catch (e) {} }
+
+/* ---------------- 音效（WebAudio 即時合成，不用音檔） ---------------- */
+let actx, master, noiseBuf;
+function ac() {
+  if (!actx) {
+    actx = new (window.AudioContext || window.webkitAudioContext)();
+    master = actx.createGain(); master.gain.value = .55;
+    const comp = actx.createDynamicsCompressor();
+    master.connect(comp).connect(actx.destination);
+    noiseBuf = actx.createBuffer(1, actx.sampleRate * .5, actx.sampleRate);
+    const d = noiseBuf.getChannelData(0);
+    for (let i = 0; i < d.length; i++) d[i] = Math.random() * 2 - 1;
+  }
+  if (actx.state === "suspended") actx.resume();
+  return actx;
 }
+// 一個音：頻率可以滑動（f0→f1），有起音與衰減
+function tone({ f0, f1 = f0, dur = .12, type = "sine", vol = .3, delay = 0, attack = .005 }) {
+  const t = actx.currentTime + delay, o = actx.createOscillator(), g = actx.createGain();
+  o.type = type; o.frequency.setValueAtTime(f0, t);
+  if (f1 !== f0) o.frequency.exponentialRampToValueAtTime(f1, t + dur);
+  g.gain.setValueAtTime(.0001, t); g.gain.exponentialRampToValueAtTime(vol, t + attack);
+  g.gain.exponentialRampToValueAtTime(.0001, t + dur);
+  o.connect(g).connect(master); o.start(t); o.stop(t + dur + .02);
+}
+// 一段雜訊：經過濾波，用來做爆裂、打擊、火焰聲
+function noise({ dur = .15, vol = .3, freq = 1200, q = 1, type = "bandpass", f1, delay = 0 }) {
+  const t = actx.currentTime + delay, src = actx.createBufferSource(), f = actx.createBiquadFilter(), g = actx.createGain();
+  src.buffer = noiseBuf; f.type = type; f.Q.value = q; f.frequency.setValueAtTime(freq, t);
+  if (f1) f.frequency.exponentialRampToValueAtTime(f1, t + dur);
+  g.gain.setValueAtTime(vol, t); g.gain.exponentialRampToValueAtTime(.0001, t + dur);
+  src.connect(f).connect(g).connect(master); src.start(t); src.stop(t + dur + .02);
+}
+const SCALE = [0, 2, 4, 7, 9, 12, 14, 16, 19, 21, 24, 26, 28, 31];   // 五聲音階，combo 越多越高
+const sfx = new Proxy({
+  click() { tone({ f0: 900, f1: 700, dur: .06, type: "triangle", vol: .18 }); },
+  pick() { tone({ f0: 520, f1: 780, dur: .08, type: "triangle", vol: .2 }); },
+  swap() { tone({ f0: 1300 + Math.random() * 200, dur: .035, type: "sine", vol: .08 }); noise({ dur: .03, vol: .05, freq: 4000, q: 3 }); },
+  drop() { tone({ f0: 300, f1: 160, dur: .1, type: "sine", vol: .2 }); },
+  pop(n) {   // 消除：清脆的玻璃碎裂＋往上爬的音階
+    const f = 523.25 * Math.pow(2, SCALE[Math.min(n - 1, SCALE.length - 1)] / 12);
+    tone({ f0: f, dur: .22, type: "triangle", vol: .28 });
+    tone({ f0: f * 2, dur: .16, type: "sine", vol: .14, delay: .01 });
+    tone({ f0: f * 3.01, dur: .09, type: "sine", vol: .06, delay: .015 });
+    noise({ dur: .12, vol: .22, freq: 5200, q: .8, type: "highpass" });
+    noise({ dur: .08, vol: .18, freq: 900, f1: 300, q: 2 });
+  },
+  hit(big) {
+    noise({ dur: big ? .22 : .14, vol: big ? .4 : .28, freq: 1800, f1: 200, q: 1.2 });
+    tone({ f0: big ? 180 : 240, f1: 60, dur: .16, type: "square", vol: big ? .2 : .12 });
+  },
+  hurt() {
+    noise({ dur: .35, vol: .45, freq: 600, f1: 80, q: .7, type: "lowpass" });
+    tone({ f0: 110, f1: 40, dur: .35, type: "sawtooth", vol: .25 });
+  },
+  heal() { [0, 4, 7, 12].forEach((k, i) => tone({ f0: 784 * Math.pow(2, k / 12), dur: .3, vol: .12, delay: i * .06 })); },
+  skill() {
+    noise({ dur: .5, vol: .2, freq: 300, f1: 6000, q: 2 });
+    [0, 7, 12, 19].forEach((k, i) => tone({ f0: 440 * Math.pow(2, k / 12), dur: .45, type: "triangle", vol: .14, delay: i * .07 }));
+  },
+  wave() { tone({ f0: 196, dur: .5, type: "sawtooth", vol: .12 }); tone({ f0: 294, dur: .5, type: "sawtooth", vol: .1, delay: .12 }); noise({ dur: .4, vol: .15, freq: 200, q: 1, type: "lowpass" }); },
+  win() { [0, 4, 7, 12, 16, 19, 24].forEach((k, i) => tone({ f0: 523 * Math.pow(2, k / 12), dur: .5, type: "triangle", vol: .16, delay: i * .09 })); },
+  lose() { [12, 8, 5, 0].forEach((k, i) => tone({ f0: 220 * Math.pow(2, k / 12), dur: .6, type: "sine", vol: .2, delay: i * .22 })); },
+  evo() { noise({ dur: 1, vol: .25, freq: 200, f1: 8000, q: 3 }); [0, 4, 7, 11, 12, 16, 19, 24].forEach((k, i) => tone({ f0: 392 * Math.pow(2, k / 12), dur: .6, vol: .12, delay: .15 + i * .08 })); }
+}, { get: (o, k) => (...a) => { if (!SET.sound) return; try { ac(); o[k](...a); } catch (e) {} } });
 
 /* ---------------- 畫面切換 ---------------- */
 function go(id) {
@@ -29,6 +88,7 @@ function go(id) {
   if (id === "dex") renderDex();
 }
 document.addEventListener("click", e => {
+  if (e.target.closest("button")) sfx.click();
   const b = e.target.closest("[data-go]");
   if (b) go(b.dataset.go);
 });
@@ -74,7 +134,7 @@ function renderTeam() {
     if (i === 0 || i === 5) {
       const chain = ["lee1", "lee2", "lee3"];
       team[i] = chain[(chain.indexOf(team[i]) + 1) % 3];
-      beep(660, .1); renderTeam();
+      sfx.evo(); vibe(30); renderTeam();
     } else showCard(team[i]);
   });
 }
@@ -140,6 +200,7 @@ function loadWave(w) {
     $$(".enemy").forEach((x, j) => x.classList.toggle("target", j === B.target));
   });
   banner(B.enemies.some(e => e.boss) ? "BOSS" : `第 ${w + 1} 波`);
+  sfx.wave();
 }
 function enemyEl(i) { return $$(".enemy")[i]; }
 function updateEnemy(i) {
@@ -186,11 +247,13 @@ function showCombo(n) {
 
 /* ---------------- 盤面 ---------------- */
 function randAttr() { return ORB_TYPES[Math.floor(Math.random() * 6)]; }
+// 符石：圖片＋一道定時掃過的反光（每顆的時間錯開）
+function orbInner(attr) { return `<i style="--img:url(art/orb-${attr}.webp);--gd:${(Math.random() * 6).toFixed(2)}s"></i>`; }
 function makeOrb(attr) {
   const el = document.createElement("div");
   el.className = "orb " + attr;
   el.style.cssText = attrVars(attr);
-  el.innerHTML = `<i>${ATTR[attr].glyph}</i>`;
+  el.innerHTML = orbInner(attr);
   board.appendChild(el);
   return { attr, el };
 }
@@ -202,7 +265,8 @@ function place(o, r, c, instant) {
 function setAttr(o, attr) {
   o.attr = attr; o.el.className = "orb " + attr;
   o.el.style.cssText = attrVars(attr) + ";transform:" + o.el.style.transform;
-  o.el.innerHTML = `<i>${ATTR[attr].glyph}</i>`;
+  o.el.innerHTML = orbInner(attr);
+  o.el.classList.add("morph"); setTimeout(() => o.el.classList.remove("morph"), 450);
 }
 function initBoard() {
   board.innerHTML = "";
@@ -240,7 +304,7 @@ board.addEventListener("pointerdown", e => {
   o.el.classList.add("held");
   drag = { r, c, o, moved: false, t0: 0, id: e.pointerId };
   moveHeld(e);
-  beep(520, .05);
+  sfx.pick(); vibe(8);
 });
 board.addEventListener("pointermove", e => {
   if (!drag || e.pointerId !== drag.id) return;
@@ -253,7 +317,7 @@ board.addEventListener("pointermove", e => {
     const other = grid[nr][nc];
     grid[drag.r][drag.c] = other; place(other, drag.r, drag.c);
     grid[nr][nc] = drag.o; drag.r = nr; drag.c = nc;
-    beep(380 + Math.random() * 60, .03, "sine", .04);
+    sfx.swap(); vibe(6);
     if (!drag.moved) { drag.moved = true; startTimer(); }
   }
 });
@@ -320,6 +384,28 @@ function findGroups() {
   // 由下往上消，比較有連鎖感
   return groups.sort((g1, g2) => Math.max(...g2.cells.map(x => x[0])) - Math.max(...g1.cells.map(x => x[0])));
 }
+/* 消除特效：閃光圈＋向外噴的碎光 */
+const fxBoard = document.createElement("div");
+fxBoard.className = "board-fx";
+board.parentNode.appendChild(fxBoard);
+function burst(r, c, attr, combo) {
+  const x = (c + .5) / COLS * 100, y = (r + .5) / ROWS * 100;
+  const ring = document.createElement("i");
+  ring.className = "ring"; ring.style.cssText = `left:${x}%;top:${y}%;${attrVars(attr)}`;
+  fxBoard.appendChild(ring); setTimeout(() => ring.remove(), 500);
+  const n = 7 + Math.min(combo, 6);
+  for (let k = 0; k < n; k++) {
+    const a = Math.random() * Math.PI * 2, d = 26 + Math.random() * 40;
+    const p = document.createElement("i");
+    p.className = "spark";
+    p.style.cssText = `left:${x}%;top:${y}%;${attrVars(attr)};--dx:${Math.cos(a) * d}px;--dy:${Math.sin(a) * d}px;--s:${(.5 + Math.random() * .8).toFixed(2)}`;
+    fxBoard.appendChild(p); setTimeout(() => p.remove(), 600);
+  }
+}
+function shake(el, px) {
+  el.animate([{ transform: `translate(${px}px, ${-px / 2}px)` }, { transform: `translate(${-px}px, ${px / 2}px)` },
+    { transform: `translate(${px / 2}px, 0)` }, { transform: "none" }], { duration: 180 });
+}
 async function resolveBoard() {
   const all = [];
   for (;;) {
@@ -327,9 +413,10 @@ async function resolveBoard() {
     if (!groups.length) break;
     for (const g of groups) {
       all.push(g);
-      g.cells.forEach(([r, c]) => grid[r][c].el.classList.add("pop"));
+      g.cells.forEach(([r, c]) => { grid[r][c].el.classList.add("pop"); burst(r, c, g.attr, all.length); });
       showCombo(all.length);
-      beep(440 * Math.pow(1.06, all.length * 2), .12, "square", .05);
+      if (all.length >= 5) shake(board.parentNode, Math.min(2 + all.length * .4, 6));
+      sfx.pop(all.length); vibe(Math.min(18 + all.length * 4, 45));
       await sleep(230);
     }
     await sleep(120);
@@ -344,8 +431,11 @@ async function resolveBoard() {
       }
       col.forEach((o, i) => { const r = ROWS - 1 - i; grid[r][c] = o; o.el.classList.add("fall"); place(o, r, c); });
     }
-    await sleep(360);
-    $$(".orb.fall").forEach(el => el.classList.remove("fall"));
+    await sleep(330);
+    $$(".orb.fall").forEach(el => { el.classList.remove("fall"); el.classList.add("land"); });
+    sfx.drop();
+    await sleep(80);
+    $$(".orb.land").forEach(el => el.classList.remove("land"));
   }
   return all;
 }
@@ -386,7 +476,7 @@ async function attack(groups) {
     B.hp += heal; updateHp();
     const hb = $(".hpbar").getBoundingClientRect(), fb = $(".field").getBoundingClientRect();
     floatText(hb.left - fb.left + hb.width / 2, hb.top - fb.top - 34, "+" + fmt(heal), "heart", "heal");
-    beep(880, .2, "sine", .06);
+    sfx.heal();
   }
   // 攻擊：每位成員依自己的屬性出手
   for (let i = 0; i < team.length; i++) {
@@ -411,7 +501,7 @@ async function hitEnemy(t, raw, attr, fromEl) {
   const p = centerOf($(".pic", el), $(".field"));
   floatText(p.x + (Math.random() * 40 - 20), p.y - 20 + Math.random() * 30, fmt(dmg), attr, tm > 1 ? "big" : "");
   el.classList.remove("hit"); void el.offsetWidth; el.classList.add("hit");
-  beep(200 + Math.random() * 80, .07, "sawtooth", .05);
+  sfx.hit(tm > 1);
   updateEnemy(t);
 }
 async function checkWave() {
@@ -437,7 +527,7 @@ async function enemyTurn() {
       document.querySelector("#battle").animate([{ transform: "translateX(-6px)" }, { transform: "translateX(6px)" }, { transform: "none" }], { duration: 220 });
       const hb = $(".hpbar").getBoundingClientRect(), fb = $(".field").getBoundingClientRect();
       floatText(hb.left - fb.left + hb.width / 2, hb.top - fb.top - 34, "-" + fmt(e.atk), e.attr);
-      beep(120, .25, "sawtooth", .08);
+      sfx.hurt(); vibe([60, 40, 90]);
       e.cdNow = e.cd;
       await sleep(350);
     }
@@ -460,7 +550,7 @@ async function castSkill(i) {
   const c = CARDS[team[i]], fx = c.act.fx;
   B.cd[i] = c.act.cd; updateParty();
   banner(c.act.name);
-  beep(660, .15); beep(990, .3, "sine", .05);
+  sfx.skill(); vibe([20, 30, 20, 30, 60]);
   B.busy = true; board.classList.add("locked");
   await sleep(500);
   if (fx.convert) {
@@ -493,12 +583,12 @@ async function castSkill(i) {
 
 /* ---------------- 結算 ---------------- */
 function win() {
-  beep(523, .2); setTimeout(() => beep(659, .2), 180); setTimeout(() => beep(784, .4), 360);
+  sfx.win(); vibe([40, 60, 40, 60, 120]);
   modal(`<div class="result"><h3>過關</h3><p>撒旦被打回第三王國了。<br>三途川的燈，又亮了一晚。</p>
     <div class="row"><button class="btn" data-goto="team">回隊伍</button><button class="btn gold" data-goto="again">再玩一次</button></div></div>`);
 }
 function lose() {
-  B.busy = true;
+  B.busy = true; sfx.lose(); vibe(300);
   modal(`<div class="result"><h3>全隊陣亡</h3><p>如入火聚，得清涼門。再試一次吧。</p>
     <div class="row"><button class="btn" data-goto="team">回隊伍</button><button class="btn gold" data-goto="again">重新挑戰</button></div></div>`);
 }
@@ -506,6 +596,23 @@ $("#quit").onclick = () => {
   modal(`<h3>離開戰鬥？</h3><p>這一場的進度不會保留。</p>
     <div class="row"><button class="btn" data-close>繼續</button><button class="btn gold" data-goto="team">離開</button></div>`);
 };
+
+/* ---------------- 設定 ---------------- */
+function settingsDialog() {
+  const row = (k, label, note, ok = true) => `<div class="set-row"><div>${label}<small>${note}</small></div>
+    <button class="switch ${SET[k] && ok ? "on" : ""}" data-k="${k}" ${ok ? "" : "disabled"} aria-label="${label}"></button></div>`;
+  modal(`<h3>設定</h3>
+    ${row("sound", "音效", "轉珠、消除、攻擊與技能的聲音")}
+    ${row("vibe", "震動", canVibe ? "消除、受傷、發動技能時手機會震動" : "這支手機的瀏覽器不支援震動（iPhone 的瀏覽器都不支援）", canVibe)}
+    <div class="row"><button class="btn gold" data-close>完成</button></div>`);
+  $$(".switch[data-k]").forEach(b => b.onclick = () => {
+    SET[b.dataset.k] = !SET[b.dataset.k]; saveSet();
+    b.classList.toggle("on", SET[b.dataset.k]);
+    if (b.dataset.k === "vibe" && SET.vibe) vibe([30, 40, 30]);
+    if (b.dataset.k === "sound" && SET.sound) sfx.pop(3);
+  });
+}
+document.addEventListener("click", e => { if (e.target.closest("[data-settings]") && !(B && B.busy)) settingsDialog(); });
 
 /* ---------------- 對話框 ---------------- */
 function modal(html, kind = "") { $(".modal-box").innerHTML = html; $("#modal").className = "modal on " + kind; }
@@ -602,7 +709,7 @@ function showCard(id) {
   $$("[data-evo]").forEach(el => el.onclick = () => showCard(el.dataset.evo));
   if (c.evo) $("#do-evo").onclick = async () => {
     const f = document.createElement("div"); f.className = "evo-flash"; $("#app").appendChild(f);
-    beep(523, .15); setTimeout(() => beep(784, .15), 150); setTimeout(() => beep(1046, .4, "sine"), 300);
+    sfx.evo(); vibe([30, 40, 30, 40, 30, 40, 150]);
     await sleep(480); showCard(c.evo); await sleep(800); f.remove();
   };
 }

@@ -79,8 +79,7 @@ h1 small { display: block; font-size: 18px; letter-spacing: .5em; color: var(--i
 .enemies { position: absolute; left: 0; right: 0; bottom: 8px; top: 44px; display: flex; justify-content: center; align-items: flex-end; gap: 10px; padding: 0 10px; }
 .enemy { position: relative; flex: 0 1 46%; height: 100%; display: flex; justify-content: flex-end; flex-direction: column; align-items: center; cursor: pointer; transition: opacity .6s, transform .6s; }
 .enemy.boss { flex-basis: 74%; }
-.enemy .pic { width: 100%; flex: 1 1 auto; min-height: 0; object-fit: contain; object-position: 50% 100%;
-  -webkit-mask-image: radial-gradient(ellipse 50% 50% at 50% 48%, #000 62%, transparent 100%); mask-image: radial-gradient(ellipse 50% 50% at 50% 48%, #000 62%, transparent 100%); }
+.enemy .pic { width: 100%; flex: 1 1 auto; min-height: 0; object-fit: contain; object-position: 50% 100%; }
 .enemy .ehp { width: 86%; height: 7px; border-radius: 4px; background: #000a; overflow: hidden; border: 1px solid #0008; margin-top: -6px; }
 .enemy .ehp i { display: block; height: 100%; width: 100%; background: linear-gradient(90deg, var(--c), color-mix(in srgb, var(--c) 60%, #fff)); transition: width .4s; }
 .enemy .ename { font-size: 12px; margin-top: 2px; text-shadow: 0 1px 2px #000; display: flex; gap: 6px; align-items: center; }
@@ -138,19 +137,47 @@ h1 small { display: block; font-size: 18px; letter-spacing: .5em; color: var(--i
 .board.locked { pointer-events: none; }
 
 /* 符石 */
-.orb { position: absolute; left: 0; top: 0; width: calc(100% / 6); height: calc(100% / 5); padding: 4%; transition: transform .16s ease-out, opacity .25s; will-change: transform; }
-.orb i { display: grid; place-items: center; width: 100%; height: 100%; border-radius: 50%; font-style: normal; font-weight: 900; font-size: clamp(16px, 5.4vw, 26px);
-  color: #fff; -webkit-text-stroke: .6px rgba(0,0,0,.45); text-shadow: 0 1px 2px rgba(0,0,0,.5);
-  background: radial-gradient(circle at 34% 28%, rgba(255,255,255,.95) 0 8%, rgba(255,255,255,.35) 18%, transparent 36%),
-              radial-gradient(circle at 50% 60%, var(--c) 40%, var(--cd) 100%);
-  box-shadow: inset 0 -4px 8px rgba(0,0,0,.35), 0 3px 6px rgba(0,0,0,.5), 0 0 0 1.5px rgba(255,255,255,.18); font-family: "Songti TC", serif; }
-.orb.heart i { border-radius: 50% 50% 46% 46%; }
+.orb { position: absolute; left: 0; top: 0; width: calc(100% / 6); height: calc(100% / 5); padding: 3%; transition: transform .16s ease-out; will-change: transform; }
+.orb i { position: relative; display: block; width: 100%; height: 100%; border-radius: 50%; overflow: hidden;
+  background: var(--img) center / 100% no-repeat,
+              radial-gradient(circle at 34% 28%, rgba(255,255,255,.9) 0 8%, transparent 30%), radial-gradient(circle at 50% 60%, var(--c) 40%, var(--cd) 100%);
+  box-shadow: 0 3px 6px rgba(0,0,0,.55), 0 0 10px color-mix(in srgb, var(--c) 35%, transparent); }
+/* 定時掃過的反光 */
+.orb i::after { content: ""; position: absolute; inset: 0; border-radius: 50%;
+  background: linear-gradient(115deg, transparent 38%, rgba(255,255,255,.75) 48%, rgba(255,255,255,.15) 54%, transparent 62%) no-repeat;
+  background-size: 300% 300%; background-position: 120% 120%; mix-blend-mode: screen;
+  animation: glint 5.5s ease-in-out infinite; animation-delay: var(--gd, 0s); }
+@keyframes glint { 0%, 78% { background-position: 120% 120%; } 92%, 100% { background-position: -20% -20%; } }
 .orb.held { z-index: 10; transition: none; }
-.orb.held i { transform: scale(1.15); box-shadow: 0 0 18px 4px var(--c), inset 0 -4px 8px rgba(0,0,0,.35); }
-.orb.ghost { opacity: .35; }
-.orb.pop { opacity: 0; transition: transform .25s, opacity .25s; }
-.orb.pop i { transform: scale(1.5); transition: transform .25s; }
-.orb.fall { transition: transform .32s cubic-bezier(.4, 0, .9, 1); }
+.orb.held i { transform: scale(1.18); box-shadow: 0 0 20px 6px var(--c), 0 6px 12px rgba(0,0,0,.6); filter: brightness(1.15); }
+.orb.pop i { animation: popout .3s ease-out forwards; }
+@keyframes popout { 0% { transform: scale(1); filter: brightness(1); } 35% { transform: scale(1.35); filter: brightness(2.4) saturate(1.4); } 100% { transform: scale(.1); filter: brightness(3); opacity: 0; } }
+.orb.fall { transition: transform .3s cubic-bezier(.45, 0, .9, .6); }
+.orb.land i { animation: land .18s ease-out; }
+@keyframes land { 40% { transform: scale(1.12, .86) translateY(6%); } }
+.orb.morph i { animation: morph .45s ease-out; }
+@keyframes morph { 0% { transform: scale(.4) rotate(-90deg); filter: brightness(3); } 70% { transform: scale(1.12); } }
+
+/* 消除特效 */
+.board-wrap { position: relative; }
+.board-fx { position: absolute; left: 8px; right: 8px; top: 6px; aspect-ratio: 6/5; pointer-events: none; z-index: 20; }
+.board-fx .ring { position: absolute; width: 15%; aspect-ratio: 1; margin: -7.5% 0 0 -7.5%; border-radius: 50%;
+  border: 3px solid #fff; box-shadow: 0 0 14px 4px var(--c), inset 0 0 10px var(--c); animation: ring .45s ease-out forwards; }
+@keyframes ring { 0% { transform: scale(.3); opacity: 1; } 100% { transform: scale(1.6); opacity: 0; border-width: 1px; } }
+.board-fx .spark { position: absolute; width: 7px; height: 7px; margin: -3.5px; border-radius: 50%; background: #fff;
+  box-shadow: 0 0 8px 3px var(--c); animation: spark .55s cubic-bezier(.2, .7, .4, 1) forwards; }
+@keyframes spark { 0% { transform: translate(0, 0) scale(var(--s)); opacity: 1; } 100% { transform: translate(var(--dx), var(--dy)) scale(0); opacity: 0; } }
+
+/* 設定 */
+.set-row { display: flex; align-items: center; justify-content: space-between; padding: 14px 4px; border-bottom: 1px solid rgba(255,255,255,.08); font-size: 16px; }
+.set-row small { display: block; font-size: 12px; color: var(--dim); margin-top: 2px; }
+.switch { position: relative; width: 52px; height: 30px; border-radius: 999px; border: 0; background: #3a3340; cursor: pointer; flex: none; transition: background .2s; }
+.switch::after { content: ""; position: absolute; left: 3px; top: 3px; width: 24px; height: 24px; border-radius: 50%; background: #fff; transition: transform .2s; }
+.switch.on { background: var(--gold); }
+.switch.on::after { transform: translateX(22px); }
+.switch:disabled { opacity: .4; }
+.gear { position: absolute; right: 50px; top: 8px; width: 32px; height: 32px; border-radius: 50%; border: 1px solid var(--line); background: #000a; z-index: 3; cursor: pointer; font-size: 15px; }
+.title-gear { position: absolute; right: 16px; top: 16px; width: 40px; height: 40px; border-radius: 50%; border: 1px solid var(--line); background: #0008; z-index: 2; cursor: pointer; font-size: 18px; }
 
 /* ---------- 圖鑑 ---------- */
 .dex-tabs { display: flex; gap: 6px; padding: 6px 16px; overflow-x: auto; flex: none; }
