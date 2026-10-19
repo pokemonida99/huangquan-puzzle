@@ -715,6 +715,4 @@ function showEnemy(k) {
 
 renderTeam();
 music.play("title");
-// 瀏覽器要求使用者先碰過畫面才能出聲
-document.addEventListener("pointerdown", () => music.unlock(), true);
 })();

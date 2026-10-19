@@ -17,6 +17,8 @@ let A, master, sfxBus, revIn, noiseBuf;
 const mtof = m => 440 * Math.pow(2, (m - 69) / 12);
 function ac() {
   if (!A) {
+    // iPhone：把網頁聲音當成「播放媒體」，側邊靜音開關打開時也聽得到（Safari 17 以上）
+    try { if (navigator.audioSession) navigator.audioSession.type = "playback"; } catch (e) {}
     A = new (window.AudioContext || window.webkitAudioContext)();
     const comp = A.createDynamicsCompressor();
     comp.threshold.value = -14; comp.ratio.value = 4;
@@ -271,7 +273,32 @@ music.stop = function (fade = .5) {
   clearInterval(music.timer); music.cur = null; music.bus = null;
 };
 // 第一次觸碰後才能出聲（瀏覽器規定），那時再開始想播的歌
-music.unlock = function () { try { ac(); if (music.want && !music.cur) music.play(music.want); } catch (e) {} };
+// 解鎖聲音：必須在使用者「點擊／手指放開」的當下呼叫（iPhone 只認這兩種）
+let silentTag;
+function silentWav() {   // 0.5 秒的無聲 wav
+  const n = 4000, b = new Uint8Array(44 + n), v = new DataView(b.buffer), w = (o, t) => [...t].forEach((c, i) => b[o + i] = c.charCodeAt(0));
+  w(0, "RIFF"); v.setUint32(4, 36 + n, true); w(8, "WAVEfmt "); v.setUint32(16, 16, true); v.setUint16(20, 1, true); v.setUint16(22, 1, true);
+  v.setUint32(24, 8000, true); v.setUint32(28, 8000, true); v.setUint16(32, 1, true); v.setUint16(34, 8, true); w(36, "data"); v.setUint32(40, n, true);
+  b.fill(128, 44);
+  let bin = ""; b.forEach(x => bin += String.fromCharCode(x));
+  return "data:audio/wav;base64," + btoa(bin);
+}
+music.unlock = function () {
+  try {
+    ac();
+    if (A.state !== "running") A.resume();
+    // 播一個極短的空白聲音，讓 iPhone 真正啟動音訊
+    const src = A.createBufferSource(); src.buffer = A.createBuffer(1, 1, 22050); src.connect(A.destination); src.start(0);
+    // 舊版 iPhone 沒有 audioSession：同時播一段無聲的 <audio>，讓靜音開關不擋網頁聲音
+    if (!navigator.audioSession && !silentTag) {
+      silentTag = document.createElement("audio");
+      silentTag.src = silentWav(); silentTag.loop = true; silentTag.setAttribute("playsinline", "");
+      silentTag.play().catch(() => { silentTag = null; });
+    }
+    if (music.want && !music.cur) music.play(music.want);
+  } catch (e) {}
+};
+["touchend", "click", "keydown"].forEach(ev => document.addEventListener(ev, () => music.unlock(), true));
 music.refresh = function () { if (SET.music) { const w = music.want; music.cur = null; if (A && w) music.play(w); } else { const w = music.want; music.stop(.3); music.want = w; } };
 
 /* ---------------- 音效 ---------------- */
