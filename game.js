@@ -537,6 +537,21 @@ function banner(text) {
   d.className = "banner"; d.textContent = text;
   $(".field").appendChild(d); setTimeout(() => d.remove(), 1500);
 }
+/* 五星以上發招特寫：去背的發招姿勢圖（art/skill/<id>.webp，還沒畫的先用卡面）＋招式名稱 */
+async function cutIn(id) {
+  const c = CARDS[id], A = ATTR[c.attr], d = document.createElement("div");
+  const pose = (window.SKILL_POSE || []).includes(id);
+  d.className = "cutin" + (pose ? " pose" : "");
+  d.style.setProperty("--ac", A.color); d.style.setProperty("--ad", A.dark);
+  d.innerHTML = `<div class="ci-band"></div><img src="${pose ? `art/skill/${id}.webp` : c.art}" alt="">
+    <div class="ci-text"><small>${c.title.replace(/（.*?）/, "")} ${c.who}</small><b>${c.act.name}</b></div>`;
+  $(".field").appendChild(d);
+  sfx.skill(); vibe([20, 30, 20, 30, 60]);
+  if (window.playVoice) playVoice(id);
+  await sleep(1300);
+  d.classList.add("out"); setTimeout(() => d.remove(), 300);
+  await sleep(150);
+}
 function centerOf(el, rel) {
   const a = el.getBoundingClientRect(), b = rel.getBoundingClientRect();
   return { x: a.left - b.left + a.width / 2, y: a.top - b.top + a.height / 2 };
@@ -941,10 +956,9 @@ async function castSkill(i) {
 async function castSkillInner(i) {
   const c = CARDS[team[i]], fx = c.act.fx;
   B.cd[i] = c.act.cd; updateParty();
-  banner(c.act.name);
-  sfx.skill(); vibe([20, 30, 20, 30, 60]);
   B.busy = true; board.classList.add("locked");
-  await sleep(500);
+  if (c.star >= 5) await cutIn(team[i]);
+  else { banner(c.act.name); sfx.skill(); vibe([20, 30, 20, 30, 60]); await sleep(500); }
   if (fx.convert) {
     const [from, to] = fx.convert;
     grid.flat().filter(o => o.attr === from).forEach(o => setAttr(o, to));

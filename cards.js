@@ -242,6 +242,47 @@ window.TIERS = {
   });
 })();
 
+/* =========================================================================
+   卡片強度規則（2026-10-19 使用者定）：
+   ▸ 五星以上：都能當隊長、主動技要強、CD 最長 6 → 下面逐張寫定（倍率是最終值，不再壓縮）
+   ▸ 四星以下：CD 一律縮到 2～4（原 CD − 2）
+   ========================================================================= */
+(() => {
+  const TOP = {
+    cherub:    [{ allAtk: 3, allHp: 2, regen: .15, survive: 1 }, 6, { healPct: 1, guard: 2, convert: ["heart", "light"], buff: 1.5 }],
+    zhurong:   [{ attrAtk: { fire: 3.5 }, allHp: 1.3, skyfall: { fire: .45 } }, 6, { boardTo: "fire", nuke: 20 }],
+    lucifer:   [{ allAtk: 3.5, comboUp: .3 }, 6, { nuke: 40, buff: 2 }],
+    guanyin:   [{ allAtk: 3.2, allHp: 1.4, openStrike: 60 }, 6, { nuke: 45, buff: 2 }],
+    hathor:    [{ attrAtk: { fire: 3.2 }, allHp: 1.2, vsDemon: 2 }, 5, { nuke: 30, convert: ["wood", "fire"], buff: 1.5 }],
+    aphrodite: [{ attrAtk: { light: 3.2 }, allRec: 2, regen: .1 }, 5, { healPct: .6, buff: 2 }],
+    leviathan: [{ attrAtk: { water: 3 }, allHp: 1.3, allAs: "water" }, 6, { nuke: 35, buff: 1.8 }],
+    satanc:    [{ attrAtk: { fire: 3.2 }, allHp: 1.2 }, 6, { board: ["fffddd", "fffddd", "fffddd", "fffddd", "fffddd"], boardDesc: "左半邊火符石、右半邊暗符石", buff: 2 }],
+    lee3:      [{ allAtk: 2.7, allHp: 1.43, multiAttr: { n: 4, x: 1.43 } }, 5, { rainbow: true, buff: 1.8 }],
+    lee4:      [{ allAtk: 2.7, allHp: 1.43, multiAttr: { n: 4, x: 1.68 } }, 5, { rainbow: true, buff: 2 }],
+    yuelao:    [{ attrAtk: { light: 3.2, wood: 3.2 }, allHp: 1.3 }, 5, { board: ["lglglg", "lglglg", "lglglg", "lglglg", "lglglg"], boardDesc: "光符石與木符石一直排一直排交錯", buff: 1.8 }],
+    huatuo:    [{ attrAtk: { wood: 3.2 }, allRec: 2, allHp: 1.3, regen: .1 }, 5, { healPct: .5, buff: 2 }],
+    jiuwei:    [{ attrAtk: { water: 2.8 }, allHp: 1.3 }, 5, { guard: 2, convert: ["heart", "water"], buff: 1.5 }],
+    qianliyan: [{ attrAtk: { wood: 2.8 }, allHp: 1.2 }, 5, { delay: 1, convert: ["dark", "wood"], buff: 1.8 }],
+    aizen:     [{ attrAtk: { fire: 2.8 } }, 5, { convert: ["wood", "fire"], buff: 1.8 }],
+    shencha:   [{ attrAtk: { light: 2.8 } }, 4, { convert: ["dark", "light"], buff: 2 }],
+    rat:       [{ allAtk: 2.5 }, 5, { nuke: 15, buff: 1.5 }],
+    gengyin:   [{ attrAtk: { wood: 2.8 }, allRec: 1.3 }, 5, { convert: ["water", "wood"], buff: 1.8 }],
+    plaguec:   [{ attrAtk: { wood: 2.8 }, allRec: 1.5 }, 6, { board: ["gggggg", "hhhhhh", "gggggg", "hhhhhh", "gggggg"], boardDesc: "木符石與心符石一排一排交錯", buff: 1.5 }]
+  };
+  Object.entries(CARDS).forEach(([id, c]) => {
+    if (TOP[id]) {
+      const [lead, cd, act] = TOP[id];
+      c.lead.fx = lead; c.act.cd = cd; c.act.fx = act;
+      delete c.lead.desc; delete c.act.desc;
+    } else if (c.star >= 5) {
+      c.act.cd = Math.min(c.act.cd, 6);
+    } else {
+      c.act.cd = Math.max(2, Math.min(4, c.act.cd - 2));
+      delete c.act.desc;   // data.js 手寫的說明也重新產生
+    }
+  });
+})();
+
 /* 技能說明：沒寫 desc 的卡片，依效果自動產生 */
 (() => {
   const N = a => ATTR[a].name;
@@ -283,3 +324,6 @@ window.TIERS = {
     if (!c.act.desc) c.act.desc = actDesc(c.act.fx, c.attr);
   });
 })();
+
+/* 五星以上發招特寫用的去背姿勢圖（art/skill/<id>.webp）；不在名單上的先用卡面 */
+window.SKILL_POSE = ["lee4"];

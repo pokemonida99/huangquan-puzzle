@@ -461,3 +461,8 @@ window.CHAPTERS = [
 /* 立繪大小微調（依實際高度的自動縮放之外再乘上）：鼠軍師是倉鼠，畫得比人小一點 */
 window.VN_SCALE = { "鼠軍師": .78 };
 window.VN = { "劉大牛": "liudaniu", "觀音菩薩": "guanyin", "千里眼": "qianliyan", "右庶長": "youshuzhang", "陽滋公主": "yangzi", "諾瓦": "nova", "語彤": "yutong", "李國志": "lee", "林伯伯": "linbobo", "王柏宏": "bohong", "月老": "yuelao", "鼠軍師": "rat", "利維坦": "leviathan" };
+
+/* 難度放寬（2026-10-19）：不照神魔之塔原版難度，敵人生命 ×0.6、攻擊 ×0.7。
+   初始隊打王約 2～4 回合、扛王 6 下以上；要再調就改這兩個數字。 */
+window.EASE = { hp: .6, atk: .7 };
+Object.values(window.ENEMIES).forEach(e => { e.hp = Math.round(e.hp * EASE.hp / 1000) * 1000; e.atk = Math.round(e.atk * EASE.atk / 100) * 100; });
