@@ -281,12 +281,14 @@ async function loadWave(w) {
   const wave = CH.waves[w];
   if (wave.lines) { $(".enemies").innerHTML = ""; await dialog(wave.lines); }
   if (B !== b) return;
-  B.enemies = wave.enemies.map(k => ({ ...ENEMIES[k], key: k, hpNow: ENEMIES[k].hp, cdNow: ENEMIES[k].cd }));
+  B.enemies = wave.enemies.map(k => ({ ...ENEMIES[k], key: k, hpNow: ENEMIES[k].hp, cdNow: ENEMIES[k].cd, skills: ENEMIES[k].skills || [] }));
+  B.enemies.forEach(e => { const sp = e.skills.find(s => s.on === "spawn"); if (sp) e.shield = { ...sp, ...(sp.shield || {}) }; });
   $(".wave-tag").textContent = `${CH.name}　${w + 1} / ${CH.waves.length}`;
   const box = $(".enemies");
   box.innerHTML = B.enemies.map((e, i) => `
     <div class="enemy ${e.boss ? "boss lurk" : ""}" data-i="${i}" style="${attrVars(e.attr)}">
       <span class="ecd">CD <b>${e.cdNow}</b></span>
+      ${e.shield ? `<span class="eshield"><i>🛡</i><b></b></span>` : ""}
       <img class="pic" src="${e.img}" alt="${e.name}">
       <div class="ehp"><i></i></div>
       <div class="ename"><span class="a">${ATTR[e.attr].glyph}</span>${e.name}</div>
@@ -294,12 +296,16 @@ async function loadWave(w) {
   $$(".enemy", box).forEach(el => el.onclick = () => {
     const i = +el.dataset.i;
     B.target = B.target === i ? null : i;
+    showSkillTip(B.target === null ? null : B.enemies[i]);
     $$(".enemy").forEach((x, j) => x.classList.toggle("target", j === B.target));
   });
   const boss = B.enemies.find(e => e.boss);
   if (boss) await bossIntro(boss, $(".enemy.boss"));
   if (!B) return;
   else { music.play("battle"); banner(`第 ${w + 1} 波`); sfx.wave(); }
+  B.enemies.forEach((e, i) => { if (e.shield) { updateEnemy(i); } });
+  const sh = B.enemies.find(e => e.shield);
+  if (sh) { await sleep(300); banner(sh.shield.name); }
   await openStrike();
 }
 /* 進場攻擊（觀音的隊長技）：每一波敵人一出現，隊長／戰友先打全體一下 */
@@ -378,6 +384,54 @@ function updateEnemy(i) {
   $(".ehp i", el).style.width = Math.max(0, e.hpNow / e.hp * 100) + "%";
   $(".ecd b", el).textContent = e.cdNow;
   if (e.hpNow <= 0) el.classList.add("dead");
+  const sd = $(".eshield", el);
+  if (sd) {
+    sd.style.display = e.shield ? "" : "none";
+    if (e.shield) $("b", sd).textContent = e.shield.only ? ATTR[e.shield.only].name + "限定" : "吸收";
+    if (e.shield) $("i", sd).textContent = "🛡" + e.shield.turns;
+  }
+  el.classList.toggle("shielded", !!e.shield);
+  el.classList.toggle("rage", !!e.rage);
+}
+/* ---------------- 敵人技能：參數都寫在敵人資料的 skills 裡 ---------------- */
+function skillText(s) {
+  if (s.on === "spawn") {
+    const head = s.name ? `「${s.name}」` : "";
+    if (s.shield && s.shield.only) return `${head}出場時只受${ATTR[s.shield.only].name}屬性傷害，持續 ${s.turns} 回合`;
+    return `${head}出場時單次傷害低於 ${fmt(s.absorb)} 會被完全吸收，持續 ${s.turns} 回合`;
+  }
+  if (s.on === "attack") return `「${s.name}」攻擊後把 ${s.n} 顆${ATTR[s.convert[0]].name}符石變成${ATTR[s.convert[1]].name}符石`;
+  if (s.on === "low") return `「${s.name}」生命力低於 ${Math.round(s.hp * 100)}% 時狂暴：攻擊間隔變 ${s.cd} 回合、攻擊力 ${s.atk} 倍`;
+  return "";
+}
+function showSkillTip(e) {
+  $$(".skilltip").forEach(x => x.remove());
+  if (!e || !e.skills || !e.skills.length) return;
+  const d = document.createElement("div");
+  d.className = "skilltip";
+  d.innerHTML = `<b>${e.name}</b>` + e.skills.map(s => `<p>${skillText(s)}</p>`).join("");
+  $(".field").appendChild(d);
+  setTimeout(() => d.remove(), 5000);
+}
+function enemyShieldTurn(e) {
+  if (!e.shield) return;
+  if (--e.shield.turns <= 0) { e.shield = null; banner("護盾消失"); }
+}
+async function enemyRage(e, i) {
+  const s = e.skills.find(x => x.on === "low");
+  if (!s || e.rage || e.hpNow <= 0 || e.hpNow / e.hp > s.hp) return;
+  e.rage = true; e.cd = Math.min(e.cd, s.cd); e.cdNow = Math.min(e.cdNow, s.cd); e.atk = Math.round(e.atk * s.atk);
+  updateEnemy(i); banner(s.name); flash("rgba(220,0,0,.45)", 500); sfx.rumble && sfx.rumble(1); vibe([80, 40, 80]);
+  await sleep(500);
+}
+async function enemyConvert(e) {
+  for (const s of e.skills.filter(x => x.on === "attack")) {
+    const pool = grid.flat().filter(o => o.attr === s.convert[0]);
+    if (!pool.length) continue;
+    banner(s.name);
+    pool.sort(() => Math.random() - .5).slice(0, s.n).forEach(o => setAttr(o, s.convert[1]));
+    await sleep(500);
+  }
 }
 const alive = () => B.enemies.map((e, i) => i).filter(i => B.enemies[i].hpNow > 0);
 
@@ -707,14 +761,21 @@ async function hitEnemy(t, raw, attr, fromEl) {
   await shoot(fromEl, $(".pic", el), attr);
   if (!B) return;
   const vd = e.demon ? leaderFx().reduce((a, fx) => a * (fx.vsDemon || 1), 1) : 1;   // 哈索爾：打魔族加倍
-  const tm = typeMul(attr, e.attr) * vd, dmg = Math.round(raw * tm);
+  const tm = typeMul(attr, e.attr) * vd;
+  let dmg = Math.round(raw * tm), block = "";
+  if (e.shield) {
+    if (e.shield.only && attr !== e.shield.only) block = "無效";
+    else if (e.shield.absorb && dmg < e.shield.absorb) block = "吸收";
+  }
+  if (block) dmg = 0;
   e.hpNow -= dmg;
   const p = centerOf($(".pic", el), $(".field"));
   const lv = dmg / e.hp < .12 ? 1 : dmg / e.hp < .3 ? 2 : 3;   // 傷害量級：小／中／大
-  floatText(p.x + (Math.random() * 40 - 20), p.y - 20 + Math.random() * 30, fmt(dmg), attr, `lv${lv}${tm > 1 ? " weak" : ""}`);
+  floatText(p.x + (Math.random() * 40 - 20), p.y - 20 + Math.random() * 30, block || fmt(dmg), attr, block ? "lv1" : `lv${lv}${tm > 1 ? " weak" : ""}`);
   el.classList.remove("hit"); void el.offsetWidth; el.classList.add("hit");
-  sfx.hit(tm > 1);
+  sfx.hit(tm > 1 && !block);
   updateEnemy(t);
+  await enemyRage(e, t);
 }
 async function checkWave() {
   if (!B) return true;
@@ -748,7 +809,9 @@ async function enemyTurn() {
       if (e.boss) { sfx.slam(); vibe([120, 40, 200]); } else { sfx.hurt(); vibe([60, 40, 90]); }
       e.cdNow = e.cd;
       await sleep(350);
+      if (B.hp > 0) await enemyConvert(e);
     }
+    enemyShieldTurn(e);
     updateEnemy(i);
     if (B.hp <= 0 && B.survive > 0) {   // 基路伯：致命傷時保留 1 點生命
       B.survive--; B.hp = 1; B.saved = true; updateHp();
@@ -955,6 +1018,7 @@ function showCard(id) {
   } else if (c.planned) {
     evo = `<div class="evo plan">進化路線：${c.planned.join(" › ")}（立繪製作中）</div>`;
   }
+  const sk = (e.skills || []).map(s => `<div class="skill"><span class="k">技能</span> ${skillText(s)}</div>`).join("");
   const skill = `<div class="stats"><div>生命力<b>${fmt(c.hp)}</b></div><div>攻擊力<b>${fmt(c.atk)}</b></div><div>回復力<b>${fmt(c.rec)}</b></div></div>
     <div class="skill"><span class="k">隊長技能</span> <b>${c.lead.name}</b><br>${c.lead.desc}</div>
     <div class="skill"><span class="k">主動技能</span> <b>${c.act.name}</b><span class="cdv">CD ${c.act.cd}</span><br>${c.act.desc}</div>${evo}`;
@@ -974,8 +1038,10 @@ function showCard(id) {
 }
 function showEnemy(k) {
   const e = ENEMIES[k];
+  const sk = (e.skills || []).map(s => `<div class="skill"><span class="k">技能</span> ${skillText(s)}</div>`).join("");
   const skill = `<div class="stats"><div>生命力<b>${fmt(e.hp)}</b></div><div>攻擊力<b>${fmt(e.atk)}</b></div><div>攻擊間隔<b>${e.cd} 回合</b></div></div>
     <div class="skill"><span class="k">屬性</span> <b>${ATTR[e.attr].name}</b><br>${ATTR[Object.keys(BEATS).find(a => BEATS[a] === e.attr)].name}屬性對牠造成 2 倍傷害</div>
+    ${sk}
     ${CHAPTERS.filter(ch => ch.waves.some(w => w.enemies.includes(k))).map(ch => `<div class="skill"><span class="k">出沒</span> <b>${ch.no}「${ch.name}」</b><br>${ch.place}，第 ${ch.waves.findIndex(w => w.enemies.includes(k)) + 1} 波</div>`).join("")}`;
   cardShell({
     attr: e.attr, art: e.img, star: e.boss ? "BOSS" : "", title: e.title || (CHAPTERS.find(ch => ch.waves.some(w => w.enemies.includes(k))) || {}).name || "", name: e.name, race: "魔族",
