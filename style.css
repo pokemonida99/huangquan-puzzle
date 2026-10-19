@@ -481,3 +481,29 @@ h1 small { display: block; font-size: 18px; letter-spacing: .5em; color: var(--i
 .pre.lack { opacity: .5; }
 .pre em { display: block; font-style: normal; font-size: 10.5px; color: #e88; margin-top: 3px; }
 .pk.off .icon { filter: grayscale(1) brightness(.45); }
+/* ---------------- 新手轉珠教學 ---------------- */
+#tut { position: absolute; inset: 0; z-index: 45; pointer-events: none; }
+#battle.tutorial .ecd { visibility: hidden; }
+.tut-field { position: absolute; display: flex; align-items: flex-end; padding: 8px; box-sizing: border-box; background: rgba(0,0,0,.4); }
+.tut-card { pointer-events: auto; width: 100%; box-sizing: border-box; padding: 10px 12px 12px; border-radius: 14px; background: rgba(23,17,26,.95); border: 1px solid var(--gold); box-shadow: 0 4px 18px #000a; }
+.tut-card.pop { animation: tutpop .25s ease-out; }
+@keyframes tutpop { from { transform: translateY(8px); opacity: 0; } to { transform: none; opacity: 1; } }
+.tut-top { display: flex; align-items: baseline; gap: 8px; }
+.tut-top small { color: var(--dim); font-size: 11px; letter-spacing: .1em; }
+.tut-top b { color: var(--gold); font-size: 15px; letter-spacing: .08em; }
+.tut-skip { margin-left: auto; background: none; border: 0; color: var(--dim); font-size: 12px; text-decoration: underline; padding: 4px; cursor: pointer; }
+.tut-card p { margin: 6px 0 0; font-size: 16px; line-height: 1.55; }
+.tut-card p b { color: #ffe08a; }
+.tut-card .tut-hint { min-height: 1.2em; margin-top: 4px; font-size: 13px; color: #ff9a8a; }
+.tut-next { display: block; margin: 8px 0 0 auto; padding: 8px 22px; border-radius: 999px; border: 1px solid #f6dc9c; background: linear-gradient(180deg, #f6dc9c, #b88a3e); color: #2a1a06; font-weight: 700; font-size: 15px; cursor: pointer; }
+.tut-orb { width: 24px; height: 24px; vertical-align: middle; }
+.tut-rel { display: flex; align-items: center; gap: 4px; margin-top: 8px; font-size: 16px; color: var(--gold); }
+.tut-rel i { font-style: normal; }
+.tut-rel span { width: 14px; }
+.tut-block { position: absolute; background: rgba(0,0,0,.6); pointer-events: auto; display: none; }
+.tut-ring { position: absolute; display: none; box-sizing: border-box; border: 3px solid #ffe08a; border-radius: 12px; box-shadow: 0 0 12px #ffcf4a; animation: tutpulse 1s ease-in-out infinite; }
+.tut-ring.to { border-style: dashed; animation-delay: .4s; }
+@keyframes tutpulse { 50% { opacity: .35; } }
+.tut-finger { position: absolute; left: 0; top: 0; display: none; font-size: 38px; line-height: 1; filter: drop-shadow(0 2px 3px #000); }
+.party .icon.tut-hl { outline: 3px solid #ffe08a; outline-offset: 2px; box-shadow: 0 0 14px #ffcf4a; z-index: 2; }
+.btn.mini { display: inline-block; margin: 0; min-width: 0; padding: 8px 18px; font-size: 14px; }
