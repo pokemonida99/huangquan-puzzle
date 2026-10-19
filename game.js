@@ -46,12 +46,14 @@ let cleared = Math.max(0, Math.min(CHAPTERS.length, Math.floor(+prog.cleared) ||
 const saveProg = () => store.set("hq-progress", { ...prog, cleared });
 
 /* ---------------- 收集：擁有的卡、功德（地府的貨幣）、三星評價、挑戰關 ---------------- */
-const START_OWNED = [...new Set([...DEMO_TEAM, ...Object.keys(CARDS).filter(id => CARDS[id].who === "李國志"), "yutong1", "leviathan"])];   // 李國志四階都算擁有；開局送利維坦
+// 開局贈送：嫉妒魔王水隊整隊（利維坦、諾瓦、咪咪、九尾、陽滋公主）
+const GIFT_TEAM = PRESETS.find(p => p.name === "嫉妒魔王水隊").team;
+const START_OWNED = [...new Set([...DEMO_TEAM, ...Object.keys(CARDS).filter(id => CARDS[id].who === "李國志"), "yutong1", ...GIFT_TEAM])];   // 李國志四階都算擁有
 const owned = new Set((() => {
   const saved = store.get("hq-owned", null), set = new Set(Array.isArray(saved) ? saved : START_OWNED);
   CHAPTERS.slice(0, cleared).forEach(ch => (ch.unlock || []).forEach(id => set.add(id)));   // 舊存檔：已通關的章節補發角色
   if (!Array.isArray(saved)) team.forEach(id => set.add(id));                                // 舊存檔：原本編好的隊伍不拿走
-  set.add("leviathan");                                                                      // 開局贈送的利維坦，舊存檔也補發
+  GIFT_TEAM.forEach(id => set.add(id));                                                      // 開局贈送的水隊，舊存檔也補發
   return [...set].filter(id => CARDS[id]);
 })());
 const saveOwned = () => store.set("hq-owned", [...owned]);
