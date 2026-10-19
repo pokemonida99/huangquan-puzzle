@@ -118,7 +118,8 @@ function portraitOf(who, expr) {
   const ids = Object.keys(CARDS).filter(id => CARDS[id].who === who);
   if (ids.length) {
     const c = CARDS[who === "李國志" ? "lee4" : who === "語彤" ? "yutong1" : ids[0]];
-    return { src: VN[who] ? `art/vn/${VN[who]}-${expr || "normal"}.webp` : c.art, fallback: c.art, attr: c.attr, kind: VN[who] ? "vn" : "card" };
+    const key = (CH.vn && CH.vn[who]) || VN[who];   // 有些章節換造型（例：語彤第四季穿漢服）
+    return { src: key ? `art/vn/${key}-${expr || "normal"}.webp` : c.art, fallback: c.art, attr: c.attr, kind: key ? "vn" : "card" };
   }
   const e = Object.values(ENEMIES).find(x => x.name === who);
   return e ? { src: e.img, attr: e.attr, kind: "enemy" } : null;
