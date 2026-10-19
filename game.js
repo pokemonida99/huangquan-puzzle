@@ -568,12 +568,38 @@ async function shoot(fromEl, toEl, attr) {
   const field = $(".field");
   const a = centerOf(fromEl, field), b = centerOf(toEl, field);
   const s = document.createElement("div");
-  s.className = "shot"; s.style.cssText = `${attrVars(attr)};left:${a.x}px;top:${a.y}px`;
+  s.className = `shot shot-${attr}`; s.style.cssText = `${attrVars(attr)};left:${a.x}px;top:${a.y}px`;
   layer.appendChild(s);
   s.animate([{ left: a.x + "px", top: a.y + "px" }, { left: b.x + "px", top: b.y * .8 + "px" }],
     { duration: 260, easing: "ease-in", fill: "forwards" });
   await sleep(260);   // 不等 animation.finished：分頁在背景時動畫會暫停
   s.remove();
+}
+/* 命中特效：敵人閃白＋往後彈（打擊感），依屬性在敵人身上爆出不同特效；傷害越大越誇張 */
+function impact(el, attr, lv) {
+  const pic = $(".pic", el), field = $(".field"), layer = $(".fx-layer");
+  const r = pic.getBoundingClientRect(), fr = field.getBoundingClientRect(), k = Math.min(lv, 4);
+  const p = { x: r.left - fr.left + r.width / 2, y: r.top - fr.top + r.height * .62 };   // 敵人圖靠下對齊，打在身體中段
+  pic.animate([{ filter: "brightness(3) saturate(0)", transform: `translate(${4 * k}px, ${-2 * k}px) scale(${1 - .03 * k}, ${1 + .02 * k})` },
+    { filter: `brightness(1.4) drop-shadow(0 0 12px ${ATTR[attr].color})`, transform: `translate(${-3 * k}px, 0) scale(1.02)`, offset: .35 },
+    { filter: "none", transform: "none" }], { duration: 260 + 40 * k, easing: "cubic-bezier(.2,.8,.3,1)" });
+  if (k >= 3) shake(field, 2 + k);
+  if (k >= 3) vibe(15 + 10 * k);
+  const box = document.createElement("div");
+  box.className = `imp imp-${attr} lv${k}`;
+  box.style.cssText = `${attrVars(attr)};left:${p.x}px;top:${p.y}px`;
+  const parts = { water: 8, fire: 9, wood: 7, light: 6, dark: 5, heart: 4 }[attr] + k * 2;
+  let h = `<b class="ring"></b><b class="core"></b>`;
+  if (attr === "light") h += `<b class="pillar"></b>`;
+  if (attr === "dark") h += `<b class="claw"></b><b class="claw c2"></b><b class="claw c3"></b>`;
+  if (attr === "wood") h += `<b class="slash"></b>`;
+  for (let i = 0; i < parts; i++) {
+    const a = Math.random() * Math.PI * 2, d = 40 + Math.random() * (30 + k * 18);
+    const dy = attr === "fire" ? -Math.abs(Math.sin(a) * d) - 20 : attr === "water" ? Math.sin(a) * d * .6 + 30 : Math.sin(a) * d;
+    h += `<i style="--dx:${(Math.cos(a) * d).toFixed(0)}px;--dy:${dy.toFixed(0)}px;--r:${(Math.random() * 540 - 270).toFixed(0)}deg;--s:${(.6 + Math.random() * .8).toFixed(2)};animation-delay:${(Math.random() * 60).toFixed(0)}ms"></i>`;
+  }
+  box.innerHTML = h;
+  layer.appendChild(box); setTimeout(() => box.remove(), 900);
 }
 function showCombo(n, sky) {
   const c = $(".combo");
@@ -888,8 +914,9 @@ async function hitEnemy(t, raw, attr, fromEl) {
   const p = centerOf($(".pic", el), $(".field"));
   const lv = dmg / e.hp < .12 ? 1 : dmg / e.hp < .3 ? 2 : 3;   // 傷害量級：小／中／大
   floatText(p.x + (Math.random() * 40 - 20), p.y - 20 + Math.random() * 30, block || fmt(dmg), attr, block ? "lv1" : `lv${lv}${tm > 1 ? " weak" : ""}`);
-  el.classList.remove("hit"); void el.offsetWidth; el.classList.add("hit");
-  sfx.hit(tm > 1 && !block);
+  if (block) { el.classList.remove("hit"); void el.offsetWidth; el.classList.add("hit"); }
+  else impact(el, attr, lv + (tm > 1 ? 1 : 0));
+  sfx.hit(tm > 1 && !block, block ? null : attr);
   updateEnemy(t);
   await enemyRage(e, t);
 }

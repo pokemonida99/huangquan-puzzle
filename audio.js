@@ -365,9 +365,16 @@ const SFX = {
     noise({ dur: .12, vol: .22, freq: 5200, q: .8, type: "highpass" });
     noise({ dur: .08, vol: .18, freq: 900, f1: 300, q: 2 });
   },
-  hit(big) {
+  hit(big, attr) {
     noise({ dur: big ? .22 : .14, vol: big ? .42 : .28, freq: 1800, f1: 200, q: 1.2 });
     tone({ f0: big ? 180 : 240, f1: 60, dur: .16, type: "square", vol: big ? .2 : .12 });
+    tone({ f0: 70, f1: 38, dur: .12, vol: big ? .35 : .2, wet: 0 });   // 低頻「咚」，打擊感
+    const v = big ? 1 : .7;
+    if (attr === "water") { noise({ dur: .25, vol: .22 * v, freq: 900, f1: 2600, q: 4, wet: .3 }); tone({ f0: 600, f1: 1400, dur: .09, vol: .08 * v, delay: .03 }); }
+    if (attr === "fire") noise({ dur: .4, vol: .3 * v, freq: 400, f1: 120, q: .6, type: "lowpass", wet: .2 });
+    if (attr === "wood") { noise({ dur: .06, vol: .25 * v, freq: 3000, q: 2, wet: 0 }); noise({ dur: .05, vol: .2 * v, freq: 2200, q: 2, delay: .05, wet: 0 }); }
+    if (attr === "light") [0, 7].forEach((k, i) => tone({ f0: 1568 * Math.pow(2, k / 12), dur: .3, vol: .07 * v, delay: i * .03, wet: .5 }));
+    if (attr === "dark") tone({ f0: 160, f1: 55, dur: .35, type: "sawtooth", vol: .1 * v, wet: .4 });
   },
   hurt(heavy) {
     noise({ dur: heavy ? .6 : .35, vol: heavy ? .6 : .45, freq: 600, f1: 60, q: .7, type: "lowpass", wet: .3 });
