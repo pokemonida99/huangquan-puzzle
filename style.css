@@ -97,7 +97,10 @@ h1 small { display: block; font-size: 18px; letter-spacing: .5em; color: var(--i
 .fx-layer { position: absolute; inset: 0; pointer-events: none; z-index: 5; }
 .dmg { position: absolute; font-weight: 900; font-size: 22px; color: #fff; -webkit-text-stroke: 1px #000; text-shadow: 0 0 8px var(--c), 0 2px 0 #000;
   animation: dmg 1s forwards; white-space: nowrap; transform: translate(-50%, 0); }
-.dmg.big { font-size: 28px; }
+.dmg.lv1 { font-size: 20px; }
+.dmg.lv2 { font-size: 27px; color: #ffe9a8; }
+.dmg.lv3 { font-size: 36px; color: #ffb347; -webkit-text-stroke: 1.5px #5a1a00; }
+.dmg small { display: block; font-size: 12px; letter-spacing: .1em; color: #ff8a8a; text-align: center; -webkit-text-stroke: .5px #000; }
 .dmg.heal { color: #9effa8; }
 @keyframes dmg { 0% { opacity: 0; transform: translate(-50%, 10px) scale(.6); } 15% { opacity: 1; transform: translate(-50%, 0) scale(1.15); } 70% { opacity: 1; } 100% { opacity: 0; transform: translate(-50%, -30px); } }
 .shot { position: absolute; width: 18px; height: 18px; border-radius: 50%; background: radial-gradient(circle, #fff, var(--c) 50%, transparent 72%);
@@ -106,6 +109,8 @@ h1 small { display: block; font-size: 18px; letter-spacing: .5em; color: var(--i
   text-shadow: 0 0 12px #ff8a00; opacity: 0; z-index: 6; pointer-events: none; }
 .combo.show { opacity: 1; animation: pop .25s; }
 .combo small { font-size: 16px; margin-left: 4px; }
+.combo.sky { color: #9fe8ff; -webkit-text-stroke-color: #00476a; text-shadow: 0 0 12px #00a8ff; }
+.combo .sky-tag { display: block; font-size: 13px; margin: 0; text-align: right; letter-spacing: .2em; }
 @keyframes pop { 0% { transform: scale(1.6); } 100% { transform: scale(1); } }
 .banner { position: absolute; left: 0; right: 0; top: 38%; text-align: center; font-size: 30px; font-weight: 900; letter-spacing: .3em; color: var(--gold);
   font-family: "Songti TC", serif; text-shadow: 0 0 20px #f60, 0 2px 0 #000; animation: banner 1.4s forwards; z-index: 7; }
@@ -125,7 +130,7 @@ h1 small { display: block; font-size: 18px; letter-spacing: .5em; color: var(--i
 .hp-fill.low { background: linear-gradient(90deg, #ff2a2a, #ff6a3a); animation: blink .8s infinite; }
 @keyframes blink { 50% { opacity: .55; } }
 .hp-txt { position: absolute; inset: 0; text-align: center; font-size: 11px; line-height: 15px; font-weight: 700; text-shadow: 0 1px 2px #000; }
-.timer { height: 5px; margin: 4px 10px 0; border-radius: 3px; background: #222; overflow: hidden; opacity: 0; transition: opacity .2s; }
+.timer { height: 7px; margin: 8px 2px 0; border-radius: 3px; background: #222; overflow: hidden; opacity: 0; transition: opacity .2s; }
 .timer.on { opacity: 1; }
 .timer-fill { height: 100%; width: 100%; background: linear-gradient(90deg, #4fd06a, #ffd84a); }
 .board-wrap { padding: 6px 8px calc(10px + env(safe-area-inset-bottom)); }
@@ -135,6 +140,8 @@ h1 small { display: block; font-size: 18px; letter-spacing: .5em; color: var(--i
     linear-gradient(#1b1420, #120c16);
   border: 1px solid var(--line); box-shadow: inset 0 0 30px #000; overflow: hidden; }
 .board.locked { pointer-events: none; }
+.board.danger { border-color: #ff3a3a; animation: danger .5s infinite; }
+@keyframes danger { 50% { box-shadow: inset 0 0 30px #000, 0 0 14px 3px #ff2a2a; border-color: #ff8a8a; } }
 
 /* 符石 */
 .orb { position: absolute; left: 0; top: 0; width: calc(100% / 6); height: calc(100% / 5); padding: 3%; transition: transform .16s ease-out; will-change: transform; }

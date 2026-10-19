@@ -319,6 +319,7 @@ const SCALE = [0, 2, 4, 7, 9, 12, 14, 16, 19, 21, 24, 26, 28, 31];   // 五聲�
 const SFX = {
   click() { tone({ f0: 900, f1: 700, dur: .06, type: "triangle", vol: .16, wet: 0 }); },
   pick() { tone({ f0: 520, f1: 780, dur: .08, type: "triangle", vol: .2 }); },
+  tick() { tone({ f0: 1500, f1: 1100, dur: .05, type: "square", vol: .09, wet: 0 }); },
   swap() { tone({ f0: 1300 + Math.random() * 200, dur: .035, vol: .07, wet: 0 }); noise({ dur: .03, vol: .05, freq: 4000, q: 3, wet: 0 }); },
   drop() { tone({ f0: 300, f1: 150, dur: .1, vol: .18, wet: 0 }); },
   pop(n) {   // 消除：清脆的玻璃碎裂＋往上爬的音階
