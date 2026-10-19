@@ -8,7 +8,7 @@
    ========================================================================= */
 
 /* 版本：每次對外更新記得往上加，標題畫面與設定都會顯示 */
-window.GAME_VERSION = "1.0.1";
+window.GAME_VERSION = "1.0.2";
 
 window.ATTR = {
   water: { name: "水", color: "#3fa7ff", dark: "#0b4c8c", glyph: "水" },
@@ -63,7 +63,7 @@ window.CARDS = {
     lore: "村民替他蓋了義民廟，累積六萬功德，被稱為「業鏡羅漢」。",
     lead: { name: "業鏡審判", desc: "全隊攻擊力 3 倍、生命力 1.5 倍；同時消除 4 種或以上屬性符石時，全隊攻擊力再 1.5 倍",
       fx: { allAtk: 3, allHp: 1.5, multiAttr: { n: 4, x: 1.5 } } },
-    act: { name: "業鏡照心", cd: 10, desc: "所有符石重新排列，六種符石各 5 粒；本回合全隊攻擊力 1.5 倍", fx: { rainbow: true, buff: 1.5 } }
+    act: { name: "業鏡照心", cd: 7, fx: { rainbow: true, buff: 1.5 } }
   },
 
   lee4: {
@@ -72,7 +72,7 @@ window.CARDS = {
     lore: "戴禮帽、穿西裝的燒肉店老闆。地府不允許魔存在，他以羅漢之名擔保，把語彤帶回燒肉店。",
     lead: { name: "羅漢之名擔保", desc: "全隊攻擊力 3 倍、生命力 1.5 倍；同時消除 4 種或以上屬性符石時，全隊攻擊力再 1.8 倍",
       fx: { allAtk: 3, allHp: 1.5, multiAttr: { n: 4, x: 1.8 } } },
-    act: { name: "異界降臨", cd: 9, fx: { nuke: 18, buff: 1.5 } }
+    act: { name: "異界降臨", cd: 5, fx: { rainbow: true, buff: 1.8 } }
   },
 
   /* ---------------- 基礎隊員 ---------------- */
@@ -82,7 +82,7 @@ window.CARDS = {
     lore: "EP3 單曲 MV 的樂團成員，第四季以惡魔造型再登場。",
     planned: ["樂團的小白", "初代の吳小白"],
     lead: { name: "再登場", desc: "暗屬性攻擊力 2 倍", fx: { attrAtk: { dark: 2 } } },
-    act: { name: "魔界獨奏", cd: 5, desc: "最下面一排符石轉化為暗符石", fx: { rowTo: "dark" } }
+    act: { name: "魔界獨奏", cd: 4, fx: { rowTo: "dark", buff: 1.3 } }
   },
   xiaoyu: {
     who: "小雨", title: "燒肉店店員", attr: "water", race: "人類",
@@ -90,7 +90,7 @@ window.CARDS = {
     lore: "替每一位客人端上遺願馬卡龍。",
     planned: ["燒肉店店員", "代理店長"],
     lead: { name: "先吃遺願馬卡龍", desc: "回復力 2 倍", fx: { allRec: 2 } },
-    act: { name: "遺願馬卡龍", cd: 6, desc: "回復最大生命力 50%，並把木符石轉化為水符石", fx: { healPct: 0.5, convert: ["wood", "water"] } }
+    act: { name: "遺願馬卡龍", cd: 4, fx: { healPct: .3, convert: ["heart", "water"], buff: 1.3 } }
   },
   dabao: {
     who: "大寶", title: "消防小隊長", attr: "fire", race: "人類",
@@ -98,7 +98,7 @@ window.CARDS = {
     lore: "總是把存下來的功德花在別人身上。",
     planned: ["消防小隊長", "托夢照相館", "天煞孤星"],
     lead: { name: "嘴賤講義氣", desc: "火屬性攻擊力 2 倍", fx: { attrAtk: { fire: 2 } } },
-    act: { name: "把功德花光", cd: 7, desc: "本回合全隊攻擊力 2 倍", fx: { buff: 2 } }
+    act: { name: "把功德花光", cd: 4, fx: { convert: ["heart", "fire"], buff: 1.8 } }
   },
   afu: {
     who: "阿副", title: "長髮消防員", attr: "wood", race: "人類",
@@ -106,7 +106,7 @@ window.CARDS = {
     lore: "大寶的兄弟，在 EP9 被提到打呼很大聲的「黃副」可能就是他。",
     planned: ["長髮消防員", "陽光手機門市"],
     lead: { name: "兄弟", desc: "木屬性攻擊力 2 倍", fx: { attrAtk: { wood: 2 } } },
-    act: { name: "我會記得你曾來過人間", cd: 6, fx: { selfBuff: 3 } }
+    act: { name: "我會記得你曾來過人間", cd: 4, fx: { convert: ["heart", "wood"], selfBuff: 3 } }
   }
 };
 
