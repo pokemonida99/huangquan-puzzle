@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, user-scalable=no">
 <title>黃泉燒肉店 轉珠試玩版</title>
-<link rel="stylesheet" href="style.css?v=10">
+<link rel="stylesheet" href="style.css?v=13">
 </head>
 <body>
 <div id="app">
@@ -17,25 +17,31 @@
       <div class="title-kicker">棲渺拾光《黃泉燒肉店》粉絲作品</div>
       <h1>黃泉燒肉店<small>轉珠試玩版</small></h1>
       <p class="title-motto">如入火聚，得清涼門</p>
-      <button class="btn gold" data-go="team">開始試玩</button>
+      <button class="btn gold" data-go="chapters">主線劇情</button>
       <button class="btn" data-go="dex">卡片圖鑑</button>
       <p class="title-note">試玩版 v0.1 ‧ 非官方粉絲作品</p>
     </div>
   </section>
 
+  <!-- 章節 -->
+  <section id="chapters" class="screen">
+    <header class="bar"><button class="back" data-go="title">‹</button><h2>主線劇情</h2></header>
+    <div class="ch-list"></div>
+  </section>
+
   <!-- 隊伍 -->
   <section id="team" class="screen">
-    <header class="bar"><button class="back" data-go="title">‹</button><h2>出擊隊伍</h2></header>
+    <header class="bar"><button class="back" data-go="chapters">‹</button><h2>出擊隊伍</h2></header>
     <div class="stage-card">
-      <div class="stage-place">三途川</div>
-      <div class="stage-name">第三王國入侵</div>
+      <div class="stage-place"></div>
+      <div class="stage-name"></div>
       <div class="stage-intro"></div>
       <div class="stage-waves"></div>
     </div>
     <div class="team-slots"></div>
     <div class="team-sum"></div>
     <div class="team-lead"></div>
-    <p class="hint">點隊長或戰友，可以切換李國志的進化階段。</p>
+    <p class="hint">點任一格可以換卡，50 位角色都能上場。</p>
     <button class="btn gold wide" id="go-battle">出擊</button>
   </section>
 
@@ -65,9 +71,25 @@
   </section>
 
   <div id="modal" class="modal"><div class="modal-box"></div></div>
+
+  <!-- 劇情對話 -->
+  <div id="dialog" class="dialog">
+    <div class="vn vn-l"><img alt=""></div>
+    <div class="vn vn-r"><img alt=""></div>
+    <div class="dlg-box">
+      <div class="dlg-name"></div>
+      <div class="dlg-text"></div>
+      <div class="dlg-ep"></div>
+      <span class="dlg-next">▼</span>
+    </div>
+    <button class="dlg-skip">略過 ››</button>
+  </div>
 </div>
-<script src="data.js?v=10"></script>
-<script src="audio.js?v=10"></script>
-<script src="game.js?v=10"></script>
+<script src="data.js?v=13"></script>
+<script src="cards.js?v=13"></script>
+<script src="profiles.js?v=13"></script>
+<script src="story.js?v=13"></script>
+<script src="audio.js?v=13"></script>
+<script src="game.js?v=13"></script>
 </body>
 </html>

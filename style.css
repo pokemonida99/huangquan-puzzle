@@ -318,3 +318,62 @@ h1 small { display: block; font-size: 18px; letter-spacing: .5em; color: var(--i
 #battle.boss-field .field::before { content: ""; position: absolute; inset: 0; z-index: 1; pointer-events: none;
   box-shadow: inset 0 0 90px 10px rgba(200,20,0,.55); animation: pulse 2.4s ease-in-out infinite; }
 #battle .field { overflow: hidden; }
+
+/* ---------- 章節 ---------- */
+.ch-list { display: flex; flex-direction: column; gap: 12px; padding: 8px 16px 24px; }
+.ch-card { position: relative; display: flex; flex-direction: column; align-items: flex-start; gap: 3px; text-align: left; padding: 16px 16px 14px; min-height: 150px;
+  border-radius: 14px; border: 1px solid var(--line); background-size: cover; background-position: center; cursor: pointer; overflow: hidden; }
+.ch-card .ch-no { font-size: 12px; letter-spacing: .3em; color: var(--gold); }
+.ch-card b { font-size: 24px; letter-spacing: .12em; font-family: "Songti TC", serif; text-shadow: 0 2px 6px #000; }
+.ch-card .ch-sub { font-size: 12px; color: #e8d9bf; }
+.ch-card .ch-intro { font-size: 13px; color: #d9cdb7; margin-top: 6px; max-width: 80%; line-height: 1.5; }
+.ch-card .ch-st { position: absolute; right: 12px; top: 12px; font-size: 12px; padding: 3px 10px; border-radius: 999px; background: #000a; border: 1px solid var(--line); }
+.ch-card.open .ch-st { background: var(--gold); color: #2a1a06; font-weight: 700; animation: ready 1.4s infinite; --c: #e6c27a; }
+.ch-card.done .ch-st { color: #9effa8; border-color: #4a8; }
+.ch-card.lock { filter: grayscale(.85) brightness(.6); }
+
+/* ---------- 換卡 ---------- */
+.picker { max-height: 62vh; overflow-y: auto; margin: 0 -4px; padding: 0 4px; }
+.pk-head { font-size: 13px; font-weight: 700; letter-spacing: .1em; margin: 12px 0 6px; }
+.pk-grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 6px; }
+.pk { padding: 0; border: 0; background: none; cursor: pointer; text-align: center; font-size: 10px; color: var(--dim); }
+.pk span { display: block; margin-top: 2px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.pk.cur .icon { outline: 2px solid #fff; outline-offset: 1px; }
+.unlock { color: var(--gold); }
+
+/* ---------- 劇情對話框 ---------- */
+.dialog { position: absolute; inset: 0; z-index: 70; display: none; flex-direction: column; justify-content: flex-end; cursor: pointer;
+  background: linear-gradient(transparent 30%, rgba(0,0,0,.75) 75%); padding: 0 12px calc(16px + env(safe-area-inset-bottom)); }
+.dialog.on { display: flex; }
+/* 立繪：左右各一位，說話的人亮、另一位暗下來 */
+.vn { position: absolute; bottom: 150px; width: 70%; height: 62%; display: flex; align-items: flex-end; justify-content: center; pointer-events: none;
+  opacity: 0; transition: filter .25s, transform .25s, opacity .25s; }
+.vn-l { left: -8%; }
+.vn-r { right: -8%; }
+.vn.on, .vn.off { opacity: 1; }
+.vn.on { z-index: 2; filter: drop-shadow(0 0 18px rgba(0,0,0,.6)); }
+.vn.off { z-index: 1; filter: brightness(.38) saturate(.6); transform: scale(.94); }
+.vn img { max-width: 100%; max-height: 100%; object-fit: contain; }
+.vn.vn-pic img { -webkit-mask-image: linear-gradient(#000 82%, transparent); mask-image: linear-gradient(#000 82%, transparent); }
+.vn.card img { width: 100%; height: 100%; object-fit: cover; object-position: 50% 15%; border-radius: 16px 16px 0 0;
+  -webkit-mask-image: linear-gradient(#000 70%, transparent); mask-image: linear-gradient(#000 70%, transparent); }
+.vn.enemy img { filter: drop-shadow(0 0 20px rgba(255,40,0,.45)); }
+.vn-l.in { animation: inl .35s ease-out; }
+.vn-r.in { animation: inr .35s ease-out; }
+@keyframes inl { from { opacity: 0; transform: translateX(-30px); } }
+@keyframes inr { from { opacity: 0; transform: translateX(30px); } }
+.dlg-box { position: relative; z-index: 3; min-height: 132px; padding: 22px 16px 16px; border-radius: 14px; background: rgba(16,11,18,.94);
+  border: 1px solid color-mix(in srgb, var(--c, #e6c27a) 55%, transparent); box-shadow: 0 0 24px rgba(0,0,0,.6), inset 0 0 30px color-mix(in srgb, var(--c, #e6c27a) 12%, transparent); }
+.dlg-name { position: absolute; left: 14px; top: -14px; padding: 4px 14px; border-radius: 8px; font-weight: 700; letter-spacing: .12em; font-size: 15px;
+  background: linear-gradient(180deg, color-mix(in srgb, var(--c, #e6c27a) 85%, #fff), var(--c, #e6c27a)); color: #170d05; text-shadow: 0 1px 0 #fff6; }
+.dialog.narr .dlg-name { display: none; }
+.dlg-text { font-size: 16px; line-height: 1.75; min-height: 3.5em; }
+.dialog.narr .dlg-text { color: #d9cdb7; font-size: 15px; font-style: italic; }
+.dlg-ep { position: absolute; right: 14px; top: 6px; font-size: 10px; color: var(--dim); }
+.dlg-next { position: absolute; right: 14px; bottom: 8px; color: var(--gold); font-size: 12px; opacity: 0; }
+.dialog.ready .dlg-next { opacity: 1; animation: bob .8s infinite; }
+@keyframes bob { 50% { transform: translateY(3px); } }
+.dlg-skip { position: absolute; right: 12px; top: calc(52px + env(safe-area-inset-top)); padding: 6px 14px; border-radius: 999px; border: 1px solid var(--line); background: #000a; font-size: 13px; cursor: pointer; }
+
+.hpbar.guarded { box-shadow: 0 0 0 2px #7fd6ff, 0 0 12px #7fd6ff; }
+.boss-title b.long { font-size: 44px; letter-spacing: .15em; margin-right: -.15em; }

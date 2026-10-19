@@ -16,6 +16,7 @@ function go(id) {
   $$(".screen").forEach(s => s.classList.toggle("active", s.id === id));
   if (id !== "battle") music.play("title");
   if (id === "team") renderTeam();
+  if (id === "chapters") renderChapters();
   if (id === "dex") renderDex();
 }
 document.addEventListener("click", e => {
@@ -32,7 +33,29 @@ function iconHTML(id, extra = "") {
 }
 
 /* ---------------- 隊伍 ---------------- */
-const team = [...DEMO_TEAM];
+const store = {
+  get(k, d) { try { return JSON.parse(localStorage.getItem(k)) ?? d; } catch (e) { return d; } },
+  set(k, v) { try { localStorage.setItem(k, JSON.stringify(v)); } catch (e) {} }
+};
+const team = (t => Array.isArray(t) && t.length === 6 && t.every(id => CARDS[id]) ? t : [...DEMO_TEAM])(store.get("hq-team"));
+let CH = CHAPTERS[0];
+let cleared = store.get("hq-progress", { cleared: 0 }).cleared || 0;   // 已通關到第幾章
+
+/* ---------------- 章節選單 ---------------- */
+function renderChapters() {
+  $(".ch-list").innerHTML = CHAPTERS.map((ch, i) => {
+    const st = i < cleared ? "done" : i === cleared ? "open" : "lock";
+    return `<button class="ch-card ${st}" data-ch="${i}" style="background-image:linear-gradient(90deg,#000d 30%,#0004),url(${ch.bg})">
+      <span class="ch-no">${ch.no}</span><b>${ch.name}</b><span class="ch-sub">${ch.sub} ‧ ${ch.place}</span>
+      <span class="ch-intro">${ch.intro}</span>
+      <span class="ch-st">${st === "done" ? "已通關" : st === "open" ? "挑戰" : "🔒 通關上一章後開放"}</span></button>`;
+  }).join("");
+  $$(".ch-card").forEach(b => b.onclick = () => {
+    const i = +b.dataset.ch;
+    if (i > cleared) { b.animate([{ transform: "translateX(-6px)" }, { transform: "translateX(6px)" }, { transform: "none" }], { duration: 250 }); vibe(40); return; }
+    CH = CHAPTERS[i]; go("team");
+  });
+}
 function leaderFx() { return [CARDS[team[0]].lead.fx, CARDS[team[5]].lead.fx]; }
 function teamHp() {
   let hp = team.reduce((s, id) => s + CARDS[id].hp, 0);
@@ -45,9 +68,12 @@ function teamRec() {
   return r;
 }
 function renderTeam() {
-  $(".stage-intro").textContent = STAGE.intro;
-  $(".stage-waves").innerHTML = STAGE.waves.map((w, i) =>
-    `<span>第 ${i + 1} 波 ‧ ${w.map(k => ENEMIES[k].name).join("、")}</span>`).join("");
+  $(".stage-place").textContent = CH.place;
+  $(".stage-name").textContent = `${CH.no}　${CH.name}`;
+  $(".stage-intro").textContent = CH.intro;
+  $(".stage-card").style.backgroundImage = `linear-gradient(120deg, rgba(120,30,40,.35), rgba(30,20,40,.6)), url(${CH.bg})`;
+  $(".stage-waves").innerHTML = CH.waves.map((w, i) =>
+    `<span>第 ${i + 1} 波 ‧ ${w.enemies.map(k => ENEMIES[k].name).join("、")}</span>`).join("");
   const roles = ["隊長", "隊員", "隊員", "隊員", "隊員", "戰友"];
   $(".team-slots").innerHTML = team.map((id, i) => {
     const c = CARDS[id];
@@ -60,16 +86,78 @@ function renderTeam() {
     const c = CARDS[team[i]];
     return `<div class="ls">${i ? "戰友" : "隊長"}技能 <b>${c.lead.name}</b>：${c.lead.desc}</div>`;
   }).join("");
-  $$(".slot").forEach(s => s.onclick = () => {
-    const i = +s.dataset.i;
-    if (i === 0 || i === 5) {
-      const chain = ["lee1", "lee2", "lee3"];
-      team[i] = chain[(chain.indexOf(team[i]) + 1) % 3];
-      sfx.evo(); vibe(30); renderTeam();
-    } else showCard(team[i]);
+  $$(".slot").forEach(s => s.onclick = () => openPicker(+s.dataset.i));
+}
+/* 換卡：依系列列出全部卡片 */
+function openPicker(slot) {
+  const roles = ["隊長", "隊員", "隊員", "隊員", "隊員", "戰友"];
+  modal(`<h3>選擇${roles[slot]}</h3><div class="picker">${SERIES.map(s => `<div class="pk-head" style="color:${s.color}">${s.name}</div>
+    <div class="pk-grid">${s.members.flatMap(who => Object.keys(CARDS).filter(id => CARDS[id].who === who)).map(id =>
+      `<button class="pk ${team[slot] === id ? "cur" : ""}" data-id="${id}">${iconHTML(id)}<span>${CARDS[id].who}</span></button>`).join("")}</div>`).join("")}</div>
+    <div class="row"><button class="btn" data-close>取消</button><button class="btn" id="pk-info">卡片資料</button></div>`);
+  $$(".pk").forEach(b => b.onclick = () => {
+    team[slot] = b.dataset.id; store.set("hq-team", team);
+    vibe(15); closeModal(); renderTeam();
   });
+  $("#pk-info").onclick = () => showCard(team[slot]);
 }
 $("#go-battle").onclick = () => { go("battle"); startBattle(); };
+
+/* ================================================================
+   劇情對話框
+   ================================================================ */
+// 說話的人用哪張圖：有立繪用立繪（依表情），沒有就用卡面；敵人用敵人圖
+function portraitOf(who, expr) {
+  if (!who) return null;
+  const ids = Object.keys(CARDS).filter(id => CARDS[id].who === who);
+  if (ids.length) {
+    const c = CARDS[who === "李國志" ? "lee3" : ids[0]];
+    return { src: VN[who] ? `art/vn/${VN[who]}-${expr || "normal"}.webp` : c.art, fallback: c.art, attr: c.attr, kind: VN[who] ? "vn" : "card" };
+  }
+  const e = Object.values(ENEMIES).find(x => x.name === who);
+  return e ? { src: e.img, attr: e.attr, kind: "enemy" } : null;
+}
+function dialog(lines) {
+  return new Promise(done => {
+    if (!lines || !lines.length) return done();
+    const D = $("#dialog"), txt = $(".dlg-text", D);
+    const slot = { l: null, r: null };   // 舞台左右各站一個人
+    let i = 0, timer = 0, full = "", last = "r";
+    $$(".vn", D).forEach(v => { v.className = v.className.replace(/ (on|off|vn-pic|card|enemy|in)/g, ""); $("img", v).removeAttribute("src"); });
+    const finish = () => { clearInterval(timer); timer = 0; txt.textContent = full; D.classList.add("ready"); };
+    const close = () => { clearInterval(timer); D.classList.remove("on"); D.onclick = null; setTimeout(done, 150); };
+    const show = () => {
+      const [who, text, ep, expr] = lines[i], p = portraitOf(who, expr);
+      D.classList.toggle("narr", !who); D.classList.remove("ready");
+      $(".dlg-name", D).textContent = who || "";
+      $(".dlg-ep", D).textContent = ep || "";
+      if (p) {
+        D.style.cssText = attrVars(p.attr);
+        let side = slot.l === who ? "l" : slot.r === who ? "r" : (last === "l" ? "r" : "l");
+        const v = $(".vn-" + side, D), img = $("img", v), entering = slot[side] !== who;
+        slot[side] = who; last = side;
+        img.onerror = () => { if (p.fallback && img.getAttribute("src") !== p.fallback) { img.src = p.fallback; v.classList.remove("vn-pic"); v.classList.add("card"); } };
+        if (img.getAttribute("src") !== p.src) img.src = p.src;
+        v.classList.toggle("vn-pic", p.kind === "vn"); v.classList.toggle("card", p.kind === "card"); v.classList.toggle("enemy", p.kind === "enemy");
+        if (entering) { v.classList.remove("in"); void v.offsetWidth; v.classList.add("in"); }
+        $$(".vn", D).forEach(x => { const s = x.classList.contains("vn-l") ? "l" : "r"; x.classList.toggle("on", !!slot[s] && s === side); x.classList.toggle("off", !!slot[s] && s !== side); });
+      } else {
+        $$(".vn", D).forEach(x => { x.classList.remove("on"); if (x.querySelector("img").getAttribute("src")) x.classList.add("off"); });
+      }
+      full = who ? `「${text}」` : text;
+      let n = 0; txt.textContent = "";
+      clearInterval(timer);
+      timer = setInterval(() => { n += 1; txt.textContent = full.slice(0, n); if (n >= full.length) finish(); }, 32);
+    };
+    D.onclick = e => {
+      if (e.target.closest(".dlg-skip")) { e.stopPropagation(); close(); return; }
+      if (timer) { finish(); return; }
+      i++; sfx.swap();
+      if (i >= lines.length) close(); else show();
+    };
+    D.classList.add("on"); show();
+  });
+}
 
 /* ================================================================
    戰鬥
@@ -79,17 +167,27 @@ let grid = [];           // grid[r][c] = {attr, el}
 let cell = 0;            // 一格的像素寬
 const board = $(".board");
 
-function startBattle() {
+function startBattle(skipStory) {
   B = {
     hpMax: teamHp(), hp: teamHp(), rec: teamRec(),
     wave: 0, enemies: [], target: null, buff: 1, busy: false,
     cd: team.map(id => CARDS[id].act.cd)
   };
+  B.guard = 0;
   renderParty(); updateHp();
   initBoard();
+  $(".field-bg").style.backgroundImage = `url(${CH.bg})`;
+  $(".enemies").innerHTML = "";
+  $(".wave-tag").textContent = `${CH.no}　${CH.name}`;
   $("#battle").classList.remove("boss-field");
   B.busy = true; board.classList.add("locked");
-  loadWave(0).then(() => { B.busy = false; board.classList.remove("locked"); });
+  const b = B;
+  (async () => {
+    if (!skipStory) { music.play("title"); await dialog(CH.pre); }
+    if (B !== b) return;
+    await loadWave(0);
+    B.busy = false; board.classList.remove("locked");
+  })();
 }
 
 function renderParty() {
@@ -117,8 +215,10 @@ function updateHp() {
 /* ---------------- 敵人 ---------------- */
 async function loadWave(w) {
   B.wave = w; B.target = null;
-  B.enemies = STAGE.waves[w].map(k => ({ ...ENEMIES[k], key: k, hpNow: ENEMIES[k].hp, cdNow: ENEMIES[k].cd }));
-  $(".wave-tag").textContent = `${STAGE.name}　${w + 1} / ${STAGE.waves.length}`;
+  const wave = CH.waves[w];
+  if (wave.lines) { $(".enemies").innerHTML = ""; await dialog(wave.lines); }
+  B.enemies = wave.enemies.map(k => ({ ...ENEMIES[k], key: k, hpNow: ENEMIES[k].hp, cdNow: ENEMIES[k].cd }));
+  $(".wave-tag").textContent = `${CH.name}　${w + 1} / ${CH.waves.length}`;
   const box = $(".enemies");
   box.innerHTML = B.enemies.map((e, i) => `
     <div class="enemy ${e.boss ? "boss lurk" : ""}" data-i="${i}" style="${attrVars(e.attr)}">
@@ -159,9 +259,9 @@ async function bossIntro(boss, el) {
   music.stop(1.2);
   const veil = document.createElement("div");
   veil.className = "boss-veil";
-  veil.innerHTML = `<div class="warn"><span>WARNING</span><span>魔界第三王國 ‧ 七宗罪之憤怒</span><span>WARNING</span></div>
-    <div class="boss-title"><small>憤怒魔王</small><b>${boss.name}</b>
-    ${PROFILE[boss.name] && PROFILE[boss.name].quotes[0] ? `<q>${PROFILE[boss.name].quotes[0][1]}</q>` : ""}</div>`;
+  veil.innerHTML = `<div class="warn"><span>WARNING</span><span>${boss.warn || "BOSS"}</span><span>WARNING</span></div>
+    <div class="boss-title"><small>${boss.title || ""}</small><b class="${boss.name.length > 3 ? "long" : ""}">${boss.name}</b>
+    ${boss.quote ? `<q>${boss.quote}</q>` : ""}</div>`;
   bt.appendChild(veil);
   await sleep(300);
   sfx.rumble(2.8);
@@ -490,13 +590,13 @@ async function hitEnemy(t, raw, attr, fromEl) {
 async function checkWave() {
   if (alive().length) return false;
   await sleep(500);
-  if (B.wave + 1 < STAGE.waves.length) {
+  if (B.wave + 1 < CH.waves.length) {
     await loadWave(B.wave + 1);
     await sleep(600);
     B.busy = false; board.classList.remove("locked");
     return true;
   }
-  win(); return true;
+  await win(); return true;
 }
 async function enemyTurn() {
   for (const i of alive()) {
@@ -506,11 +606,12 @@ async function enemyTurn() {
       const el = enemyEl(i);
       el.classList.remove("atk"); void el.offsetWidth; el.classList.add("atk");
       await sleep(250);
-      B.hp -= e.atk; updateHp();
+      const dmg = Math.round(e.atk * (B.guard > 0 ? .5 : 1));
+      B.hp -= dmg; updateHp();
       if (e.boss) { quake(16, 500); flash("rgba(200,0,0,.4)", 400); }
       else quake(6, 240);
       const hb = $(".hpbar").getBoundingClientRect(), fb = $(".field").getBoundingClientRect();
-      floatText(hb.left - fb.left + hb.width / 2, hb.top - fb.top - 34, "-" + fmt(e.atk), e.attr);
+      floatText(hb.left - fb.left + hb.width / 2, hb.top - fb.top - 34, "-" + fmt(dmg), e.attr);
       if (e.boss) { sfx.slam(); vibe([120, 40, 200]); } else { sfx.hurt(); vibe([60, 40, 90]); }
       e.cdNow = e.cd;
       await sleep(350);
@@ -518,6 +619,7 @@ async function enemyTurn() {
     updateEnemy(i);
     if (B.hp <= 0) { lose(); return; }
   }
+  if (B.guard > 0) { B.guard--; $(".hpbar").classList.toggle("guarded", B.guard > 0); }
 }
 
 /* ---------------- 主動技能 ---------------- */
@@ -555,6 +657,7 @@ async function castSkill(i) {
   }
   if (fx.buff) B.buff *= fx.buff;
   if (fx.healPct) { B.hp += B.hpMax * fx.healPct; updateHp(); }
+  if (fx.guard) { B.guard = Math.max(B.guard, fx.guard); $(".hpbar").classList.add("guarded"); }
   if (fx.delay) { B.enemies.forEach(e => e.cdNow += fx.delay); alive().forEach(updateEnemy); }
   if (fx.nuke) {
     const el = $$(".party .icon")[i];
@@ -566,16 +669,24 @@ async function castSkill(i) {
 }
 
 /* ---------------- 結算 ---------------- */
-function win() {
+async function win() {
   music.stop(.4);
   sfx.win(); vibe([40, 60, 40, 60, 120]);
-  modal(`<div class="result"><h3>過關</h3><p>撒旦被打回第三王國了。<br>三途川的燈，又亮了一晚。</p>
-    <div class="row"><button class="btn" data-goto="team">回隊伍</button><button class="btn gold" data-goto="again">再玩一次</button></div></div>`);
+  banner("過關");
+  await sleep(1400);
+  music.play("title");
+  await dialog(CH.post);
+  const idx = CHAPTERS.indexOf(CH), first = idx >= cleared;
+  cleared = Math.max(cleared, idx + 1); store.set("hq-progress", { cleared });
+  const next = CHAPTERS[idx + 1];
+  modal(`<div class="result"><h3>${CH.no} 通關</h3><p>「${CH.name}」</p>
+    ${first && next ? `<p class="unlock">${next.no}「${next.name}」開放了</p>` : ""}${!next ? `<p class="unlock">主線劇情全部通關，謝謝你玩到最後。</p>` : ""}
+    <div class="row"><button class="btn" data-goto="chapters">回章節</button>${next ? `<button class="btn gold" data-goto="next">下一章</button>` : `<button class="btn gold" data-goto="again">再打一次</button>`}</div></div>`);
 }
 function lose() {
   B.busy = true; music.stop(.8); sfx.lose(); vibe(300);
   modal(`<div class="result"><h3>全隊陣亡</h3><p>如入火聚，得清涼門。再試一次吧。</p>
-    <div class="row"><button class="btn" data-goto="team">回隊伍</button><button class="btn gold" data-goto="again">重新挑戰</button></div></div>`);
+    <div class="row"><button class="btn" data-goto="team">換隊伍</button><button class="btn gold" data-goto="again">重新挑戰</button></div></div>`);
 }
 $("#quit").onclick = () => {
   modal(`<h3>離開戰鬥？</h3><p>這一場的進度不會保留。</p>
@@ -609,14 +720,17 @@ $("#modal").addEventListener("click", e => {
   const g = e.target.closest("[data-goto]");
   if (g) {
     closeModal();
-    if (g.dataset.goto === "again") startBattle(); else { B = null; go(g.dataset.goto); }
+    const to = g.dataset.goto;
+    if (to === "again") startBattle(true);
+    else if (to === "next") { CH = CHAPTERS[CHAPTERS.indexOf(CH) + 1]; B = null; go("team"); }
+    else { B = null; go(to); }
   }
 });
 
 /* ================================================================
    圖鑑
    ================================================================ */
-const DEX_TABS = [...SERIES, { id: "enemy", name: "敵人", sub: "三途川入侵者 ‧ 魔界第三王國", color: "#c8443a" }];
+const DEX_TABS = [...SERIES, { id: "enemy", name: "敵人", sub: "主線劇情裡的對手", color: "#c8443a" }];
 let dexSeries = SERIES[0].id;
 function cardsOf(who) { return Object.keys(CARDS).filter(id => CARDS[id].who === who); }
 function renderDex() {
@@ -626,7 +740,7 @@ function renderDex() {
   $(".dex-head").innerHTML = `<b style="--sc:${s.color}">${s.id === "enemy" ? s.name : s.name + "系列"}</b><span>${s.sub}</span>`;
   if (s.id === "enemy") {
     $(".dex-grid").innerHTML = Object.entries(ENEMIES).map(([k, e]) => `<div class="dcard" data-enemy="${k}" style="${attrVars(e.attr)}">
-      <img src="${e.img}" alt="${e.name}"><div class="cap"><small>${e.boss ? "BOSS" : "第三王國"}</small>${e.name}</div></div>`).join("");
+      <img src="${e.img}" alt="${e.name}"><div class="cap"><small>${e.boss ? "BOSS" : "敵人"}</small>${e.name}</div></div>`).join("");
     $$(".dcard[data-enemy]").forEach(el => el.onclick = () => showEnemy(el.dataset.enemy));
     return;
   }
@@ -704,9 +818,9 @@ function showEnemy(k) {
   const e = ENEMIES[k];
   const skill = `<div class="stats"><div>生命力<b>${fmt(e.hp)}</b></div><div>攻擊力<b>${fmt(e.atk)}</b></div><div>攻擊間隔<b>${e.cd} 回合</b></div></div>
     <div class="skill"><span class="k">屬性</span> <b>${ATTR[e.attr].name}</b><br>${ATTR[Object.keys(BEATS).find(a => BEATS[a] === e.attr)].name}屬性對牠造成 2 倍傷害</div>
-    <div class="skill"><span class="k">出沒</span> <b>${STAGE.place}「${STAGE.name}」</b><br>第 ${STAGE.waves.findIndex(w => w.includes(k)) + 1} 波</div>`;
+    ${CHAPTERS.filter(ch => ch.waves.some(w => w.enemies.includes(k))).map(ch => `<div class="skill"><span class="k">出沒</span> <b>${ch.no}「${ch.name}」</b><br>${ch.place}，第 ${ch.waves.findIndex(w => w.enemies.includes(k)) + 1} 波</div>`).join("")}`;
   cardShell({
-    attr: e.attr, art: e.img, star: e.boss ? "BOSS" : "", title: e.boss ? "第三王國之主" : "第三王國", name: e.name, race: "魔族",
+    attr: e.attr, art: e.img, star: e.boss ? "BOSS" : "", title: e.title || (CHAPTERS.find(ch => ch.waves.some(w => w.enemies.includes(k))) || {}).name || "", name: e.name, race: "魔族",
     tabs: [{ id: "skill", label: "能力", html: skill },
            { id: "story", label: "背景故事", html: storyHTML(e.name) },
            { id: "info", label: "角色資料", html: infoHTML(e.name) }]
