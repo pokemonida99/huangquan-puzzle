@@ -206,6 +206,8 @@ $("#go-battle").onclick = () => {
 function portraitOf(who, expr) {
   if (!who) return null;
   const ids = Object.keys(CARDS).filter(id => CARDS[id].who === who);
+  const foe = Object.values(ENEMIES).find(x => x.name === who);
+  if (foe && !VN[who]) return { src: foe.img, attr: foe.attr, kind: "enemy" };   // 撒旦、辣雞等：劇情裡用敵人圖（邊緣融入畫面）
   if (ids.length) {
     const c = CARDS[who === "李國志" ? "lee4" : who === "語彤" ? "yutong1" : ids[0]];
     const key = (CH.vn && CH.vn[who]) || VN[who];   // 有些章節換造型（例：語彤第四季穿漢服）
@@ -946,6 +948,10 @@ async function castSkillInner(i) {
   if (fx.convert) {
     const [from, to] = fx.convert;
     grid.flat().filter(o => o.attr === from).forEach(o => setAttr(o, to));
+  }
+  if (fx.board) {   // 固定版面：照字母排出整個盤面（w 水、f 火、g 木、l 光、d 暗、h 心）
+    const M = { w: "water", f: "fire", g: "wood", l: "light", d: "dark", h: "heart" };
+    grid.forEach((row, r) => row.forEach((o, c) => setAttr(o, M[fx.board[r][c]])));
   }
   if (fx.rowTo) grid[ROWS - 1].forEach(o => setAttr(o, fx.rowTo));
   if (fx.timeUp) B.timeUp = (B.timeUp || 0) + fx.timeUp;

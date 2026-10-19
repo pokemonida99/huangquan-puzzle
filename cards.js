@@ -6,6 +6,8 @@
    稱號、技能名取自劇中出現過的稱呼、事件與台詞；卡面描述只拿來生圖。
    ========================================================================= */
 (() => {
+// 進化鏈的階段（同一角色在圖鑑、換卡器依這個排序）
+const STAGE_OF = { yutong1: 1, yutong: 2, yutong3: 3, yutong4: 4, xiaoyu2: 2, dabao2: 2, dabao3: 3, afu2: 2 };
 const ROWS = [
   /* 黃泉燒肉店 */
   // 語彤是主角，四階進化依劇中衣著的時期：高中生 → 燒肉店 → 狐姬改造後 → 實習月老
@@ -107,18 +109,64 @@ const ROWS = [
   ["tiedan", "鐵蛋", "高中生靈媒", "dark", "人類", "other", "bal", "看得到鬼", { attrAtk: { dark: 2 }, vsDemon: 1.5 }, "鹽城月老廟", 6, { fixedDmg: 30000 },
     "Tiedan, a teenage spirit-medium girl with black bangs and sharp eyes, school uniform with paper talismans, faint ghosts around her, temple at night"],
   ["gengyin", "庚寅月老", "月老爺爺", "wood", "神", "other", "rec", "月下老人", { attrAtk: { wood: 2 } }, "牽線", 6, { convert: ["water", "wood"] },
-    "the Gengyin Yue Lao, an old matchmaker god with long white hair and a long white beard, red and gold robe, holding a book of marriages and red threads, under the moon"]
+    "the Gengyin Yue Lao, an old matchmaker god with long white hair and a long white beard, red and gold robe, holding a book of marriages and red threads, under the moon"],
+  /* ---- 第三批：再 20 位（2026-10-19） ---- */
+  ["satanc", "撒旦", "憤怒魔王", "fire", "魔族", "demon", "atk", "憤怒魔王", { attrAtk: { fire: 3 }, allHp: 1.2 }, "辛辣天塞", 8, { board: ["fffddd", "fffddd", "fffddd", "fffddd", "fffddd"], boardDesc: "左半邊火符石、右半邊暗符石", buff: 1.5 }, null],
+  ["plaguec", "瘟疫", "第三王國總參謀", "wood", "魔族", "demon", "rec", "撒旦的軍師", { attrAtk: { wood: 2.5 }, allRec: 1.3 }, "瘟疫蔓延", 7, { board: ["gggggg", "hhhhhh", "gggggg", "hhhhhh", "gggggg"], boardDesc: "木符石與心符石一排一排交錯" }, null],
+  ["reaperc", "第三王國惡魔", "第五軍團百夫長", "dark", "魔族", "demon", "atk", "搜捕高品質靈魂", { attrAtk: { dark: 2 } }, "百年妖狐", 6, { selfBuff: 2.5 }, null],
+  ["lajic", "辣雞", "議員之子", "wood", "人類", "human", "atk", "你知道我爸是誰嗎", { attrAtk: { wood: 2 } }, "我可是未成年", 6, { convert: ["heart", "wood"], selfBuff: 2 }, null],
+  ["xiaole", "小樂", "討好型人格", "water", "人類", "human", "rec", "聽不見的求救", { allRec: 1.5 }, "被聽見", 5, { healPct: .35, buff: 1.3 },
+    "Xiaole, a young woman with a short brown bob under a beige beret, cream knit cardigan over a white top, shy tearful smile, chain-link fence at night"],
+  ["abinmom", "阿斌的媽媽", "九二一的母親", "light", "人類", "human", "hp", "這片土地上不分國籍", { allHp: 1.3, attrAtk: { light: 1.5 } }, "守護阿斌", 5, { guard: 1, buff: 1.5 },
+    "a Filipina mother with long curly dark hair, wearing a light pink t-shirt with a small bunny print, warm tearful smile, cozy home at night"],
+  ["granny", "算命阿婆", "看命格的算命師", "dark", "人類", "human", "bal", "天煞孤星", { attrAtk: { dark: 2 } }, "算命", 5, { convert: ["light", "dark"], buff: 1.3 },
+    "an old fortune-teller grandma with grey hair, round dark sunglasses, a pale blue blouse and a bead necklace, sitting at a small fortune-telling table with candles"],
+  ["waipo", "外婆", "託夢的外婆", "wood", "人類", "human", "rec", "走之前來看看你", { allRec: 1.6 }, "託夢", 5, { healPct: .5 },
+    "a kind elderly grandmother with soft white curly hair, wearing a cream floral-print blouse, gentle smile, warm old house with a wall clock"],
+  ["guitarist", "吉他手", "愛神祭的伴奏", "dark", "人類", "human", "atk", "伴奏", { attrAtk: { dark: 2 } }, "那一晚的歌", 5, { rowTo: "dark", selfBuff: 2 },
+    "a female rock guitarist with a long black ponytail and bangs, black ornate vest over a black top, playing an electric guitar on a stage with spotlights"],
+  ["miaogong", "廟公", "業鏡羅漢殿的廟公", "light", "人類", "human", "hp", "第六十一籤", { attrAtk: { light: 2 } }, "請你跟我來一下", 6, { convert: ["dark", "light"], buff: 1.3 },
+    "an elderly temple keeper with short white hair, wearing a navy blue traditional Chinese button jacket, kind serious face, Taiwanese temple with incense smoke"],
+  ["zhaogao", "趙大人", "中車府令", "dark", "人類", "other", "bal", "誣陷", { attrAtk: { dark: 2 } }, "讒言", 6, { convert: ["light", "dark"], selfBuff: 2 },
+    "Zhao Gao, a plump middle-aged Qin dynasty court official with a black official hat and a dark brown robe, holding a bamboo scroll, sly smile, Qin palace"],
+  ["cuihua", "翠花", "大牛的未婚妻", "wood", "人類", "other", "rec", "被搶走的翠花", { allRec: 1.5 }, "等大牛", 5, { healPct: .4 },
+    "Cuihua, a young Qin era village woman with black hair in a simple bun, plain brown hemp clothes, tearful hopeful face, ancient Qin street"],
+  ["qinwang", "秦王", "嬴政", "dark", "人類", "other", "atk", "大秦", { attrAtk: { dark: 2.5 } }, "連弩車", 8, { board: ["dddddd", "llllll", "dddddd", "llllll", "dddddd"], boardDesc: "暗符石與光符石一排一排交錯", buff: 1.3 },
+    "Ying Zheng, the King of Qin, a stern middle-aged man with a black topknot crown and a black and gold patterned royal robe, commanding pose, dark palace hall"],
+  ["lvyi", "綠衣女子", "微笑式神的召喚者", "wood", "人類", "sanzu", "bal", "市役所的守衛", { attrAtk: { wood: 2 } }, "微笑式神", 5, { convert: ["water", "wood"], selfBuff: 2 },
+    "a young woman with a black bob with bangs and a small hair ornament, wearing a pale green kimono-style top, summoning a white smiling paper mask spirit, underworld city hall"],
+  ["liangmom", "梁安恆的媽媽", "梁媽媽", "light", "人類", "other", "rec", "為了不打擾我工作", { allRec: 1.5, attrAtk: { light: 1.5 } }, "擔心你", 5, { healPct: .4, buff: 1.3 },
+    "a woman with silver hair with purple streaks and thin round glasses, wearing a simple light top and apron, worried gentle face, small apartment"],
+  ["gyxiaoqing", "庚寅筱晴", "杜老大的老婆", "dark", "人類", "other", "bal", "黑龍興業", { attrAtk: { dark: 2 } }, "希望能一直這樣", 5, { healPct: .2, buff: 1.5 },
+    "a woman with long blonde hair under a black lace brimmed hat, black lace dress, holding a white face mask, cool elegant expression, dark mansion with a dragon emblem"],
+  ["bachi", "八尺大人", "傘鬼", "fire", "鬼", "other", "atk", "紅傘", { attrAtk: { fire: 2.5 } }, "被練成蠱", 7, { nuke: 15, selfBuff: 2 },
+    "Hasshaku-sama, a very tall female ghost with long straight black hair covering her face, wearing a long white dress, holding a red Japanese oil-paper umbrella, misty night alley, eerie but not gory"],
+  ["shushi", "術士", "下蠱的術士", "dark", "人類", "other", "atk", "白蛛會的術士", { attrAtk: { dark: 2.5 } }, "下蠱", 7, { board: ["ddhhdd", "ddhhdd", "ddhhdd", "ddhhdd", "ddhhdd"], boardDesc: "左右兩側暗符石、中間兩直排心符石", selfBuff: 2 },
+    "a sorcerer wearing a yellow hooded raincoat, sly grin, holding a rifle with a glowing purple scope, a purple eye mark glowing on his palm, rainy rooftop at night"],
+  ["baizhu", "白蛛會角頭", "白老大", "light", "人類", "other", "hp", "白蛛會", { allHp: 1.3, attrAtk: { light: 1.5 } }, "花這麼多錢", 6, { guard: 1, selfBuff: 2.5 },
+    "a tough middle-aged gang boss with slicked-back black hair and spider-web scar patterns on his face, wearing a white suit jacket, menacing, dark warehouse"],
+  ["zygao", "狀元糕老伯", "狀元糕攤", "fire", "人類", "human", "rec", "這是狀元糕", { allRec: 1.5 }, "熱騰騰的狀元糕", 5, { healPct: .3, convert: ["heart", "fire"] },
+    "a kind old man with short white hair, wearing a blue striped polo shirt, selling steamed zhuangyuan rice cakes at a flea market stall with a steamer, sunny"],
+  /* 主角群的進化 */
+  ["xiaoyu2", "小雨", "代理店長", "water", "人類", "shop", "rec", "代理店長", { allRec: 2, attrAtk: { water: 1.5 } }, "潮流韓風", 4, { healPct: .4, convert: ["heart", "water"], buff: 1.5 },
+    "Xiaoyu as acting manager of the yakiniku shop: long straight black hair with blunt bangs, wearing a modern Korean-style hanbok uniform in soft colors, confident warm smile, yakiniku restaurant"],
+  ["dabao2", "大寶", "托夢照相館", "fire", "人類", "fire", "atk", "托夢照相館", { attrAtk: { fire: 2.2 } }, "打薄一下就好", 4, { convert: ["heart", "fire"], buff: 2 }, null],
+  ["dabao3", "大寶", "天煞孤星", "fire", "人類", "fire", "atk", "天煞孤星", { attrAtk: { fire: 2.8 }, allHp: 1.2 }, "神也好魔也好", 7, { convert: ["heart", "fire"], selfBuff: 3, buff: 1.5 },
+    "Dabao in season six: two-tone blonde and dark undercut hair, a grey hoodie under a black jacket, determined sad eyes, a faint ominous starry red aura around him (the lone star curse), night street"],
+  ["afu2", "阿副", "陽光手機門市", "wood", "人類", "fire", "hp", "曾來過人間", { attrAtk: { wood: 2.2 }, allHp: 1.2 }, "一拳打倒辣雞", 4, { convert: ["heart", "wood"], selfBuff: 3.5 },
+    "A-Fu as a phone shop clerk: long wavy black hair, light stubble, wearing a blue polo shirt with a small shop logo, calm resolute look, bright phone store"]
 ];
 ROWS.forEach(([id, who, title, attr, race, series, kind, leadName, leadFx, actName, cd, actFx, desc]) => {
   CARDS[id] = {
     who, title, attr, race, series, kind,
-    art: `art/${id}.webp`, evo: null, stage: /^yutong(\d)?$/.test(id) ? ({ yutong1: 1, yutong: 2, yutong3: 3, yutong4: 4 })[id] : 0,
+    art: `art/${id}.webp`, evo: null, stage: STAGE_OF[id] || 0,
     lead: { name: leadName, fx: leadFx }, act: { name: actName, cd, fx: actFx }, gen: desc
   };
 });
 })();
-// 語彤的進化順序
-[["yutong1", "yutong"], ["yutong", "yutong3"], ["yutong3", "yutong4"]].forEach(([a, b]) => { CARDS[a].evo = b; });
+// 進化順序（語彤四階；小雨、大寶、阿副的進化）
+[["yutong1", "yutong"], ["yutong", "yutong3"], ["yutong3", "yutong4"], ["xiaoyu", "xiaoyu2"], ["dabao", "dabao2"], ["dabao2", "dabao3"], ["afu", "afu2"]]
+  .forEach(([a, b]) => { CARDS[a].evo = b; CARDS[a].stage = CARDS[a].stage || 1; });
 
 /* =========================================================================
    戰力階級：依使用者的《黃泉燒肉店》S1–S5 戰力表（S+ 最強、D 最弱）
@@ -148,13 +196,18 @@ window.TIERS = {
     "小雨": "D", "大寶": "D", "阿副": "D", "白妹": "D", "赤坂": "D",
     "林伯伯": "D", "王柏宏": "D", "筱晴": "D", "阿副的女友": "D", "茉蒂": "D", "大牛": "D",
     "咪咪": "D", "黑糖": "D", "謎": "D", "小米": "D", "918號引渡貓": "D", "貢丸君": "D", "毛怪": "D",
-    "劉大牛": "D", "梁安恆": "D", "林怡曼": "D", "鐵蛋": "D"
+    "劉大牛": "D", "梁安恆": "D", "林怡曼": "D", "鐵蛋": "D",
+    // 第三批：撒旦、瘟疫照戰力表；其他依劇情
+    "撒旦": "S", "瘟疫": "A", "第三王國惡魔": "C", "秦王": "C", "八尺大人": "C", "術士": "C",
+    "辣雞": "D", "小樂": "D", "阿斌的媽媽": "D", "算命阿婆": "D", "外婆": "D", "吉他手": "D", "廟公": "D",
+    "趙大人": "D", "翠花": "D", "綠衣女子": "D", "梁安恆的媽媽": "D", "庚寅筱晴": "D", "白蛛會角頭": "D", "狀元糕老伯": "D"
   };
   // 李國志三階：業鏡羅漢照表是 B；刀鋸使、米店老闆依劇情往下
-  const BY_ID = { lee1: "D", lee2: "C", lee3: "B", lee4: "B", yutong1: "D", yutong: "D", yutong3: "C", yutong4: "C" };
+  const BY_ID = { lee1: "D", lee2: "C", lee3: "B", lee4: "B", yutong1: "D", yutong: "D", yutong3: "C", yutong4: "C",
+    xiaoyu2: "C", dabao2: "D", dabao3: "C", afu2: "C" };
   // 同一階級裡，進化後的卡再強一點
-  const EVO_UP = { lee2: 1.06, lee3: 1.06, lee4: 1.12, yutong: 1.06, yutong3: 1.0, yutong4: 1.08 };
-  const ON_CHART = new Set(["路西法", "祝融", "基路伯", "觀音菩薩", "利維坦", "阿芙羅黛蒂", "哈索爾", "千里眼", "鼠軍師", "月老", "愛染明王", "華佗", "九尾", "語彤", "陽滋公主", "諾瓦", "狐姬", "七號"]);
+  const EVO_UP = { lee2: 1.06, lee3: 1.06, lee4: 1.12, yutong: 1.06, yutong3: 1.0, yutong4: 1.08, dabao2: 1.08, dabao3: 1.06 };
+  const ON_CHART = new Set(["撒旦", "瘟疫", "路西法", "祝融", "基路伯", "觀音菩薩", "利維坦", "阿芙羅黛蒂", "哈索爾", "千里眼", "鼠軍師", "月老", "愛染明王", "華佗", "九尾", "語彤", "陽滋公主", "諾瓦", "狐姬", "七號"]);
   const KIND_ID = { lee1: "bal", lee2: "atk", lee3: "bal", lee4: "bal", xiaobai: "atk", xiaoyu: "rec", dabao: "atk", afu: "hp" };
   const KIND = { atk: [.9, 1.2, .8], hp: [1.3, .9, .9], rec: [1, .85, 1.5], bal: [1.05, 1, 1.05] };
   const BIAS = { water: [1.3, .82, 1.6], fire: [.82, 1.2, .65] };
@@ -211,6 +264,7 @@ window.TIERS = {
   function actDesc(fx, attr) {
     const t = [];
     if (fx.convert) t.push(`${N(fx.convert[0])}符石轉化為${N(fx.convert[1])}符石`);
+    if (fx.board) t.push(`符石變成固定版面：${fx.boardDesc}`);
     if (fx.rowTo) t.push(`最下面一排符石轉化為${N(fx.rowTo)}符石`);
     if (fx.timeUp) t.push(`本回合轉珠時間延長 ${fx.timeUp} 秒`);
     if (fx.fixedDmg) t.push(`對全體敵人造成 ${fx.fixedDmg.toLocaleString("en-US")} 點固定傷害（不受屬性影響）`);
