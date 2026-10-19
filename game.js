@@ -177,7 +177,9 @@ function dialog(source) {
         slot[side] = who; last = side;
         img.onerror = () => { if (p.fallback && img.getAttribute("src") !== p.fallback) { img.src = p.fallback; v.classList.remove("vn-pic"); v.classList.add("card"); } };
         if (img.getAttribute("src") !== p.src) img.src = p.src;
-        v.style.setProperty("--vs", (VN_SCALE[who] || 1));
+        // 立繪的頭都對齊在同一個基準高度（935px）；有帽子、頭飾的圖比較高，依實際高度放大，臉才一樣大
+        const fit = () => v.style.setProperty("--vs", (p.kind === "vn" && img.naturalHeight ? img.naturalHeight / 935 : 1) * (VN_SCALE[who] || 1));
+        if (img.complete) fit(); img.onload = fit;
         v.classList.toggle("vn-pic", p.kind === "vn"); v.classList.toggle("card", p.kind === "card"); v.classList.toggle("enemy", p.kind === "enemy");
         if (entering) { v.classList.remove("in"); void v.offsetWidth; v.classList.add("in"); }
         $$(".vn", D).forEach(x => { const s = x.classList.contains("vn-l") ? "l" : "r"; x.classList.toggle("on", !!slot[s] && s === side); x.classList.toggle("off", !!slot[s] && s !== side); });

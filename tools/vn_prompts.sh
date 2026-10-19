@@ -11,6 +11,10 @@ case $key in
  yuelao) D="Same matchmaker deity elder and same outfit as the reference card." ; R=(art/yuelao.png);;
  rat) D="A hamster strategist character, same as the reference card, standing upright on its hind legs." ; R=(art/rat.png);;
  leviathan) D="Young man with silver hair with blue tips, blue glitter makeup on the cheek, black jacket, black headphones hanging around his neck; only items shown in the references, nothing added." ; R=(art/leviathan.png src/qimiao-shiguang/assets/g/c059-1.jpg);;
+ yutongh) D="Young Taiwanese woman, straight black bob haircut with full bangs, NO glasses, a red birthmark on one cheek decorated with a few tiny sparkling rhinestones, wearing a pale mint-green and white Hanfu, a small golden hair ornament; only items shown in the references." ; R=(art/yutong4.png src/qimiao-shiguang/assets/ep/ep4-08.jpg refs/yutong-chart.jpg);;
+ youshuzhang) D="Man with long black hair wearing dark Qin-dynasty robes, no armor; only items shown in the references." ; R=(art/youshuzhang.png work/vn/refs/153.png work/vn/refs/151.png);;
+ yangzi) D="Young woman with long black hair, a silver hair crown, white Hanfu with flowing black ribbons; only items shown in the references." ; R=(art/yangzi.png work/vn/refs/048.png src/qimiao-shiguang/assets/g/c064-1.jpg);;
+ nova) D="Little girl with short black hair, wearing a blue narwhal-shaped hat and a light-blue sleeveless dress; only items shown in the references. Child proportions, full face visible." ; R=(art/nova.png src/qimiao-shiguang/assets/g/c060-1.jpg);;
 esac
 declare -A E
 E[normal]="Calm neutral expression, mouth closed."
@@ -23,6 +27,6 @@ E[smug]="Smug self-satisfied smirk, chin slightly raised."
 if [[ $ex == normal ]]; then
   tools/gen.sh vn-$key-normal "$D $COMMON ${E[normal]}" $R
 else
-  tools/gen.sh vn-$key-$ex "Same exact character, same costume, same pose and framing and same flat magenta background as the first reference image (the base sprite). Only the facial expression changes. $COMMON ${E[$ex]}" work/vn/vn-$key-normal.png $([[ $key == yutong ]] || echo $R)
+  tools/gen.sh vn-$key-$ex "Same exact character, same costume, same pose and framing and same flat magenta background as the first reference image (the base sprite). Only the facial expression changes. $COMMON ${E[$ex]}" work/vn/vn-$key-normal.png $([[ $key == yutong* ]] || echo $R)
 fi
 mv art/vn-$key-$ex.png work/vn/ 2>/dev/null
