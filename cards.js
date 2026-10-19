@@ -66,9 +66,9 @@ const ROWS = [
   /* 神明與天族 */
   ["guanyin", "觀音菩薩", "三途川最強的神", "light", "神", "gods", "atk", "觀音娘娘", { allAtk: 3.5, allHp: 1.5, openStrike: 60 }, "又快又狠", 8, { nuke: 45, buff: 2 },
     "Guanyin, a woman with silver-white and purple hair and thin glasses, wearing a sharp white suit, serene but powerful, a halo of lotus light behind her"],
-  ["yuelao", "月老", "月下老人", "light", "神", "gods", "bal", "讓受過傷的人再相信", { attrAtk: { light: 2.5 } }, "紅線", 7, { convert: ["dark", "light"], buff: 1.5 },
+  ["yuelao", "月老", "月下老人", "light", "神", "gods", "bal", "讓受過傷的人再相信", { attrAtk: { light: 3.5, wood: 3.5 }, allHp: 1.3 }, "紅線", 7, { board: ["lglglg", "lglglg", "lglglg", "lglglg", "lglglg"], boardDesc: "光符石與木符石一直排一直排交錯", buff: 1.5 },
     "Yue Lao, a handsome young man with tousled brown hair, red and white traditional Chinese robe, red threads of fate wrapped around his hand, moonlit temple with hanging red threads"],
-  ["huatuo", "華佗", "醫神", "wood", "神", "gods", "rec", "忘憂舞", { allRec: 2.5, allHp: 1.2 }, "忘憂耳機", 7, { healPct: .6 },
+  ["huatuo", "華佗", "醫神", "wood", "神", "gods", "rec", "忘憂舞", { attrAtk: { wood: 3 }, allRec: 2, allHp: 1.3, regen: .1 }, "忘憂耳機", 6, { healPct: .5, buff: 1.8 },
     "Hua Tuo, the god of medicine as a hip-hop DJ: knit beanie, round dark sunglasses, gold chain, earrings, big headphones, herbal smoke and neon lights of an underground club"],
   ["yangzi", "陽滋公主", "孟婆", "water", "鬼", "gods", "bal", "孟婆湯", { attrAtk: { water: 2.5 } }, "遺忘之法", 8, { delay: 2, buff: 1.5 },
     "Princess Yangzi who became Meng Po, an elegant woman with black hair in a Qin dynasty updo with silver ornaments, white and pale blue hanfu, holding a bowl of soup, misty bridge over a river"],

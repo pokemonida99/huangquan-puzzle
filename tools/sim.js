@@ -31,6 +31,7 @@ function teamHp(team) { let hp = team.reduce((s, id) => s + CARDS[id].hp, 0); [0
 const TEAMS = {
   "初始隊（李國志×2）": DEMO_TEAM,
   ...Object.fromEntries(PRESETS.slice(1).map(p => [p.name, p.team])),
+  "月老帶木隊": ["yuelao", "afu", "qianliyan", "heitang", "lvyi", "yuelao"],
   "全 D 卡隊": ["yutong1", "xiaobai", "xiaoyu", "dabao", "afu", "lee1"],
   "路西法雙隊長（最強）": ["lucifer", "guanyin", "cherub", "hathor", "aphrodite", "lucifer"]
 };
