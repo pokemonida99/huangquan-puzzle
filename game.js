@@ -508,8 +508,8 @@ $("#quit").onclick = () => {
 };
 
 /* ---------------- 對話框 ---------------- */
-function modal(html) { $(".modal-box").innerHTML = html; $("#modal").classList.add("on"); }
-function closeModal() { $("#modal").classList.remove("on"); }
+function modal(html, kind = "") { $(".modal-box").innerHTML = html; $("#modal").className = "modal on " + kind; }
+function closeModal() { $("#modal").className = "modal"; }
 $("#modal").addEventListener("click", e => {
   if (e.target.id === "modal" || e.target.closest("[data-close]")) closeModal();
   const g = e.target.closest("[data-goto]");
@@ -522,13 +522,20 @@ $("#modal").addEventListener("click", e => {
 /* ================================================================
    圖鑑
    ================================================================ */
+const DEX_TABS = [...SERIES, { id: "enemy", name: "敵人", sub: "三途川入侵者 ‧ 魔界第三王國", color: "#c8443a" }];
 let dexSeries = SERIES[0].id;
 function cardsOf(who) { return Object.keys(CARDS).filter(id => CARDS[id].who === who); }
 function renderDex() {
-  $(".dex-tabs").innerHTML = SERIES.map(s => `<button data-s="${s.id}" class="${s.id === dexSeries ? "on" : ""}">${s.name}</button>`).join("");
+  $(".dex-tabs").innerHTML = DEX_TABS.map(s => `<button data-s="${s.id}" class="${s.id === dexSeries ? "on" : ""}">${s.name}</button>`).join("");
   $$(".dex-tabs button").forEach(b => b.onclick = () => { dexSeries = b.dataset.s; renderDex(); });
-  const s = SERIES.find(x => x.id === dexSeries);
-  $(".dex-head").innerHTML = `<b style="--sc:${s.color}">${s.name}系列</b><span>${s.sub}</span>`;
+  const s = DEX_TABS.find(x => x.id === dexSeries);
+  $(".dex-head").innerHTML = `<b style="--sc:${s.color}">${s.id === "enemy" ? s.name : s.name + "系列"}</b><span>${s.sub}</span>`;
+  if (s.id === "enemy") {
+    $(".dex-grid").innerHTML = Object.entries(ENEMIES).map(([k, e]) => `<div class="dcard" data-enemy="${k}" style="${attrVars(e.attr)}">
+      <img src="${e.img}" alt="${e.name}"><div class="cap"><small>${e.boss ? "BOSS" : "第三王國"}</small>${e.name}</div></div>`).join("");
+    $$(".dcard[data-enemy]").forEach(el => el.onclick = () => showEnemy(el.dataset.enemy));
+    return;
+  }
   $(".dex-grid").innerHTML = s.members.map(who => {
     const ids = cardsOf(who);
     if (!ids.length) {
@@ -540,31 +547,76 @@ function renderDex() {
   }).join("");
   $$(".dcard[data-id]").forEach(el => el.onclick = () => showCard(el.dataset.id));
 }
+
+/* 卡片詳情：一頁式。上半立繪，下半用「能力／故事／資料」切換，不需要捲動 */
+let cardTab = "skill";
+function storyHTML(who, extra = "") {
+  const p = PROFILE[who];
+  if (!p) return `<p class="story">${extra}</p>`;
+  return `${extra ? `<p class="story lore">${extra}</p>` : ""}<p class="story">${p.story}</p>`;
+}
+function infoHTML(who) {
+  const p = PROFILE[who];
+  if (!p) return "";
+  const row = (k, v) => v ? `<div class="kv"><span>${k}</span><div>${v}</div></div>` : "";
+  return row("別名", p.aka.join("、")) +
+    row("首次登場", p.debut) + row("出場集數", p.eps + " 集") +
+    row("關係", p.rel.map(([n, l]) => `<em>${n}</em>${l}`).join("　")) +
+    (p.quotes.length ? `<div class="kv"><span>台詞</span><div>${p.quotes.map(([ep, q]) => `<q>${q}</q><small>${ep}</small>`).join("")}</div></div>` : "");
+}
+function cardShell({ attr, art, star, topRight, title, name, race, tabs, foot }) {
+  const tabBtns = tabs.map(t => `<button data-tab="${t.id}" class="${t.id === cardTab ? "on" : ""}">${t.label}</button>`).join("");
+  const panes = tabs.map(t => `<div class="pane ${t.id === cardTab ? "on" : ""}" data-pane="${t.id}">${t.html}</div>`).join("");
+  modal(`<div class="cardfull" style="${attrVars(attr)}">
+    <div class="cf-art"><img src="${art}" alt="${name}">
+      <div class="cv-top"><span class="a">${ATTR[attr].glyph}</span><span class="st">${star}</span>${topRight || ""}<button class="cf-x" data-close>✕</button></div>
+      <div class="cv-name"><span class="race">${race}</span><small>${title}</small><b>${name}</b></div></div>
+    <div class="cf-panel"><div class="cf-tabs">${tabBtns}</div><div class="cf-body">${panes}</div>${foot || ""}</div>
+  </div>`, "full");
+  $$(".cf-tabs button").forEach(b => b.onclick = () => {
+    cardTab = b.dataset.tab;
+    $$(".cf-tabs button").forEach(x => x.classList.toggle("on", x === b));
+    $$(".pane").forEach(x => x.classList.toggle("on", x.dataset.pane === cardTab));
+  });
+}
 function showCard(id) {
-  const c = CARDS[id], a = ATTR[c.attr];
+  const c = CARDS[id];
   const chain = cardsOf(c.who);
   let evo = "";
   if (chain.length > 1) {
     evo = `<div class="evo">${chain.map((x, k) => (k ? `<span class="arrow">›</span>` : "") +
-      `<div data-evo="${x}" class="${x === id ? "cur" : ""}" style="width:56px">${iconHTML(x)}</div>`).join("")}</div>`;
+      `<div data-evo="${x}" class="${x === id ? "cur" : ""}">${iconHTML(x)}</div>`).join("")}
+      ${c.evo ? `<button class="btn gold evo-btn" id="do-evo">進化</button>` : `<span class="plan">已是最終進化</span>`}</div>`;
   } else if (c.planned) {
-    evo = `<div class="evo plan">進化路線：${c.planned.join(" › ")}（進化立繪製作中）</div>`;
+    evo = `<div class="evo plan">進化路線：${c.planned.join(" › ")}（立繪製作中）</div>`;
   }
-  modal(`<div class="cardview" style="${attrVars(c.attr)}"><img src="${c.art}" alt="${c.who}">
-      <div class="cv-top"><span class="a">${a.glyph}</span><span class="st">${stars(c.star)}</span></div>
-      <div class="cv-name"><span class="race">${c.race}</span><small>${c.title}</small><b>${c.who}</b></div></div>
-    <div class="stats"><div>生命力<b>${fmt(c.hp)}</b></div><div>攻擊力<b>${fmt(c.atk)}</b></div><div>回復力<b>${fmt(c.rec)}</b></div></div>
-    <div class="skill"><span class="k">隊長技能</span><br><b>${c.lead.name}</b>　${c.lead.desc}</div>
-    <div class="skill"><span class="k">主動技能</span><span class="cdv">CD ${c.act.cd}</span><br><b>${c.act.name}</b>　${c.act.desc}</div>
-    <div class="lore">${c.lore}</div>
-    ${evo}
-    <div class="row"><button class="btn" data-close>關閉</button>${c.evo ? `<button class="btn gold" id="do-evo">進化</button>` : ""}</div>`);
+  const skill = `<div class="stats"><div>生命力<b>${fmt(c.hp)}</b></div><div>攻擊力<b>${fmt(c.atk)}</b></div><div>回復力<b>${fmt(c.rec)}</b></div></div>
+    <div class="skill"><span class="k">隊長技能</span> <b>${c.lead.name}</b><br>${c.lead.desc}</div>
+    <div class="skill"><span class="k">主動技能</span> <b>${c.act.name}</b><span class="cdv">CD ${c.act.cd}</span><br>${c.act.desc}</div>${evo}`;
+  cardShell({
+    attr: c.attr, art: c.art, star: stars(c.star), title: c.title, name: c.who, race: c.race,
+    tabs: [{ id: "skill", label: "能力", html: skill },
+           { id: "story", label: "背景故事", html: storyHTML(c.who, c.lore) },
+           { id: "info", label: "角色資料", html: infoHTML(c.who) }]
+  });
   $$("[data-evo]").forEach(el => el.onclick = () => showCard(el.dataset.evo));
   if (c.evo) $("#do-evo").onclick = async () => {
     const f = document.createElement("div"); f.className = "evo-flash"; $("#app").appendChild(f);
     beep(523, .15); setTimeout(() => beep(784, .15), 150); setTimeout(() => beep(1046, .4, "sine"), 300);
     await sleep(480); showCard(c.evo); await sleep(800); f.remove();
   };
+}
+function showEnemy(k) {
+  const e = ENEMIES[k];
+  const skill = `<div class="stats"><div>生命力<b>${fmt(e.hp)}</b></div><div>攻擊力<b>${fmt(e.atk)}</b></div><div>攻擊間隔<b>${e.cd} 回合</b></div></div>
+    <div class="skill"><span class="k">屬性</span> <b>${ATTR[e.attr].name}</b><br>${ATTR[Object.keys(BEATS).find(a => BEATS[a] === e.attr)].name}屬性對牠造成 2 倍傷害</div>
+    <div class="skill"><span class="k">出沒</span> <b>${STAGE.place}「${STAGE.name}」</b><br>第 ${STAGE.waves.findIndex(w => w.includes(k)) + 1} 波</div>`;
+  cardShell({
+    attr: e.attr, art: e.img, star: e.boss ? "BOSS" : "", title: e.boss ? "第三王國之主" : "第三王國", name: e.name, race: "魔族",
+    tabs: [{ id: "skill", label: "能力", html: skill },
+           { id: "story", label: "背景故事", html: storyHTML(e.name) },
+           { id: "info", label: "角色資料", html: infoHTML(e.name) }]
+  });
 }
 
 renderTeam();

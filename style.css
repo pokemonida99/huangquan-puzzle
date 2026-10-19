@@ -77,9 +77,9 @@ h1 small { display: block; font-size: 18px; letter-spacing: .5em; color: var(--i
 .wave-tag { position: absolute; left: 12px; top: 10px; font-size: 13px; padding: 3px 10px; border-radius: 999px; background: #000a; border: 1px solid var(--line); color: var(--gold); letter-spacing: .1em; z-index: 3; }
 .menu-btn { position: absolute; right: 10px; top: 8px; width: 32px; height: 32px; border-radius: 50%; border: 1px solid var(--line); background: #000a; z-index: 3; cursor: pointer; }
 .enemies { position: absolute; left: 0; right: 0; bottom: 8px; top: 44px; display: flex; justify-content: center; align-items: flex-end; gap: 10px; padding: 0 10px; }
-.enemy { position: relative; flex: 0 1 46%; max-height: 100%; display: flex; flex-direction: column; align-items: center; cursor: pointer; transition: opacity .6s, transform .6s; }
+.enemy { position: relative; flex: 0 1 46%; height: 100%; display: flex; justify-content: flex-end; flex-direction: column; align-items: center; cursor: pointer; transition: opacity .6s, transform .6s; }
 .enemy.boss { flex-basis: 74%; }
-.enemy .pic { width: 100%; aspect-ratio: 3/4; max-height: calc(100% - 30px); object-fit: cover; object-position: 50% 25%;
+.enemy .pic { width: 100%; flex: 1 1 auto; min-height: 0; object-fit: contain; object-position: 50% 100%;
   -webkit-mask-image: radial-gradient(ellipse 50% 50% at 50% 48%, #000 62%, transparent 100%); mask-image: radial-gradient(ellipse 50% 50% at 50% 48%, #000 62%, transparent 100%); }
 .enemy .ehp { width: 86%; height: 7px; border-radius: 4px; background: #000a; overflow: hidden; border: 1px solid #0008; margin-top: -6px; }
 .enemy .ehp i { display: block; height: 100%; width: 100%; background: linear-gradient(90deg, var(--c), color-mix(in srgb, var(--c) 60%, #fff)); transition: width .4s; }
@@ -204,3 +204,49 @@ h1 small { display: block; font-size: 18px; letter-spacing: .5em; color: var(--i
 @keyframes evoflash { 0% { opacity: 0; transform: scale(.2); } 40% { opacity: 1; transform: scale(1.4); } 100% { opacity: 0; transform: scale(2); } }
 .result { text-align: center; }
 .result h3 { font-size: 26px; font-family: "Songti TC", serif; }
+
+/* ---------- 一頁式卡片詳情 ---------- */
+.modal.full { padding: 0; background: #000; }
+.modal.full .modal-box { height: 100%; max-height: none; padding: 0; border: 0; border-radius: 0; overflow: hidden; background: #0d0a10; }
+.cardfull { height: 100%; display: flex; flex-direction: column; border-top: 3px solid var(--c); }
+.cf-art { position: relative; flex: 1 1 auto; min-height: 120px; overflow: hidden; background: #000; }
+.cf-art img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; object-position: 50% 15%; }
+.cf-art::after { content: ""; position: absolute; inset: 0; box-shadow: inset 0 0 40px color-mix(in srgb, var(--c) 35%, transparent); pointer-events: none; }
+.cf-art .cv-top, .cf-art .cv-name { position: absolute; z-index: 1; }
+.cf-art .cv-top { left: 0; right: 0; top: 0; padding: 10px 12px 26px; background: linear-gradient(#000c, transparent); display: flex; align-items: center; gap: 8px; }
+.cf-art .cv-top .a { width: 28px; height: 28px; border-radius: 50%; font-weight: 900; text-align: center; line-height: 28px; color: #fff; background: radial-gradient(circle at 35% 30%, #fff8, var(--c) 45%, var(--cd)); font-family: "Songti TC", serif; }
+.cf-art .cv-top .st { color: #ffd84a; font-size: 14px; text-shadow: 0 0 4px #000; font-weight: 700; }
+.cf-x { margin-left: auto; width: 34px; height: 34px; border-radius: 50%; border: 1px solid #fff4; background: #000a; font-size: 15px; cursor: pointer; }
+.cf-art .cv-name { left: 0; right: 0; bottom: 0; padding: 34px 14px 8px; background: linear-gradient(transparent, #0d0a10); }
+.cf-art .cv-name small { display: block; color: var(--gold); font-size: 13px; letter-spacing: .15em; }
+.cf-art .cv-name b { font-size: 26px; letter-spacing: .1em; font-family: "Songti TC", serif; text-shadow: 0 2px 6px #000; }
+.cf-art .cv-name .race { float: right; font-size: 12px; color: var(--dim); margin-top: 14px; }
+.cf-panel { flex: none; padding: 0 12px calc(10px + env(safe-area-inset-bottom)); }
+.cf-tabs { display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; margin-bottom: 8px; }
+.cf-tabs button { padding: 8px 0; border-radius: 999px; border: 1px solid var(--line); background: none; font-size: 14px; letter-spacing: .1em; cursor: pointer; }
+.cf-tabs button.on { background: var(--c); border-color: var(--c); color: #fff; font-weight: 700; text-shadow: 0 1px 2px #0008; }
+.cf-body { position: relative; height: 262px; }
+.pane { position: absolute; inset: 0; display: none; overflow: hidden; }
+.pane.on { display: block; }
+.pane .stats { margin: 0 0 6px; }
+.pane .stats b { font-size: 16px; }
+.pane .skill { margin-top: 6px; padding: 7px 10px; font-size: 13px; line-height: 1.5; }
+.pane .evo { margin-top: 8px; gap: 5px; }
+.pane .evo > div { width: 48px; }
+.pane .evo .icon { width: 48px; }
+.pane .evo .evo-btn { margin: 0 0 0 auto; min-width: 0; padding: 10px 22px; font-size: 15px; }
+.pane .evo .plan { margin-left: auto; }
+.pane .evo.plan { font-size: 12px; color: var(--dim); line-height: 1.5; }
+.story { font-size: 14px; line-height: 1.75; margin: 0 0 8px; color: #eadfca; }
+.story.lore { font-style: italic; color: var(--gold); font-size: 13px; }
+.kv { display: flex; gap: 10px; padding: 6px 0; border-bottom: 1px solid rgba(255,255,255,.06); font-size: 13px; line-height: 1.5; }
+.kv > span { flex: none; width: 4.5em; color: var(--dim); }
+.kv em { font-style: normal; color: var(--gold); margin-right: 4px; }
+.kv q { display: block; quotes: "「" "」"; }
+.kv small { display: block; color: var(--dim); font-size: 11px; margin-bottom: 2px; }
+@media (max-height: 700px) {
+  .cf-body { height: 248px; }
+  .story { font-size: 13px; line-height: 1.65; }
+  .pane .skill { font-size: 12.5px; padding: 6px 9px; }
+  .kv { padding: 4px 0; font-size: 12.5px; }
+}

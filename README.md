@@ -11,8 +11,8 @@
 | 檔案 | 用途 |
 |---|---|
 | `index.html` `style.css` `game.js` | 遊戲本體（標題、隊伍、戰鬥、圖鑑） |
-| `data.js` | 屬性、系列、卡片數值與技能、敵人、關卡 |
-| `art/` | 卡面（GPT 依劇照重繪）、敵人（劇照裁切）、`av/` 預定角色頭像 |
+| `data.js` | 屬性、系列、卡片數值與技能、敵人、關卡、角色檔案（背景故事、別名、登場集數、關係、台詞） |
+| `art/` | 卡面、敵人（都是 GPT 依劇照重繪）、`av/` 預定角色頭像 |
 | `refs/` | 生卡面用的劇照參考 |
 | `tools/gen.sh` | 用 ChatGPT.app 的 codex 生圖：`tools/gen.sh <名稱> "<提示詞>" 參考圖...` |
 | `tools/assets.py` | png → webp、切敵人圖：`.venv/bin/python -I tools/assets.py` |
