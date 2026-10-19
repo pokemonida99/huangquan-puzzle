@@ -119,7 +119,8 @@ window.PRESETS = [
 window.ENEMIES = {
   bat:    { demon: true, name: "蝙蝠惡魔", attr: "fire", img: "art/enemy-bat.webp", hp: 38000, atk: 1100, cd: 2 },
   reaper: { demon: true, name: "第三王國惡魔", attr: "dark", img: "art/enemy-reaper.webp", hp: 135000, atk: 2000, cd: 3 },
-  plague: { demon: true, name: "瘟疫", attr: "wood", img: "art/enemy-plague.webp", hp: 100000, atk: 1600, cd: 2 },
+  plague: { demon: true, name: "瘟疫", attr: "wood", img: "art/enemy-plague.webp", hp: 100000, atk: 1600, cd: 2,
+            skills: [{ on: "attack", name: "瘟疫蔓延", convert: ["heart", "wood"], n: 3 }] },
   satan:  { demon: true, name: "撒旦", attr: "fire", img: "art/enemy-satan.webp", hp: 550000, atk: 3300, cd: 3, boss: true }
 };
 
