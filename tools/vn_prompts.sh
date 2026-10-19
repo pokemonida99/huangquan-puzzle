@@ -4,25 +4,25 @@ cd "$(dirname $0)/.."
 key=$1; ex=$2
 COMMON="Visual novel character sprite, photorealistic cinematic live-action look matching the reference card art (same face, same costume, same realistic AI-actor style). Upright front-facing standing pose, waist-up to knee-up, vertical 2:3 portrait, character fills about 85% of the image height with a little empty space above the head, both hands fully inside the frame and not cropped. Head, shoulders, hips and feet face the same direction toward the viewer; no twisted neck, no looking back, no turning around. Background must be a perfectly flat solid pure magenta #FF00FF everywhere, no shadow, no gradient, no floor, no props behind, no glow or smoke. No text, no watermark."
 case $key in
- yutong) D="Young Taiwanese woman, short mint-green bob haircut with bangs, round black-frame glasses, a red birthmark patch on one cheek, wearing a plain white collared uniform shirt (no robe, no Hanfu)." ; R=(art/yutong.png src/qimiao-shiguang/assets/c/c044.jpg src/qimiao-shiguang/assets/g/c044-1.jpg);;
+ yutong) D="Young Taiwanese woman, short mint-green bob haircut with bangs and black roots, black round-frame glasses, a dark reddish birthmark around one eye (a harmless congenital skin mark), wearing an orange-red short-sleeve sports T-shirt with black sleeves and black collar trim, and navy-blue athletic shorts; bare legs, knees visible. No robe, no red thread, no white shirt, no accessories." ; R=(src/qimiao-shiguang/assets/ep/ep2-15.jpg src/qimiao-shiguang/assets/ep/ep3-01.jpg src/qimiao-shiguang/assets/c/c044.jpg);;
  lee) D="Middle-aged man wearing a dark navy-blue Qing dynasty official's robe with a black Qing official hat (karma-mirror arhat styling), stern dignified face." ; R=(art/lee3.png refs/lee-arhat.jpg);;
  linbobo) D="Elderly kind uncle in the same outfit and face as the reference card." ; R=(art/linbobo.png);;
- bohong) D="Same man and same outfit as the reference card." ; R=(art/bohong.png);;
+ bohong) D="Teenage sprinter with short spiky black hair, wearing a black zip-up athletic track jacket with white stripes and black track pants, exactly like the reference card." ; R=(art/bohong.png);;
  yuelao) D="Same matchmaker deity elder and same outfit as the reference card." ; R=(art/yuelao.png);;
  rat) D="A hamster strategist character, same as the reference card, standing upright on its hind legs." ; R=(art/rat.png);;
- leviathan) D="Same character and costume as the reference card." ; R=(art/leviathan.png);;
+ leviathan) D="Young man with silver hair with blue tips, blue glitter makeup on the cheek, black jacket, black headphones hanging around his neck; only items shown in the references, nothing added." ; R=(art/leviathan.png src/qimiao-shiguang/assets/g/c059-1.jpg);;
 esac
 declare -A E
 E[normal]="Calm neutral expression, mouth closed."
 E[angry]="Angry expression: furrowed brows, glaring eyes, clenched teeth."
-E[sad]="Sad expression: downcast eyes with tears welling up, trembling lips."
+E[sad]="Quiet gentle expression with softly lowered eyelids and a slight downward curve of the mouth, like a wistful goodbye."
 E[smile]="Gentle warm smile."
-E[pain]="In sharp pain: one hand pressed to the chest, brows tightly knit, eyes squeezed, grimacing."
+E[pain]="Heavy-hearted aching expression, one hand resting on her chest, brows drawn together, eyes closed, a pained sigh."
 E[serious]="Serious solemn expression, firm gaze, mouth closed."
 E[smug]="Smug self-satisfied smirk, chin slightly raised."
 if [[ $ex == normal ]]; then
   tools/gen.sh vn-$key-normal "$D $COMMON ${E[normal]}" $R
 else
-  tools/gen.sh vn-$key-$ex "Same exact character, same costume, same pose and framing and same flat magenta background as the first reference image (the base sprite). Only the facial expression changes. $COMMON ${E[$ex]}" work/vn/vn-$key-normal.png $R
+  tools/gen.sh vn-$key-$ex "Same exact character, same costume, same pose and framing and same flat magenta background as the first reference image (the base sprite). Only the facial expression changes. $COMMON ${E[$ex]}" work/vn/vn-$key-normal.png $([[ $key == yutong ]] || echo $R)
 fi
 mv art/vn-$key-$ex.png work/vn/ 2>/dev/null

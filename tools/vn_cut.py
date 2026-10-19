@@ -15,10 +15,10 @@ def cut(src, dst):
     r, g, b = im.split()
     m = ImageChops.subtract(ImageChops.darker(r, b), g)            # 洋紅度
     A = m.point(lambda v: int(255 * min(1, max(0, 1 - (v - LO) / (HI - LO)))))
-    A = A.filter(ImageFilter.MinFilter(3))                          # 吃掉一圈殘邊
+    A = A.filter(ImageFilter.MinFilter(5))                          # 吃掉一圈殘邊
     A = A.filter(ImageFilter.GaussianBlur(0.8))                     # 輕微羽化
     # 邊緣去色溢：靠近透明處把洋紅分量從 R、B 扣掉
-    edge = A.point(lambda v: 255 if v < 250 else 0).filter(ImageFilter.MaxFilter(9))
+    edge = A.point(lambda v: 255 if v < 250 else 0).filter(ImageFilter.MaxFilter(15))
     spill = ImageChops.multiply(m, edge)
     r2, b2 = ImageChops.subtract(r, spill), ImageChops.subtract(b, spill)
     out = Image.merge("RGB", (r2, g, b2)).convert("RGBA")
