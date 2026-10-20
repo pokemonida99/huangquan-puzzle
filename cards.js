@@ -144,6 +144,8 @@ const ROWS = [
     "Hasshaku-sama, a very tall female ghost with long straight black hair covering her face, wearing a long white dress, holding a red Japanese oil-paper umbrella, misty night alley, eerie but not gory"],
   ["shushi", "術士", "下蠱的術士", "dark", "人類", "other", "atk", "白蛛會的術士", { attrAtk: { dark: 2.5 } }, "下蠱", 7, { board: ["ddhhdd", "ddhhdd", "ddhhdd", "ddhhdd", "ddhhdd"], boardDesc: "左右兩側暗符石、中間兩直排心符石", selfBuff: 2 },
     "a sorcerer wearing a yellow hooded raincoat, sly grin, holding a rifle with a glowing purple scope, a purple eye mark glowing on his palm, rainy rooftop at night"],
+  ["raincoat", "黃雨衣", "白蛛會的幻術師", "dark", "人類", "other", "atk", "跟著術士行動的黃雨衣青年", { attrAtk: { dark: 1.5 } }, "迷失幻境", 6, { delay: 1, convert: ["light", "dark"] },
+    "a young man wearing a yellow hooded raincoat, sly grin, holding a rifle with a glowing purple scope, a purple eye mark glowing on his palm, rainy rooftop at night"],
   ["baizhu", "白蛛會角頭", "白老大", "light", "人類", "other", "hp", "白蛛會", { allHp: 1.3, attrAtk: { light: 1.5 } }, "花這麼多錢", 6, { guard: 1, selfBuff: 2.5 },
     "a tough middle-aged gang boss with slicked-back black hair and spider-web scar patterns on his face, wearing a white suit jacket, menacing, dark warehouse"],
   ["zygao", "狀元糕老伯", "狀元糕攤", "fire", "人類", "human", "rec", "這是狀元糕", { allRec: 1.5 }, "熱騰騰的狀元糕", 5, { healPct: .3, convert: ["heart", "fire"] },
@@ -199,7 +201,7 @@ window.TIERS = {
     "咪咪": "D", "黑糖": "D", "謎": "D", "小米": "D", "918號引渡貓": "D", "貢丸君": "D", "毛怪": "D",
     "劉大牛": "D", "梁安恆": "D", "林怡曼": "D", "鐵蛋": "D",
     // 第三批：撒旦、瘟疫照戰力表；其他依劇情
-    "撒旦": "S", "瘟疫": "A", "第三王國惡魔": "C", "秦王": "C", "八尺大人": "C", "術士": "C",
+    "撒旦": "S", "瘟疫": "A", "第三王國惡魔": "C", "秦王": "C", "八尺大人": "C", "術士": "C", "黃雨衣": "C",
     "辣雞": "D", "小樂": "D", "阿斌的媽媽": "D", "算命阿婆": "D", "外婆": "D", "吉他手": "D", "廟公": "D",
     "趙大人": "D", "翠花": "D", "綠衣女子": "D", "梁安恆的媽媽": "D", "庚寅筱晴": "D", "白蛛會角頭": "D", "狀元糕老伯": "D"
   };

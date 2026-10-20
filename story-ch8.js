@@ -7,14 +7,16 @@
 Object.assign(window.ENEMIES, {
   wspider:  { name: "白蛛會幫眾", attr: "light", img: "art/enemy-baizhugang.webp", hp: 82000, atk: 1500, cd: 2 },
   wspiderB: { name: "白蛛會幫眾", attr: "light", img: "art/enemy-baizhugang.webp", hp: 118000, atk: 2000, cd: 2 },
+  raincoat: { name: "黃雨衣", attr: "dark", img: "art/enemy-raincoat.webp", hp: 118000, atk: 2000, cd: 2,
+              skills: [{ on: "attack", name: "迷失幻境", convert: ["light", "dark"], n: 4 }] },
   baizhu:   { name: "白蛛會角頭", attr: "light", img: "art/enemy-baizhu.webp", hp: 420000, atk: 2800, cd: 3, boss: true,
               title: "白老大", warn: "庚寅時空 ‧ 白蛛會倉庫", quote: "黑龍的第一打手不敢單挑，竟然報警",
               skills: [{ on: "spawn", name: "空殼公司", absorb: 40000, turns: 2 }, { on: "low", name: "司法不公", hp: .3, cd: 1, atk: 1.5 }] },
   shushi:   { name: "術士", attr: "dark", img: "art/enemy-shushi.webp", hp: 330000, atk: 2400, cd: 3, boss: true,
-              title: "下蠱的術士", warn: "庚寅時空 ‧ 白蛛會倉庫", quote: "白老大破產，沒錢付頭期款了",
+              title: "下蠱的術士", warn: "庚寅時空 ‧ 白蛛會倉庫", quote: "我不信連這都能破",
               skills: [{ on: "attack", name: "下蠱", convert: ["heart", "dark"], n: 4 }] }
 });
-["wspider", "wspiderB", "baizhu", "shushi"].forEach(k => {   // 這個檔在 story.js 之後載入，story.js 結尾的難度放寬要自己套
+["wspider", "wspiderB", "raincoat", "baizhu", "shushi"].forEach(k => {   // 這個檔在 story.js 之後載入，story.js 結尾的難度放寬要自己套
   const e = window.ENEMIES[k];
   e.hp = Math.round(e.hp * EASE.hp / 1000) * 1000; e.atk = Math.round(e.atk * EASE.atk / 100) * 100;
 });
@@ -25,17 +27,18 @@ Object.assign(window.ENEMIES, {
   ["庚寅筱晴", "庚寅時空杜老大的妻子，這個世界的筱晴。"],
   ["庚寅月老", "庚寅時空本地的月老，一頭白髮的老神明。"],
   ["白蛛會角頭", "白蛛會的老大，大家叫他白老大。走私違禁品，是黑龍堂的對頭。"],
-  ["術士", "替白蛛會下蠱的術士，身邊跟著八尺大人。"],
+  ["術士", "替白蛛會下蠱的術士，戴著紅布眼罩、拿著法杖的老頭。"],
+  ["黃雨衣", "跟著術士行動的青年，穿黃雨衣、拿狙擊槍，會用幻術「迷失幻境」。"],
   ["基路伯", "天族的智天使，曾是遠古時期的半神。月老在庚寅時空遇上的天使。"],
   ["梁安恆", "庚寅時空的高中生，月老在這個世界最掛念的人。"],
   ["林怡曼", "安恆的女友。"],
   ["華佗", "醫神，發明了忘憂舞，是月老的好朋友。"]
 ].forEach(([k, v]) => { window.INTRO[k] = window.INTRO[k] || v; });
-Object.assign(window.VN, { "白蛛會角頭": "baizhu", "術士": "shushi", "基路伯": "cherub", "庚寅筱晴": "gyxiaoqing", "庚寅月老": "gengyin" });
+Object.assign(window.VN, { "白蛛會角頭": "baizhu", "術士": "shushi", "黃雨衣": "raincoat", "基路伯": "cherub", "庚寅筱晴": "gyxiaoqing", "庚寅月老": "gengyin" });
 
 window.CHAPTERS.push({
   id: "ch8", music: { battle: "battle2", boss: "boss1" }, no: "第八章", name: "口罩方舟計畫", sub: "庚寅時空", place: "庚寅地球 ‧ 高熊市", bg: "art/bg-ch8.webp",
-  unlock: ["baizhu", "shushi", "gyxiaoqing", "cherub"],   // 通關後加入的角色（第一階卡）
+  unlock: ["baizhu", "shushi", "raincoat", "gyxiaoqing", "cherub"],   // 通關後加入的角色（第一階卡）
   intro: "疫情爆發，杜先生推出口罩方舟計畫。白蛛會盯上了他的口罩庫存。",
   pre: [
     ["@scene", "art/scenes/083.webp"],
@@ -83,7 +86,7 @@ window.CHAPTERS.push({
         [null, "月老給了她一枚暈船雷達戒指，遇到有共鳴的人時，她會聞到特別的香氣。"],
         [null, "鐵蛋問，這麼貴重的東西她可以收嗎。月老說，這是他無聊做的，是他徒弟發明的。"]
       ] },
-    { enemies: ["wspiderB", "wspider", "wspiderB"], lines: [
+    { enemies: ["wspiderB", "raincoat", "wspiderB"], lines: [
         ["@scene", "art/scenes/187.webp"],
         [null, "黑龍興業的頂樓。杜先生看著月老畫的語彤水墨，說還真想認識她，要月老告訴她，她有個帥學長。"],
         [null, "這時，一艘白色太空船穿過光環降落。"],
@@ -120,8 +123,8 @@ window.CHAPTERS.push({
     [null, "警察謝謝黑龍堂不但捐口罩給警隊，還幫忙破獲違禁品源頭。光頭說不客氣，改天來公司泡茶。"],
     [null, "白老大破產，被警察抓走了。"],
     ["@scene", "art/scenes/089.webp"],
-    [null, "路邊，術士和八尺大人說，白老大破產，沒錢付頭期款了，他們也走吧。"],
-    [null, "術士說他有把傘鬼救回來。"],
+    [null, "路邊，黃雨衣和八尺大人說，白老大破產，沒錢付頭期款了，他們也走吧。", "", null, "黃雨衣"],
+    [null, "黃雨衣說他有把傘鬼救回來。"],
     ["八尺大人", "養你這麼久，還不知道你這麼有義氣", "EP5-19"],
     ["八尺大人", "我想回故鄉，嚇小孩", "EP5-19"],
     [null, "兩個人一起喊：好耶。"],
@@ -150,3 +153,6 @@ window.CHAPTERS.push({
 
 /* 第四季 EP4-08 之後語彤穿實習月老的漢服，立繪用 yutongh */
 { const ch = window.CHAPTERS.find(c => c.id === "ch8"); ch.vn = { ...(ch.vn || {}), "語彤": "yutongh" }; }
+
+/* 黃雨衣：資料館沒有這個角色的條目，卡片的背景故事寫在這裡 */
+Object.assign(window.PROFILE, { "黃雨衣": { story: "跟著術士行動的青年，穿黃雨衣、拿狙擊槍。心堀江鬼城裡，他從頂樓一槍打爆了快要說出幕後主使的八尺大人，再用幻術「迷失幻境」困住月老，讓他看見陰曼的身影。白蛛會垮掉以後，他跟八尺大人一起離開。", aka: [], debut: "EP5-12", eps: 2, rel: [["術士", "一起行動"], ["八尺大人", "一起離開"]], quotes: [["EP5-12", "笨蛋神明"]] } });
