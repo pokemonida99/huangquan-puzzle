@@ -239,7 +239,7 @@ function portraitOf(who, expr) {
 // 已經介紹過的人物（每次開始一章時清空）
 const introSeen = new Set(store.get("hq-intro", []));
 const saveIntro = () => store.set("hq-intro", [...introSeen]);
-// 劇情裡的特殊行：["@scene", 圖檔或 null] 換場景劇照；["@intro", 角色] 人物登場卡
+// 劇情裡的特殊行：["@scene", 圖檔或 null] 換場景劇照；["@clear"] 換地點（舞台清空）；["@intro", 角色] 人物登場卡；旁白行第 5 欄可指定站上舞台的角色
 function dialog(source) {
   return new Promise(done => {
     if (!source || !source.length) return done();
@@ -261,10 +261,14 @@ function dialog(source) {
     const show = () => {
       const [who, text, ep, expr] = lines[i];
       D.classList.remove("intro");
-      if (who === "@scene") {   // 換場景劇照，接著直接顯示下一行
-        const sc = $(".dlg-scene", D);
-        if (text) { $("img", sc).src = text; $(".dlg-scene-bg", D).style.backgroundImage = `url(${text})`; sc.classList.remove("on"); void sc.offsetWidth; sc.classList.add("on"); D.classList.add("has-scene"); }
-        else { sc.classList.remove("on"); D.classList.remove("has-scene"); }
+      if (who === "@scene" || who === "@clear") {   // 換場景劇照（或只換地點）：舞台上的人全部退場，免得不同地方的人看起來像在對話
+        slot.l = slot.r = null; last = "r";
+        $$(".vn", D).forEach(x => { x.classList.remove("on", "off", "in"); x.querySelector("img").removeAttribute("src"); });
+        if (who === "@scene") {
+          const sc = $(".dlg-scene", D);
+          if (text) { $("img", sc).src = text; $(".dlg-scene-bg", D).style.backgroundImage = `url(${text})`; sc.classList.remove("on"); void sc.offsetWidth; sc.classList.add("on"); D.classList.add("has-scene"); }
+          else { sc.classList.remove("on"); D.classList.remove("has-scene"); }
+        }
         i++; if (i >= lines.length) close(); else show();
         return;
       }
@@ -358,7 +362,7 @@ function preloadChapter() {
   CH.waves.forEach(w => (w.enemies || []).forEach(k => ENEMIES[k] && srcs.add(ENEMIES[k].img)));
   [CH.pre, CH.post, ...CH.waves.map(w => w.lines)].forEach(ls => (ls || []).forEach(l => {
     if (l[0] === "@scene") { if (l[1]) srcs.add(l[1]); return; }
-    const who = l[0] === "@intro" ? l[1] : l[0];
+    const who = l[0] === "@intro" ? l[1] : (l[0] || l[4]);
     if (!who || who[0] === "@") return;
     const p = portraitOf(who, l[0] === "@intro" ? null : l[3]);
     if (p) srcs.add(p.src);
