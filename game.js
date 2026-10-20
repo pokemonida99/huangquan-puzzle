@@ -75,7 +75,7 @@ function addMerit(n) { merit += n; store.set("hq-merit", merit); renderMerit(); 
 // 開局贈送 888 功德（每個存檔只送一次，舊存檔也補送）
 if (!store.get("hq-gift888", false)) { merit += 888; store.set("hq-merit", merit); store.set("hq-gift888", true); }
 function renderMerit() { $$(".merit-chip").forEach(el => el.innerHTML = `功德 <b>${fmt(merit)}</b>`); }
-const PRICE = { 3: 40, 4: 80, 5: 150, 6: 240, 7: 360 };      // 托夢照相館：依星數
+const PRICE = { 2: 20, 3: 40, 4: 80, 5: 150, 6: 240, 7: 360 };      // 托夢照相館：依星數
 const EVO_COST = { 3: 50, 4: 100, 5: 180, 6: 260, 7: 380 };   // 進化：依進化後的星數
 const REWARD = { first: 150, again: 40, star: 30, chalFirst: 100, chalAgain: 40 };
 const buyable = id => !owned.has(id) && !(CARDS[id].stage > 1);   // 進化階段只能靠進化取得
@@ -136,7 +136,7 @@ function renderChapters() {
   $$(".ch-chal").forEach(b => b.onclick = () => { CH = CHAPTERS[+b.dataset.chal]; chal = { idx: +b.dataset.chal }; go("team"); });
 }
 function leaderFx() { return [CARDS[team[0]].lead.fx, CARDS[team[5]].lead.fx]; }
-const allAnimal = () => team.every(id => CARDS[id].animal);   // 隱藏：全隊動物，每位隊長攻擊 6.25 倍
+const allAnimal = () => team.every(id => CARDS[id].animal);   // 隱藏：全隊動物，每位隊長攻擊 7 倍（雙隊長 49 倍）
 function teamHp() {
   let hp = team.reduce((s, id) => s + CARDS[id].hp, 0);
   leaderFx().forEach(fx => { if (fx.allHp) hp *= fx.allHp; });
@@ -227,7 +227,7 @@ function portraitOf(who, expr) {
   if (ids.length) {
     const c = CARDS[who === "李國志" ? "lee4" : who === "語彤" ? "yutong1" : ids[0]];
     const key = (CH.vn && CH.vn[who]) || VN[who];   // 有些章節換造型（例：語彤第四季穿漢服）
-    return { src: key ? `art/vn/${key}-${expr || "normal"}.webp` : c.art, fallback: c.art, attr: c.attr, kind: key ? "vn" : "card" };
+    return { src: key ? `art/vn/${key}-${expr || "normal"}.webp` : c.art, fallback: c.art, attr: c.attr, kind: key ? "vn" : "card", key };
   }
   const e = Object.values(ENEMIES).find(x => x.name === who);
   return e ? { src: e.img, attr: e.attr, kind: "enemy" } : null;
@@ -275,19 +275,20 @@ function dialog(source) {
         sfx.pick();
         return;
       }
-      const p = portraitOf(who, expr);
+      const actor = who || lines[i][4];   // 旁白行可帶第 5 欄：讓沒有台詞的角色（例：貓）站上舞台
+      const p = portraitOf(actor, expr);
       D.classList.toggle("narr", !who); D.classList.remove("ready");
       $(".dlg-name", D).textContent = who || "";
       $(".dlg-ep", D).textContent = ep || "";
       if (p) {
         D.style.cssText = attrVars(p.attr);
-        let side = slot.l === who ? "l" : slot.r === who ? "r" : (last === "l" ? "r" : "l");
-        const v = $(".vn-" + side, D), img = $("img", v), entering = slot[side] !== who;
-        slot[side] = who; last = side;
+        let side = slot.l === actor ? "l" : slot.r === actor ? "r" : (last === "l" ? "r" : "l");
+        const v = $(".vn-" + side, D), img = $("img", v), entering = slot[side] !== actor;
+        slot[side] = actor; last = side;
         img.onerror = () => { if (p.fallback && img.getAttribute("src") !== p.fallback) { img.src = p.fallback; v.classList.remove("vn-pic"); v.classList.add("card"); } };
         if (img.getAttribute("src") !== p.src) img.src = p.src;
         // 立繪的頭都對齊在同一個基準高度（935px）；有帽子、頭飾的圖比較高，依實際高度放大，臉才一樣大
-        const fit = () => v.style.setProperty("--vs", (p.kind === "vn" && img.naturalHeight ? img.naturalHeight / 935 : 1) * (VN_SCALE[who] || 1));
+        const fit = () => v.style.setProperty("--vs", (p.kind === "vn" && img.naturalHeight ? img.naturalHeight / 935 : 1) * (VN_SCALE[p.key] || VN_SCALE[actor] || 1));
         if (img.complete) fit(); img.onload = fit;
         v.classList.toggle("vn-pic", p.kind === "vn"); v.classList.toggle("card", p.kind === "card"); v.classList.toggle("enemy", p.kind === "enemy");
         if (entering) { v.classList.remove("in"); void v.offsetWidth; v.classList.add("in"); }
@@ -878,7 +879,7 @@ function leaderMul(attr, groups) {
     if (fx.attrAtk && fx.attrAtk[attr]) m *= fx.attrAtk[attr];
     if (fx.multiAttr && kinds >= fx.multiAttr.n) m *= fx.multiAttr.x;
   });
-  if (allAnimal()) m *= 6.25 * 6.25;
+  if (allAnimal()) m *= 7 * 7;
   return m;
 }
 function typeMul(a, d) { return BEATS[a] === d ? 2 : BEATS[d] === a && a !== "light" && a !== "dark" ? .5 : 1; }
@@ -1310,10 +1311,14 @@ function cardsOf(who) { return Object.keys(CARDS).filter(id => CARDS[id].who ===
 function renderDex() {
   $(".dex-tabs").innerHTML = DEX_TABS.map(s => `<button data-s="${s.id}" class="${s.id === dexSeries ? "on" : ""}">${s.name}</button>`).join("");
   $$(".dex-tabs button").forEach(b => b.onclick = () => { dexSeries = b.dataset.s; renderDex(); });
+  $(".dex-tabs button.on")?.scrollIntoView({ inline: "center", block: "nearest" });   // 選到的分頁捲到看得到
   const s = DEX_TABS.find(x => x.id === dexSeries);
   $(".dex-head").innerHTML = `<b style="--sc:${s.color}">${s.id === "enemy" ? s.name : s.name + "系列"}</b><span>${s.sub}</span>`;
   if (s.id === "enemy") {
-    $(".dex-grid").innerHTML = Object.entries(ENEMIES).map(([k, e]) => `<div class="dcard" data-enemy="${k}" style="${attrVars(e.attr)}">
+    // 依章節出場順序列出，同名的敵人（強化版）只列一次
+    const seen = new Set(), keys = [...CHAPTERS.flatMap(ch => ch.waves.flatMap(w => w.enemies)), ...Object.keys(ENEMIES)]
+      .filter(k => ENEMIES[k] && !seen.has(ENEMIES[k].name) && seen.add(ENEMIES[k].name));
+    $(".dex-grid").innerHTML = keys.map(k => [k, ENEMIES[k]]).map(([k, e]) => `<div class="dcard" data-enemy="${k}" style="${attrVars(e.attr)}">
       <img src="${e.img}" alt="${e.name}"><div class="cap"><small>${e.boss ? "BOSS" : "敵人"}</small>${e.name}</div></div>`).join("");
     $$(".dcard[data-enemy]").forEach(el => el.onclick = () => showEnemy(el.dataset.enemy));
     return;

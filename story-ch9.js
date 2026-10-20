@@ -78,3 +78,6 @@ window.CHAPTERS.push({
 
 /* 大寶的立繪在第十章生好了（第六季同一時期的家居造型），這章也用 */
 { const ch = window.CHAPTERS.find(c => c.id === "ch9"); ch.vn = { ...(ch.vn || {}), "大寶": "dabao" }; }
+
+/* 第四季 EP4-08 之後語彤穿實習月老的漢服，立繪用 yutongh */
+{ const ch = window.CHAPTERS.find(c => c.id === "ch9"); ch.vn = { ...(ch.vn || {}), "語彤": "yutongh" }; }

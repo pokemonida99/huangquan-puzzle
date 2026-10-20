@@ -118,3 +118,6 @@ window.CHAPTERS.push({
   ]
 });
 })();
+
+/* 第四季 EP4-08 之後語彤穿實習月老的漢服，立繪用 yutongh */
+{ const ch = window.CHAPTERS.find(c => c.id === "ch6"); ch.vn = { ...(ch.vn || {}), "語彤": "yutongh" }; }

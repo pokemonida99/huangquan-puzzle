@@ -94,7 +94,7 @@ h1 small { display: block; font-size: 18px; letter-spacing: .5em; color: var(--i
 .enemy.atk { animation: lunge .45s; }
 @keyframes lunge { 40% { transform: scale(1.12) translateY(14px); } }
 
-.fx-layer { position: absolute; inset: 0; pointer-events: none; z-index: 5; }
+.fx-layer { position: absolute; inset: 0; pointer-events: none; z-index: 45; }
 .dmg { position: absolute; font-weight: 900; font-size: 22px; color: #fff; -webkit-text-stroke: 1px #000; text-shadow: 0 0 8px var(--c), 0 2px 0 #000;
   animation: dmg 1s forwards; white-space: nowrap; transform: translate(-50%, 0); }
 .dmg.lv1 { font-size: 20px; }
@@ -156,8 +156,8 @@ h1 small { display: block; font-size: 18px; letter-spacing: .5em; color: var(--i
 .combo .sky-tag { display: block; font-size: 13px; margin: 0; text-align: right; letter-spacing: .2em; }
 @keyframes pop { 0% { transform: scale(1.6); } 100% { transform: scale(1); } }
 .banner { position: absolute; left: 0; right: 0; top: 38%; text-align: center; font-size: 30px; font-weight: 900; letter-spacing: .3em; color: var(--gold);
-  font-family: "Songti TC", serif; text-shadow: 0 0 20px #f60, 0 2px 0 #000; animation: banner 1.4s forwards; z-index: 7; }
-.cutin { position: absolute; inset: 0; z-index: 8; pointer-events: none; overflow: hidden; }
+  font-family: "Songti TC", serif; text-shadow: 0 0 20px #f60, 0 2px 0 #000; animation: banner 1.4s forwards; z-index: 48; }
+.cutin { position: absolute; inset: 0; z-index: 50; pointer-events: none; overflow: hidden; }
 .cutin .ci-band { position: absolute; left: -10%; right: -10%; top: 22%; height: 46%; transform: skewY(-8deg);
   background: linear-gradient(90deg, var(--ad) 0%, color-mix(in srgb, var(--ac) 70%, #000) 50%, var(--ad) 100%);
   box-shadow: 0 0 0 3px var(--ac), 0 0 40px var(--ac); animation: ci-band .35s ease-out both; }
@@ -247,7 +247,8 @@ h1 small { display: block; font-size: 18px; letter-spacing: .5em; color: var(--i
 .title-gear { position: absolute; right: 16px; top: 16px; width: 40px; height: 40px; border-radius: 50%; border: 1px solid var(--line); background: #0008; z-index: 2; cursor: pointer; font-size: 18px; }
 
 /* ---------- 圖鑑 ---------- */
-.dex-tabs { display: flex; gap: 6px; padding: 6px 16px; overflow-x: auto; flex: none; }
+.dex-tabs { display: flex; gap: 6px; padding: 6px 16px; overflow-x: auto; flex: none; scrollbar-width: none; }
+.dex-tabs::-webkit-scrollbar { display: none; }
 .dex-tabs button { flex: none; padding: 6px 12px; border-radius: 999px; border: 1px solid var(--line); background: none; font-size: 13px; cursor: pointer; }
 .dex-tabs button.on { background: var(--gold); color: #2a1a06; border-color: var(--gold); }
 .dex-head { padding: 6px 16px 0; }

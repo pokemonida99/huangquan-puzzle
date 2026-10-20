@@ -31,6 +31,8 @@ case $key in
  dabao) D="Young man with short bleached blonde hair with black streaks on top, wearing a plain black oversized T-shirt and grey sweatpants; same face as the reference card; only items shown in the references; no jacket, no hoodie." ; R=(work/refs10/dabao3.png work/refs10/s198.png work/refs10/s100.png);;
  mimi) D="Young woman with black hair tied in a high ponytail bun with straight bangs, wearing a black sheer lace dress embroidered with small white flowers over a black top, black knee socks and black mary-jane shoes; same face as the reference card; only items shown in the references." ; R=(work/refs10/mimi.png work/refs10/s100.png);;
  huji) D="Young woman in a pink ruffled fluffy dress with a pink cat-ear headband, pink fluffy fox tail behind her, same face and outfit as the reference card; only items shown in the references." ; R=(work/refs10/huji.png work/refs10/s095.png work/refs10/s200.png);;
+ xiaomi) D="Young woman city-office receptionist: black bob hair with bangs, thin round glasses, a small headset microphone, grey blazer over a white shirt with a navy bow tie and navy-trimmed lapels; same face and outfit as the reference card; only items shown in the reference, nothing added." ; R=(art/xiaomi.png);;
+ gongwan) D="A black cat with an orange-brown leather collar and a round brass name tag, sitting upright facing the viewer, eyes gently closed with a contented smile, same cat as the references; a real cat, not a human; only items shown in the references." ; R=(art/gongwan.png src/qimiao-shiguang/assets/c/c019.jpg);;
 esac
 declare -A E
 E[normal]="Calm neutral expression, mouth closed."

@@ -8,7 +8,7 @@
    ========================================================================= */
 
 /* 版本：每次對外更新記得往上加，標題畫面與設定都會顯示 */
-window.GAME_VERSION = "1.3.0";
+window.GAME_VERSION = "1.3.1";
 
 window.ATTR = {
   water: { name: "水", color: "#3fa7ff", dark: "#0b4c8c", glyph: "水" },
@@ -30,7 +30,7 @@ window.SERIES = [
   { id: "gods",  name: "神明與天族", sub: "讓受過傷的人再相信一次", color: "#E86A80",
     members: ["觀音菩薩", "月老", "華佗", "陽滋公主", "九尾", "千里眼", "哈索爾", "阿芙羅黛蒂", "愛染明王", "神差", "基路伯", "祝融"] },
   { id: "demon", name: "魔界", sub: "七宗罪與魔界王國", color: "#B06BFF", members: ["吳小白", "利維坦", "諾瓦", "鼠軍師", "路西法", "撒旦", "瘟疫", "第三王國惡魔"] },
-  { id: "other", name: "異時空", sub: "大秦 ‧ 庚寅地球", color: "#D8B470", members: ["右庶長", "劉大牛", "趙大人", "翠花", "秦王", "梁安恆", "林怡曼", "鐵蛋", "庚寅月老", "梁安恆的媽媽", "庚寅筱晴", "八尺大人", "術士", "白蛛會角頭"] }
+  { id: "other", name: "異時空", sub: "大秦 ‧ 庚寅地球", color: "#D8B470", members: ["岳夏澤", "劉大牛", "趙大人", "翠花", "秦王", "梁安恆", "林怡曼", "鐵蛋", "庚寅月老", "梁安恆的媽媽", "庚寅筱晴", "八尺大人", "術士", "白蛛會角頭"] }
 ];
 
 
@@ -119,7 +119,8 @@ window.PRESETS = [
   { name: "嫉妒魔王水隊", note: "利維坦：任何顏色都算水。血多、回復高、攻擊低。水剋火：第五章", team: ["leviathan", "nova", "mimi", "jiuwei", "yangzi", "leviathan"] },
   { name: "醫神木隊", note: "華佗：木屬性攻擊大增、回復高、每次轉珠後回血。木剋水：第四章", team: ["huatuo", "afu", "qianliyan", "heitang", "lvyi", "huatuo"] },
   { name: "小月老暗隊", note: "語彤（覺醒）：暗屬性攻擊大增、血量加成，隊友全是暗屬性。轉光為暗、全隊加攻擊的主動技。暗光互剋", team: ["yutong5", "du", "rat", "moti", "reaperc", "yutong5"] },
-  { name: "赤帝火隊", note: "祝融：火珠大量掉落。攻擊高、血少、回復低。火剋木：第二章", team: ["zhurong", "dabao", "aizen", "akasaka", "huji", "zhurong"] }
+  { name: "赤帝火隊", note: "祝融：火珠大量掉落。攻擊高、血少、回復低。火剋木：第二章", team: ["zhurong", "dabao", "aizen", "akasaka", "huji", "zhurong"] },
+  { name: "萌獸隊", note: "黑糖帶隊，咪咪、918號、貢丸君、毛怪：全是二星，照相館用最少的功德就能買齊。", team: ["heitang", "mimi", "cat918", "gongwan", "maoguai", "heitang"] }
 ];
 
 window.ENEMIES = {

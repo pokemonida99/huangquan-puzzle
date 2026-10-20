@@ -99,7 +99,7 @@ const ROWS = [
   ["lucifer", "路西法", "傲慢魔王", "light", "天族", "demon", "atk", "天族最強戰士", { allAtk: 4, comboUp: .25 }, "殲滅邪神帝", 9, { nuke: 40, buff: 2 },
     "Lucifer, the strongest warrior of heaven turned Demon King of Pride: long white hair, stern face, golden ornate armor, huge white wings, light and shadow split"],
   /* 異時空（大秦、庚寅地球） */
-  ["youshuzhang", "右庶長", "朱雀將軍", "fire", "人類", "other", "atk", "楚墨宗主", { attrAtk: { fire: 2.5 } }, "去月下慶祝", 7, { buff: 2 },
+  ["youshuzhang", "岳夏澤", "朱雀將軍", "fire", "人類", "other", "atk", "楚墨宗主", { attrAtk: { fire: 2.5 } }, "去月下慶祝", 7, { buff: 2 },
     "Yue Xiaze, a young man with long messy black hair, a dirt-smudged face, wearing a dark worn Qin dynasty robe, resolute expression, torch-lit prison corridor. No armor"],
   ["liudaniu", "劉大牛", "伍長", "wood", "人類", "other", "hp", "楚國沛縣人", { attrAtk: { wood: 2 } }, "快逃", 5, { selfBuff: 2, guard: 1 },
     "Liu Daniu, a stocky Qin dynasty soldier with a topknot and a rough honest face, holding a ring of prison keys, torch-lit prison corridor"],
@@ -192,7 +192,7 @@ window.TIERS = {
     "神差": "B",       // 埃及死神，和月老一起處理魔
     "庚寅月老": "B",   // 另一個時空的月下老人
     "辜老師": "C",     // 用靈魂核心打開穿界門
-    "右庶長": "C",     // 月老生前，朱雀將軍
+    "岳夏澤": "C",     // 月老生前，朱雀將軍
     "紅衣武士": "D", "杜先生": "D", "泡芙": "D", "吳小白": "D", "二號": "D",
     "小雨": "D", "大寶": "D", "阿副": "D", "白妹": "D", "赤坂": "D",
     "林伯伯": "D", "王柏宏": "D", "筱晴": "D", "阿副的女友": "D", "茉蒂": "D", "大牛": "D",
@@ -322,8 +322,12 @@ window.TIERS = {
     if (fx.buff) t.push(`本回合全隊攻擊力 ${fx.buff} 倍`);
     return t.join("，");
   }
-  // 隱藏設定（不寫進說明）：全隊都是動物時，每位動物隊長讓全隊攻擊力 6.25 倍，雙隊長相乘
+  // 隱藏設定（不寫進說明）：全隊都是動物時，每位動物隊長讓全隊攻擊力 7 倍，雙隊長相乘 49 倍
   ["mimi", "cat918", "gongwan", "heitang", "maoguai", "rat"].forEach(id => CARDS[id].animal = true);
+  // 萌獸隊的五隻動物是二星：照相館最便宜就能買齊
+  ["mimi", "cat918", "gongwan", "heitang", "maoguai"].forEach(id => {
+    const c = CARDS[id]; c.star = 2; ["hp", "atk", "rec"].forEach(k => c[k] = Math.round(c[k] * .9));
+  });
   // 破盾功能卡：刀鋸使李國志（光）、秦王（暗）
   CARDS.lee2.act.fx.breakShield = true; delete CARDS.lee2.act.desc;
   CARDS.qinwang.act.fx.breakShield = true; delete CARDS.qinwang.act.desc;

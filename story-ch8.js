@@ -147,3 +147,6 @@ window.CHAPTERS.push({
 
 /* 華佗的立繪在第十章生好了（同一套造型），這章也用 */
 { const ch = window.CHAPTERS.find(c => c.id === "ch8"); ch.vn = { ...(ch.vn || {}), "華佗": "huatuo" }; }
+
+/* 第四季 EP4-08 之後語彤穿實習月老的漢服，立繪用 yutongh */
+{ const ch = window.CHAPTERS.find(c => c.id === "ch8"); ch.vn = { ...(ch.vn || {}), "語彤": "yutongh" }; }
