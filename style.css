@@ -619,3 +619,7 @@ h1 small { display: block; font-size: 18px; letter-spacing: .5em; color: var(--i
 .btn.danger { border-color: #c8443a; color: #ff8a7a; }
 .btn.gold.danger { background: linear-gradient(180deg, #ff8a7a, #b8322a); color: #fff; border-color: #ff8a7a; }
 .slot.trial .swap { color: #7fe3d6; }
+
+/* 手機長按不要選取文字、不要跳出圖片選單、圖片不能拖走 */
+html, body { -webkit-user-select: none; user-select: none; -webkit-touch-callout: none; -webkit-tap-highlight-color: transparent; }
+img { -webkit-user-drag: none; user-drag: none; -webkit-touch-callout: none; pointer-events: auto; }

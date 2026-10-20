@@ -1,5 +1,9 @@
 /* 黃泉燒肉店 轉珠試玩版 */
 (() => {
+// 長按不跳出瀏覽器選單（複製圖片、選取文字），也不拖曳圖片
+document.addEventListener("contextmenu", e => e.preventDefault());
+document.addEventListener("dragstart", e => e.preventDefault());
+document.addEventListener("selectstart", e => e.preventDefault());
 const $ = (s, el = document) => el.querySelector(s);
 const $$ = (s, el = document) => [...el.querySelectorAll(s)];
 const sleep = ms => new Promise(r => setTimeout(r, ms));
