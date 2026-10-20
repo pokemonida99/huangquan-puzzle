@@ -621,5 +621,6 @@ h1 small { display: block; font-size: 18px; letter-spacing: .5em; color: var(--i
 .slot.trial .swap { color: #7fe3d6; }
 
 /* 手機長按不要選取文字、不要跳出圖片選單、圖片不能拖走 */
-html, body { -webkit-user-select: none; user-select: none; -webkit-touch-callout: none; -webkit-tap-highlight-color: transparent; }
+html, body { -webkit-tap-highlight-color: transparent; }
+*, *::before, *::after { -webkit-user-select: none; user-select: none; -webkit-touch-callout: none; }   /* iOS Safari 不會從 body 繼承，要每個元素都設 */
 img { -webkit-user-drag: none; user-drag: none; -webkit-touch-callout: none; pointer-events: auto; }
