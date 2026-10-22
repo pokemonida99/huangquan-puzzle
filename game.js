@@ -1127,6 +1127,7 @@ function settingsDialog() {
     ${row("sound", "音效", "轉珠、消除、攻擊與技能的聲音")}
     ${row("vibe", "震動", canVibe ? "消除、受傷、發動技能時手機會震動" : "這支手機的瀏覽器不支援震動（iPhone 的瀏覽器都不支援）", canVibe)}
     <div class="set-row"><div>轉珠教學<small>重新看一次轉珠操作說明</small></div><button class="btn mini" id="replay-tut">重看</button></div>
+    <div class="set-row"><div>主畫面圖示<small>挑一款手機主畫面的圖示（四款）</small></div><button class="btn mini" id="pick-icon">挑選</button></div>
     <div class="set-row"><div>清除存檔<small>通關進度、角色、功德、隊伍全部歸零（音效設定保留）</small></div><button class="btn mini danger" id="wipe-save">清除</button></div>
     <p class="hint">黃泉燒肉店 轉珠 v${GAME_VERSION}</p>
     <div class="row"><button class="btn gold" data-close>完成</button></div>`);
@@ -1138,6 +1139,7 @@ function settingsDialog() {
       location.reload();
     };
   };
+  $("#pick-icon").onclick = () => HomeIcon.open();
   $("#replay-tut").onclick = () => {
     closeModal(); tut.force = true; CH = CHAPTERS[0];
     go("battle"); startBattle(true);
