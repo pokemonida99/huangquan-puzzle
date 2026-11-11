@@ -56,9 +56,14 @@ function syncTrial() {
   if (CH.trial && CH.trial.length) { trialSave = [...team]; CH.trial.forEach((id, k) => { team[TRIAL_SLOTS[k]] = id; }); }
 }
 const saveTeam = () => store.set("hq-team", trialSave || team);
-const prog = (p => ({ ...p, cleared: p.cleared || 0, stars: p.stars || [], chal: p.chal || [] }))(store.get("hq-progress", {}));
-let cleared = Math.max(0, Math.min(CHAPTERS.length, Math.floor(+prog.cleared) || 0));   // 已通關到第幾章（夾在合理範圍）
+const prog = (p => ({ ...p, cleared: p.cleared || 0, stars: p.stars || [], chal: p.chal || [], done: Array.isArray(p.done) ? p.done : [] }))(store.get("hq-progress", {}));
+let cleared = Math.max(0, Math.min(CHAPTERS.length, Math.floor(+prog.cleared) || 0));   // 從第一章起連續通關到第幾章（夾在合理範圍）
 const saveProg = () => store.set("hq-progress", { ...prog, cleared });
+/* v1.4.1（使用者定）：第十一章（第六季後段起的新劇情）一開始就開放，不用先打完前十章；之後照順序一章一章開。
+   跳著打的通關紀錄記在 prog.done（章節索引），cleared 只算從第一章起連續通關的章數 */
+const FREE_FROM = CHAPTERS.findIndex(c => c.id === "ch11");
+const chDone = i => i < cleared || prog.done.includes(i);
+const chOpen = i => !chDone(i) && (i === 0 || i === FREE_FROM || chDone(i - 1));
 
 /* ---------------- 收集：擁有的卡、功德（地府的貨幣）、三星評價、挑戰關 ---------------- */
 // 開局贈送：業鏡五屬隊整隊（李國志、小白、小雨、大寶、阿副）＋嫉妒魔王水隊整隊（利維坦、諾瓦、咪咪、九尾、陽滋公主）
@@ -66,7 +71,7 @@ const GIFT_TEAM = PRESETS.find(p => p.name === "嫉妒魔王水隊").team;
 const START_OWNED = [...new Set([...DEMO_TEAM, ...Object.keys(CARDS).filter(id => CARDS[id].who === "李國志"), "yutong1", ...GIFT_TEAM])];   // 李國志四階都算擁有
 const owned = new Set((() => {
   const saved = store.get("hq-owned", null), set = new Set(Array.isArray(saved) ? saved : START_OWNED);
-  CHAPTERS.slice(0, cleared).forEach(ch => (ch.unlock || []).forEach(id => set.add(id)));   // 舊存檔：已通關的章節補發角色
+  CHAPTERS.forEach((ch, i) => { if (chDone(i)) (ch.unlock || []).forEach(id => set.add(id)); });   // 舊存檔：已通關的章節補發角色
   if (!Array.isArray(saved)) team.forEach(id => set.add(id));                                // 舊存檔：原本編好的隊伍不拿走
   START_OWNED.forEach(id => set.add(id));                                                    // 開局贈送的業鏡五屬隊、水隊、李國志四階，舊存檔也補發
   return [...set].filter(id => CARDS[id]);
@@ -124,17 +129,17 @@ function chalExpired() {   // 挑戰關限回合：用完還沒過關就失敗
 /* ---------------- 章節選單 ---------------- */
 function renderChapters() {
   $(".ch-list").innerHTML = CHAPTERS.map((ch, i) => {
-    const st = i < cleared ? "done" : i === cleared ? "open" : "lock", n = prog.stars[i] || 0;
+    const st = chDone(i) ? "done" : chOpen(i) ? "open" : "lock", n = prog.stars[i] || 0;
     const d = chalDef(i);
     return `<div class="ch-item"><button class="ch-card ${st}" data-ch="${i}" style="background-image:linear-gradient(90deg,#000d 30%,#0004),url(${ch.bg})">
       <span class="ch-no">${ch.no}</span><b>${ch.name}</b><span class="ch-sub">${ch.sub} ‧ ${ch.place}</span>
       <span class="ch-intro">${ch.intro}</span>
-      <span class="ch-st">${st === "done" ? `已通關 <i class="rate">${"★".repeat(n)}${"☆".repeat(3 - n)}</i>` : st === "open" ? "挑戰" : "🔒 通關上一章後開放"}</span></button>
+      <span class="ch-st">${st === "done" ? `已通關 <i class="rate">${"★".repeat(n)}${"☆".repeat(3 - n)}</i>` : st === "open" ? (i === FREE_FROM && !chDone(i - 1) ? "挑戰（新劇情，可直接開始）" : "挑戰") : "🔒 通關上一章後開放"}</span></button>
       ${st === "done" ? `<button class="ch-chal ${prog.chal[i] ? "got" : ""}" data-chal="${i}"><b>⚔ 挑戰關</b>${d.label}<em>${prog.chal[i] ? "已完成" : `獎勵 ${REWARD.chalFirst} 功德`}</em></button>` : ""}</div>`;
   }).join("");
   $$(".ch-card").forEach(b => b.onclick = () => {
     const i = +b.dataset.ch;
-    if (i > cleared) { b.animate([{ transform: "translateX(-6px)" }, { transform: "translateX(6px)" }, { transform: "none" }], { duration: 250 }); vibe(40); return; }
+    if (!chDone(i) && !chOpen(i)) { b.animate([{ transform: "translateX(-6px)" }, { transform: "translateX(6px)" }, { transform: "none" }], { duration: 250 }); vibe(40); return; }
     CH = CHAPTERS[i]; chal = null; go("team");
   });
   $$(".ch-chal").forEach(b => b.onclick = () => { CH = CHAPTERS[+b.dataset.chal]; chal = { idx: +b.dataset.chal }; go("team"); });
@@ -1222,14 +1227,17 @@ function showResult() {
       <div class="row"><button class="btn" data-goto="chapters">回章節</button><button class="btn gold" data-goto="again">再打一次</button></div></div>`);
     return;
   }
-  const first = idx >= cleared;
+  const first = !chDone(idx);
   const goalT = CH.waves.length * 5, hpRate = B.hp / B.hpMax;
   const rules = [[`回合數 ${B.turns} ／ ${goalT} 以內`, B.turns <= goalT], [`剩餘血量 ${Math.round(hpRate * 100)}%（需 50% 以上）`, hpRate >= .5], [`最高 ${B.maxCombo} combo（需 6 以上）`, B.maxCombo >= 6]];
   const n = Math.max(1, rules.filter(r => r[1]).length), prev = prog.stars[idx] || 0;
   const joined = (CH.unlock || []).filter(id => !owned.has(id));
   joined.forEach(id => owned.add(id)); saveOwned();
   const gain = (first ? REWARD.first : REWARD.again) + REWARD.star * Math.max(0, n - prev);
-  prog.stars[idx] = Math.max(prev, n); cleared = Math.max(cleared, idx + 1); saveProg(); addMerit(gain);
+  prog.stars[idx] = Math.max(prev, n);
+  if (!prog.done.includes(idx)) prog.done.push(idx);
+  while (chDone(cleared) && cleared < CHAPTERS.length) cleared++;   // 從第一章起連續通關的章數
+  saveProg(); addMerit(gain);
   modal(`<div class="result"><h3>${CH.no} 通關</h3><p>「${CH.name}」</p>
     <div class="rate big">${"★".repeat(n)}${"☆".repeat(3 - n)}</div>
     <ul class="rules">${rules.map(([t, ok]) => `<li class="${ok ? "ok" : ""}">${ok ? "✔" : "✘"} ${t}</li>`).join("")}</ul>
