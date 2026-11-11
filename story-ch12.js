@@ -30,11 +30,11 @@ Object.assign(window.ENEMIES, {
 window.CHAPTERS.push({
   id: "ch12", music: { battle: "battle2", boss: "boss1" }, no: "第十二章", name: "古神之門", sub: "辣個男人", place: "神魔禁地 ‧ 古神之門", bg: "art/bg-ch12.webp",
   vn: { "語彤": "yutongh", "大寶": "dabaof", "觀音菩薩": "guanyin6", "月老": "yuelao6", "九尾": "jiuwei" },
-  seal: { name: "封鎖攻擊", desc: "看見古神的人都無法攻擊（能直視古神的大寶不受影響）；只有大寶（覺醒祝融記憶）的主動技「直視古神」能解除" },
+  seal: { name: "封鎖攻擊", desc: "打到古神時，看見古神的人都無法攻擊（能直視古神的大寶不受影響）；只有大寶（覺醒祝融記憶）的主動技「直視古神」能解除" },
   needs: "dabao4",
   trial: ["guanyin", "aizen", "dabao4", "yutong5"],   // 試用隊伍：隊長＝觀音、戰友＝愛染明王（先鋒），隊員＝大寶、語彤（殿後）
   unlock: ["dabao4", "sentinel"],   // 通關後加入的角色
-  intro: "看見古神的人都無法攻擊。只有能直視古神的大寶，能解除封鎖。",
+  intro: "打到古神時，看見古神的人都無法攻擊。只有能直視古神的大寶，能解除封鎖。",
   pre: [
     ["@scene", "art/scenes/213.webp"],
     [null, "第一帝國的宮殿迴廊。根據路西法的分析，這四位前往討伐古神最為完美：由愛染明王和觀音做先鋒，語彤和大寶殿後。"],

@@ -169,8 +169,8 @@ function renderTeam() {
   if (need) {
     const ok = team.includes(CH.needs);
     nb.className = "need-box" + (ok ? " ok" : "");
-    nb.innerHTML = ok ? `✔ 隊伍裡有「${need.title} ${need.who}」：${CH.seal ? `開場的「${CH.seal.name}」可以用「${unsealAct(CH.needs).name}」解除` : "可以出擊"}`
-      : `✘ 這一章一定要帶「${need.title} ${need.who}」${CH.seal ? `：開場全隊「${CH.seal.name}」，只有他的「${unsealAct(CH.needs).name}」能解除` : ""}`;
+    nb.innerHTML = ok ? `✔ 隊伍裡有「${need.title} ${need.who}」：${CH.seal ? `打到古神時的「${CH.seal.name}」可以用「${unsealAct(CH.needs).name}」解除` : "可以出擊"}`
+      : `✘ 這一章一定要帶「${need.title} ${need.who}」${CH.seal ? `：打到古神時全隊會被「${CH.seal.name}」，只有他的「${unsealAct(CH.needs).name}」能解除` : ""}`;
   }
   if (chal) cb.innerHTML = `<b>⚔ 挑戰條件：${cd.label}</b><span class="${cmsg ? "bad" : "ok"}">${cd.turns ? "過關回合數會計算" : cmsg ? "✘ " + cmsg : "✔ 隊伍符合條件"}</span>
     <small>${prog.chal[chal.idx] ? `已完成，再次過關 ${REWARD.chalAgain} 功德` : `首次過關 ${REWARD.chalFirst} 功德`}；劇情自動略過</small>`;
@@ -233,7 +233,7 @@ $("#go-battle").onclick = () => {
   }
   const need = CH.needs && CARDS[CH.needs];
   if (need && !team.includes(CH.needs)) {
-    modal(`<h3>還沒帶${need.who}</h3><p>這一章開場全隊會被「${CH.seal ? CH.seal.name : "封鎖"}」，只有「${need.title} ${need.who}」的「${unsealAct(CH.needs).name}」能解除。沒帶他就沒辦法攻擊。</p>
+    modal(`<h3>還沒帶${need.who}</h3><p>這一章打到古神時全隊會被「${CH.seal ? CH.seal.name : "封鎖"}」，只有「${need.title} ${need.who}」的「${unsealAct(CH.needs).name}」能解除。沒帶他就沒辦法攻擊。</p>
       <div class="row"><button class="btn gold" data-close>回去換隊伍</button><button class="btn" id="go-anyway">照樣出擊</button></div>`);
     $("#go-anyway").onclick = () => { closeModal(); go("battle"); setChalTag(); startBattle(!!chal); };
     vibe(40); return;
@@ -360,7 +360,7 @@ function startBattle(skipStory) {
     cd: team.map(id => CARDS[id].act.cd),
     cdx: team.map(id => (CARDS[id].acts || []).slice(1).map(a => a.cd))   // 第二招以後的冷卻（媽祖四招、大寶兩招）
   };
-  B.sealed = !!CH.seal; B.cut = null; B.noConvert = 0;   // 古神戰：一進場全隊封鎖攻擊
+  B.sealed = false; B.godWave = false; B.cut = null; B.noConvert = 0;   // 古神戰：打到古神那一波才封鎖（v1.4.7 使用者定），前面的小怪波不封
   if (CH.seal) team.forEach((id, i) => (CARDS[id].acts || []).forEach((a, k) => { if (a.fx.unseal && k) B.cdx[i][k - 1] = 0; else if (a.fx.unseal) B.cd[i] = 0; }));   // 解封招開場就能用
   B.guard = 0; B.turns = 0; B.maxCombo = 0; setChalTag();
   B.survive = leaderFx().reduce((a, fx) => a + (fx.survive || 0), 0);
@@ -426,7 +426,7 @@ const hasUnsealer = () => team.some(id => unsealAct(id));
 const sealFree = i => !!unsealAct(team[i]);   // 大寶能直視古神：封鎖對他無效，照樣攻擊
 function updateSeal() {
   const el = $(".seal-tag"); if (!el) return;
-  el.hidden = !(B && CH.seal);
+  el.hidden = !(B && CH.seal && (B.sealed || B.godWave));
   $$(".party .icon").forEach((ic, i) => ic.classList.toggle("chained", !!(B && B.sealed && !sealFree(i))));   // 封鎖中：頭像掛上鐵鍊（大寶除外）
   if (el.hidden) return;
   el.classList.toggle("on", !!B.sealed);
@@ -480,6 +480,9 @@ async function loadWave(w) {
   const sh = B.enemies.find(e => e.shield);
   if (sh) { await sleep(300); banner(sh.shield.name); }
   if (w === 0 && allAnimal()) { await sleep(300); banner("動物大團結！"); vibe([30, 40, 30]); await sleep(600); }
+  B.godWave = !!CH.seal && B.enemies.some(e => e.skills.some(s => s.seal));   // 古神現身：全隊封鎖攻擊（第二形態再封一次）
+  if (B.godWave && !B.sealed) { B.sealed = true; await sleep(300); banner(CH.seal.name); flash("rgba(90,0,140,.45)", 500); vibe([60, 40, 60]); }
+  updateSeal();
   await openStrike();
 }
 /* 進場攻擊（觀音的隊長技）：每一波敵人一出現，隊長／戰友先打全體一下 */

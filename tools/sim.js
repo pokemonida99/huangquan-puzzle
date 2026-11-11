@@ -49,9 +49,10 @@ function sealRun(team, ch) {
   const un = id => (CARDS[id].acts || [CARDS[id].act]).find(a => a.fx.unseal);
   const dab = team.findIndex(id => un(id));
   const atkAct = dab >= 0 ? CARDS[team[dab]].acts.find(a => a.fx.nuke) : null;
-  let sealed = true, cd = 0, cdA = atkAct ? atkAct.cd : 0, turns = 0;
+  let sealed = false, cd = 0, cdA = atkAct ? atkAct.cd : 0, turns = 0;
   for (const w of ch.waves) {
     const es = w.enemies.map(k => ({ ...ENEMIES[k], hpNow: ENEMIES[k].hp, cdNow: ENEMIES[k].cd }));
+    if (es.some(e => (e.skills || []).some(s => s.seal))) sealed = true;   // 古神那一波才封鎖
     while (es.some(e => e.hpNow > 0)) {
       if (++turns > 80) return Infinity;
       let boost = 1;
