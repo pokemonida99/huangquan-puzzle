@@ -8,11 +8,11 @@
 
 Object.assign(window.ENEMIES, {
   cursebeast: { demon: true, cthulhu: true, name: "詛咒怪物", attr: "dark", img: "art/enemy-cursebeast.webp", hp: 1000000, atk: 5700, cd: 2 },
-  sentinel:   { demon: true, cthulhu: true, name: "哨兵古神", attr: "dark", img: "art/enemy-sentinel.webp", preempt: "hp1", hp: 4167000, atk: 5000, cd: 1, boss: true,
+  sentinel:   { demon: true, cthulhu: true, name: "哨兵古神", attr: "dark", img: "art/enemy-sentinel.webp", preempt: "hp1", hp: 4167000, atk: 31400, cd: 1, boss: true,
                 title: "克蘇魯族的哨兵神", warn: "神魔禁地 ‧ 古神之門", quote: "有看到早就被我吃了",
                 skills: [{ on: "attack", name: "不可直視", seal: true, every: 3, convert: ["heart", "dark"], n: 3 },
                          { on: "low", name: "古神之門", hp: .3, cd: 1, atk: 1.5 }] },
-  sentinel2:  { demon: true, cthulhu: true, name: "哨兵古神", attr: "dark", img: "art/enemy-sentinel2.webp", preempt: true, hp: 5833000, atk: 6000, cd: 1, boss: true,
+  sentinel2:  { demon: true, cthulhu: true, name: "哨兵古神", attr: "dark", img: "art/enemy-sentinel2.webp", preempt: true, hp: 5833000, atk: 40000, cd: 1, boss: true,
                 title: "第二形態", warn: "神魔禁地 ‧ 古神第二形態", quote: "最強反派一定會有第二形態，你說對吧",
                 skills: [{ on: "spawn", name: "第二形態", absorb: 250000, turns: 2 },
                          { on: "attack", name: "不可直視", seal: true, every: 3, convert: ["heart", "dark"], n: 4 },
