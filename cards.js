@@ -363,8 +363,8 @@ window.TIERS = {
       [{ name: "輪迴六趣", cd: 6, fx: { healPct: 1, arrange: "six", buff: 3 } }]],
     // 觀音潛能解放：打古神用。兩個主動技各自冷卻（台詞與招式取自 EP6-23～24）
     guanyin2: [{ name: "一開打就要火力全開", fx: { allAtk: 4, allHp: 1.5, cthulhuAtk: 3, timeAdd: 1 } },
-      [{ name: "浮屠百鍊", cd: 5, fx: { nuke: 100, vsCthulhu: 3, buff: 2.5, pierceTurn: true } },
-       { name: "梵海渡", cd: 6, fx: { arrange: "light-all", turnAs: "light", buff: 3, cut: { x: .3, turns: 2 }, healPct: .5 } }]],
+      [{ name: "浮屠百鍊", cd: 2, fx: { nuke: 100, vsCthulhu: 3, buff: 2.5, pierceTurn: true } },
+       { name: "梵海渡", cd: 3, fx: { arrange: "light-all", turnAs: "light", buff: 3, cut: { x: .3, turns: 2 }, healPct: .5 } }]],
     isaiah: [{ name: "等統一魔界", fx: { attrAtk: { fire: 5.5 }, allHp: 1.4, chase: 25, dmgCut: .2 } },
       [{ name: "巨錘", cd: 6, fx: { arrange: "fire-all", turnAs: "fire", buff: 2.5, nuke: 50 } }]],
     daogui: [{ name: "我的封地要最大", fx: { attrAtk: { wood: 5.5 }, comboAt: { n: 6, x: 2.2 }, timeAdd: 1 } },
