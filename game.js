@@ -71,7 +71,7 @@ const GIFT_TEAM = PRESETS.find(p => p.name === "嫉妒魔王水隊").team;
 const START_OWNED = [...new Set([...DEMO_TEAM, ...Object.keys(CARDS).filter(id => CARDS[id].who === "李國志"), "yutong1", ...GIFT_TEAM])];   // 李國志四階都算擁有
 const owned = new Set((() => {
   const saved = store.get("hq-owned", null), set = new Set(Array.isArray(saved) ? saved : START_OWNED);
-  CHAPTERS.forEach((ch, i) => { if (chDone(i)) (ch.unlock || []).forEach(id => set.add(id)); });   // 舊存檔：已通關的章節補發角色
+  CHAPTERS.forEach((ch, i) => { if (chDone(i) || i <= FREE_FROM) (ch.unlock || []).forEach(id => set.add(id)); });   // 已通關的章節補發角色；第一～十一章的角色所有存檔直接送（v1.4.4 使用者定）
   if (!Array.isArray(saved)) team.forEach(id => set.add(id));                                // 舊存檔：原本編好的隊伍不拿走
   START_OWNED.forEach(id => set.add(id));                                                    // 開局贈送的業鏡五屬隊、水隊、李國志四階，舊存檔也補發
   return [...set].filter(id => CARDS[id]);
