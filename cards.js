@@ -379,6 +379,7 @@ window.TIERS = {
     c.acts = acts.map(a => ({ ...a }));
     c.act = c.acts[0];
   });
+  CARDS.dabao4.shop = true;   // 覺醒大寶：古神戰要帶，照相館也能直接兌換（不用先進化，v1.4.11 使用者回報找不到）
 })();
 
 /* 技能說明：沒寫 desc 的卡片，依效果自動產生 */

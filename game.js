@@ -89,7 +89,7 @@ function renderMerit() { $$(".merit-chip").forEach(el => el.innerHTML = `功德 
 const PRICE = { 2: 20, 3: 40, 4: 80, 5: 150, 6: 240, 7: 360 };      // 托夢照相館：依星數
 const EVO_COST = { 3: 50, 4: 100, 5: 180, 6: 260, 7: 380 };   // 進化：依進化後的星數
 const REWARD = { first: 150, again: 40, star: 30, chalFirst: 100, chalAgain: 40 };
-const buyable = id => !owned.has(id) && !(CARDS[id].stage > 1);   // 進化階段只能靠進化取得
+const buyable = id => !owned.has(id) && (!(CARDS[id].stage > 1) || CARDS[id].shop);   // 進化階段只能靠進化取得（shop：例外，照相館也能直接兌換）
 const GODS = new Set(SERIES.find(s => s.id === "gods").members);
 const CHAL_TURNS = [10, 10, 12, 12, 14];
 let chal = null;   // 目前選的挑戰關：{ idx } 或 null
