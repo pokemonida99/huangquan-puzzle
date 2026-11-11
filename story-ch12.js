@@ -30,7 +30,8 @@ Object.assign(window.ENEMIES, {
 
 window.CHAPTERS.push({
   id: "ch12", music: { battle: "battle2", boss: "boss1" }, no: "第十二章", name: "古神之門", sub: "辣個男人", place: "神魔禁地 ‧ 古神之門", bg: "art/bg-ch12.webp",
-  vn: { "語彤": "yutongh", "大寶": "dabaof", "觀音菩薩": "guanyin6", "月老": "yuelao6", "九尾": "jiuwei" },
+  // 觀音：使用者定用原本的立繪（guanyin，第一～十一章那張），不換第六季造型
+  vn: { "語彤": "yutongh", "大寶": "dabaof", "月老": "yuelao6", "九尾": "jiuwei" },
   seal: { name: "封鎖攻擊", desc: "打到古神時，看見古神的人都無法攻擊（能直視古神的大寶不受影響）；只有大寶（覺醒祝融記憶）的主動技「直視古神」能解除" },
   needs: "dabao4",
   // v1.4.8：不鎖隊伍（使用者定），進關前提醒帶覺醒大寶（needTip）
