@@ -675,3 +675,7 @@ img { -webkit-user-drag: none; user-drag: none; -webkit-touch-callout: none; poi
 .modal.sheet .modal-box { border-radius: 16px 16px 12px 12px; margin: 0 10px; animation: sheetUp .25s ease-out; }
 @keyframes sheetUp { from { transform: translateY(40px); opacity: 0; } }
 .need-box.tip { background: #2a2210; border-color: #c9a14a; color: #ffe9b8; }
+
+/* 媽祖：轉珠每滑一格回血時血條閃一下 */
+.hpbar.sheal .hp-fill { animation: sheal .25s; }
+@keyframes sheal { 50% { filter: brightness(1.6) drop-shadow(0 0 6px #7fd6ff); } }

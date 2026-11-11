@@ -343,7 +343,7 @@ window.TIERS = {
   // [隊長技, [主動技...]]；主動技 { name, cd, fx, video }
   const NEW = {
     // 媽祖：不進化、直接六星（使用者定）。四招共用一組冷卻 4 回合（shared）：安瀾（防守）、鎮瀾（全體高攻擊）、無瀾（一回合無傷）、霸極拳（連續普通攻擊 10 次）
-    mazu: [{ name: "媽祖加持的手串", fx: { attrAtk: { water: 6 }, allAs: "water", allHp: 1.6, allRec: 1.4, comboAt: { n: 5, x: 2 }, dmgCut: .4, timeAdd: 1 } },   // allAs：任何顏色都算水符石（v1.4.12 使用者定）
+    mazu: [{ name: "媽祖加持的手串", fx: { attrAtk: { water: 6 }, allAs: "water", swapHeal: .02, swapHealMax: .5, allHp: 1.6, allRec: 1.4, comboAt: { n: 5, x: 2 }, dmgCut: .4, timeAdd: 1 } },   // allAs：任何顏色都算水符石（v1.4.12 使用者定）
       [{ name: "安瀾", cd: 4, fx: { cut: { x: .2, turns: 3 }, healPct: .6, delay: 1, cleanse: true, arrange: "water-heart" }, video: V("anlan") },
        { name: "鎮瀾", cd: 4, fx: { arrange: "water-all", turnAs: "water", comboAdd: 4, buff: 3, nuke: 80, pierceTurn: true }, video: V("zhenlan") },
        { name: "無瀾", cd: 4, fx: { immune: 1, healPct: .3 }, video: V("wulan") },
@@ -397,6 +397,7 @@ window.TIERS = {
     if (fx.comboUp) t.push(`每多 1 combo，傷害再多 ${Math.round(fx.comboUp * 100)}%`);
     if (fx.vsDemon) t.push(`對魔族敵人的傷害 ${fx.vsDemon} 倍`);
     if (fx.regen) t.push(`每次轉珠後回復最大生命力 ${Math.round(fx.regen * 100)}%`);
+    if (fx.swapHeal) t.push(`轉珠時每滑過一格回復最大生命力 ${Math.round(fx.swapHeal * 100)}%（每回合最多 ${Math.round(fx.swapHealMax * 100)}%）`);
     if (fx.survive) t.push(`每場戰鬥 ${fx.survive} 次，受到致命傷害時保留 1 點生命`);
     if (fx.multiAttr) t.push(`同時消除 ${fx.multiAttr.n} 種或以上屬性符石時，全隊攻擊力再 ${fx.multiAttr.x} 倍`);
     if (fx.comboAt) t.push(`達成 ${fx.comboAt.n} combo 或以上時，全隊攻擊力再 ${fx.comboAt.x} 倍`);

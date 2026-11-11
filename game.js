@@ -794,9 +794,18 @@ board.addEventListener("pointermove", e => {
     grid[drag.r][drag.c] = other; place(other, drag.r, drag.c);
     grid[nr][nc] = drag.o; drag.r = nr; drag.c = nc;
     sfx.swap(); vibe(6);
-    if (!drag.moved) { drag.moved = true; startTimer(); }
+    if (!drag.moved) { drag.moved = true; drag.healed = 0; startTimer(); }
+    swapHeal();
   }
 });
+/* 媽祖的隊長技：轉珠時每滑過一格就回血（每格 swapHeal，一回合最多 swapHealMax），血條即時跳動 */
+function swapHeal() {
+  const per = leaderFx().reduce((a, fx) => a + (fx.swapHeal || 0), 0); if (!per || !B || B.hp >= B.hpMax) return;
+  const cap = Math.max(...leaderFx().map(fx => fx.swapHealMax || 0)) * B.hpMax;
+  const add = Math.min(B.hpMax * per, cap - drag.healed); if (add <= 0) return;
+  drag.healed += add; B.hp += add; updateHp();
+  const hb = $(".hpbar"); hb.classList.remove("sheal"); void hb.offsetWidth; hb.classList.add("sheal");
+}
 function moveHeld(e) {
   const b = board.getBoundingClientRect();
   const w = b.width / COLS, h = b.height / ROWS;
