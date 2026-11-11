@@ -4,3 +4,4 @@ work/
 art/*.png
 .DS_Store
 配樂/
+__pycache__/

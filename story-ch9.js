@@ -6,7 +6,7 @@
 Object.assign(window.ENEMIES, {
   c9curse:   { demon: true, name: "遠古戰場的詛咒", attr: "dark", img: "art/enemy-c9curse.webp", hp: 80000, atk: 1500, cd: 2 },
   c9curseB:  { demon: true, name: "遠古戰場的詛咒", attr: "dark", img: "art/enemy-c9curse.webp", hp: 120000, atk: 2100, cd: 2 },
-  xieshen: { demon: true, name: "邪神帝", attr: "dark", img: "art/enemy-xieshen.webp", hp: 700000, atk: 3200, cd: 3, boss: true,
+  xieshen: { demon: true, cthulhu: true, name: "邪神帝", attr: "dark", img: "art/enemy-xieshen.webp", hp: 700000, atk: 3200, cd: 3, boss: true,
              title: "克蘇魯之主", warn: "遠古戰場 ‧ 克蘇魯", quote: "狗屎",
              skills: [{ on: "spawn", name: "不可直視", absorb: 50000, turns: 2 },
                       { on: "attack", name: "降下詛咒球", convert: ["heart", "dark"], n: 4 },

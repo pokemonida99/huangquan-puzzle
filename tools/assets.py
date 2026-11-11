@@ -25,7 +25,7 @@ for p in art.glob("*.png"):
         im = im.resize((w, round(im.height * w / im.width)), Image.LANCZOS)
     im.save(p.with_suffix(".webp"), quality=72 if bg else 76, method=6)
 # 符石：找出圓球範圍、裁成正方形、加圓形透明遮罩
-for p in [*art.glob("orb-*.png"), art / "emblem.png"]:
+for p in [*art.glob("orb-*.png"), *([art / "emblem.png"] if (art / "emblem.png").exists() else [])]:   # 原圖已轉好、本機沒有 png 的就跳過
     im = Image.open(p).convert("RGB")
     gray = im.convert("L").point(lambda v: 255 if v > 40 else 0)
     box = gray.getbbox()
@@ -38,10 +38,10 @@ for p in [*art.glob("orb-*.png"), art / "emblem.png"]:
     mask = big.resize((size, size), Image.LANCZOS).filter(ImageFilter.GaussianBlur(.6 * size / 192))
     im.putalpha(mask)
     im.save(p.with_suffix(".webp"), quality=90)
-# 劇情立繪：高度 1100（李國志含禮帽 1278）的縮成 0.85 倍，比例不變
+# 劇情立繪：高度 1100（李國志含禮帽 1278）的縮成 0.85 倍，比例不變（只縮一次）
 for p in (root / "art/vn").glob("*.webp"):
     im = Image.open(p)
-    if im.height >= 1000:
+    if im.height >= 1100:   # 只縮原始 1100 高（李國志 1278）的；縮過的（≤1086）不再縮，重跑不會越縮越小
         im = im.resize((round(im.width * .85), round(im.height * .85)), Image.LANCZOS)
         im.save(p, quality=78, method=6)
 print(sorted(x.name for x in art.glob("*.webp")))

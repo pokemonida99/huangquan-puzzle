@@ -5,9 +5,29 @@
    星數與生命／攻擊／回復不寫在這裡，統一由下方「戰力階級」區塊依階級、型、屬性算出
    稱號、技能名取自劇中出現過的稱呼、事件與台詞；卡面描述只拿來生圖。
    ========================================================================= */
+/* 自動排版的版面（新版主動技 arrange）：w 水、f 火、g 木、l 光、d 暗、h 心；game.js 照字母排盤 */
+window.ARRANGE = {
+  "water-rows": ["wwwwww", "hhhhhh", "wwwwww", "ffffff", "wwwwww"],
+  "water-heart": ["wwwwww", "wwwwww", "hhhhhh", "wwwwww", "hhhhhh"],
+  "water-all": ["wwwwww", "wwwwww", "wwwwww", "wwwwww", "wwwwww"],
+  "water-cross": ["hwwwwh", "hwwwwh", "wwwwww", "hwwwwh", "hwwwwh"],
+  "dark-rows": ["dddddd", "llllll", "dddddd", "hhhhhh", "dddddd"],
+  "dark-heart": ["dddddd", "dddddd", "hhhhhh", "dddddd", "hhhhhh"],
+  "dark-all": ["dddddd", "dddddd", "dddddd", "dddddd", "dddddd"],
+  "light-all": ["llllll", "llllll", "llllll", "llllll", "llllll"],
+  "fire-all": ["ffffff", "ffffff", "ffffff", "ffffff", "ffffff"],
+  "wood-cross": ["hggggh", "hggggh", "gggggg", "hggggh", "hggggh"],
+  "six": ["wwwfff", "ggglll", "dddhhh", "wwwfff", "ggglll"]
+};
+window.ARRANGE_DESC = {
+  "water-rows": "水符石排成三橫排（中間夾心、火各一排）", "water-heart": "水符石與心符石整排排好", "water-all": "整版水符石",
+  "water-cross": "水符石排成一個大十字，四角是心符石", "dark-rows": "暗符石排成三橫排（中間夾光、心各一排）", "dark-heart": "暗符石與心符石整排排好",
+  "dark-all": "整版暗符石", "light-all": "整版光符石", "fire-all": "整版火符石", "wood-cross": "木符石排成一個大十字，四角是心符石",
+  "six": "五屬性與心符石排成一組組三連，一次可以消出 10 combo、六種顏色"
+};
 (() => {
 // 進化鏈的階段（同一角色在圖鑑、換卡器依這個排序）
-const STAGE_OF = { yutong1: 1, yutong: 2, yutong3: 3, yutong4: 4, yutong5: 5, xiaoyu2: 2, dabao2: 2, dabao3: 3, afu2: 2 };
+const STAGE_OF = { yutong1: 1, yutong: 2, yutong3: 3, yutong4: 4, yutong5: 5, xiaoyu2: 2, dabao2: 2, dabao3: 3, afu2: 2, dabao4: 4 };
 const ROWS = [
   /* 黃泉燒肉店 */
   // 語彤是主角，四階進化依劇中衣著的時期：高中生 → 燒肉店 → 狐姬改造後 → 實習月老 → 覺醒（EP5-13 同一套漢服外加白紗）
@@ -144,12 +164,25 @@ const ROWS = [
     "Hasshaku-sama, a very tall female ghost with long straight black hair covering her face, wearing a long white dress, holding a red Japanese oil-paper umbrella, misty night alley, eerie but not gory"],
   ["shushi", "術士", "下蠱的術士", "dark", "人類", "other", "atk", "白蛛會的術士", { attrAtk: { dark: 2.5 } }, "下蠱", 7, { board: ["ddhhdd", "ddhhdd", "ddhhdd", "ddhhdd", "ddhhdd"], boardDesc: "左右兩側暗符石、中間兩直排心符石", selfBuff: 2 },
     "a sorcerer wearing a yellow hooded raincoat, sly grin, holding a rifle with a glowing purple scope, a purple eye mark glowing on his palm, rainy rooftop at night"],
-  ["raincoat", "黃雨衣", "白蛛會的幻術師", "dark", "人類", "other", "atk", "跟著術士行動的黃雨衣青年", { attrAtk: { dark: 1.5 } }, "迷失幻境", 6, { delay: 1, convert: ["light", "dark"] },
+  ["raincoat", "雨衣小飛俠", "白蛛會的幻術師", "dark", "人類", "other", "atk", "跟著術士行動的黃雨衣青年", { attrAtk: { dark: 1.5 } }, "迷失幻境", 6, { delay: 1, convert: ["light", "dark"] },
     "a young man wearing a yellow hooded raincoat, sly grin, holding a rifle with a glowing purple scope, a purple eye mark glowing on his palm, rainy rooftop at night"],
   ["baizhu", "白蛛會角頭", "白老大", "light", "人類", "other", "hp", "白蛛會", { allHp: 1.3, attrAtk: { light: 1.5 } }, "花這麼多錢", 6, { guard: 1, selfBuff: 2.5 },
     "a tough middle-aged gang boss with slicked-back black hair and spider-web scar patterns on his face, wearing a white suit jacket, menacing, dark warehouse"],
   ["zygao", "狀元糕老伯", "狀元糕攤", "fire", "人類", "human", "rec", "這是狀元糕", { allRec: 1.5 }, "熱騰騰的狀元糕", 5, { healPct: .3, convert: ["heart", "fire"] },
     "a kind old man with short white hair, wearing a blue striped polo shirt, selling steamed zhuangyuan rice cakes at a flea market stall with a steamer, sunny"],
+  /* ---- 第四批：第六季後段～第七季（2026-11-11，依 IG 戰力天梯 S1–S7）；技能在下面「新版技能」區塊另外寫定 ---- */
+  ["mazu", "媽祖", "慈悲聖母", "water", "神", "mazu", "bal", "", {}, "", 4, {}, null],   // 不進化，直接六星（使用者定）
+  ["shunfeng", "順風耳", "小風", "water", "神", "mazu", "atk", "", {}, "", 5, {}, null],
+  ["xieshou", "謝守", "甲級除咒師", "water", "人類", "mazu", "hp", "", {}, "", 5, {}, null],
+  ["renmianyu", "人面魚", "魚仔", "water", "妖", "mazu", "bal", "", {}, "", 3, {}, null],
+  ["redgirl", "紅衣小女孩", "魔神仔領袖", "dark", "妖", "mazu", "atk", "", {}, "", 5, {}, null],
+  ["baifu", "白府千歲", "白千歲", "light", "神", "mazu", "atk", "", {}, "", 5, {}, null],
+  ["nuwa", "女媧", "女媧娘娘", "wood", "古神", "gods", "rec", "", {}, "", 6, {}, null],
+  ["isaiah", "以賽亞", "巨錘以賽亞", "fire", "魔族", "demon", "hp", "", {}, "", 5, {}, null],
+  ["daogui", "刀鬼", "獨臂刀鬼", "wood", "魔族", "demon", "atk", "", {}, "", 5, {}, null],
+  ["mofaweng", "魔法翁", "法術巨擘", "dark", "魔族", "demon", "bal", "", {}, "", 5, {}, null],
+  ["sentinel", "哨兵古神", "克蘇魯族的哨兵神", "dark", "古神", "demon", "hp", "", {}, "", 6, {}, null],
+  ["dabao4", "大寶", "覺醒祝融記憶", "fire", "半神", "fire", "atk", "", {}, "", 2, {}, null],
   /* 主角群的進化 */
   ["xiaoyu2", "小雨", "代理店長", "water", "人類", "shop", "rec", "代理店長", { allRec: 2, attrAtk: { water: 1.5 } }, "潮流韓風", 4, { healPct: .4, convert: ["heart", "water"], buff: 1.5 },
     "Xiaoyu as acting manager of the yakiniku shop: long straight black hair with blunt bangs, wearing a modern Korean-style hanbok uniform in soft colors, confident warm smile, yakiniku restaurant"],
@@ -168,7 +201,7 @@ ROWS.forEach(([id, who, title, attr, race, series, kind, leadName, leadFx, actNa
 });
 })();
 // 進化順序（語彤四階；小雨、大寶、阿副的進化）
-[["yutong1", "yutong"], ["yutong", "yutong3"], ["yutong3", "yutong4"], ["yutong4", "yutong5"], ["xiaoyu", "xiaoyu2"], ["dabao", "dabao2"], ["dabao2", "dabao3"], ["afu", "afu2"]]
+[["yutong1", "yutong"], ["yutong", "yutong3"], ["yutong3", "yutong4"], ["yutong4", "yutong5"], ["xiaoyu", "xiaoyu2"], ["dabao", "dabao2"], ["dabao2", "dabao3"], ["dabao3", "dabao4"], ["afu", "afu2"]]
   .forEach(([a, b]) => { CARDS[a].evo = b; CARDS[a].stage = CARDS[a].stage || 1; });
 
 /* =========================================================================
@@ -201,16 +234,21 @@ window.TIERS = {
     "咪咪": "D", "黑糖": "D", "謎": "D", "小米": "D", "918號引渡貓": "D", "貢丸君": "D", "毛怪": "D",
     "劉大牛": "D", "梁安恆": "D", "林怡曼": "D", "鐵蛋": "D",
     // 第三批：撒旦、瘟疫照戰力表；其他依劇情
-    "撒旦": "S", "瘟疫": "A", "第三王國惡魔": "C", "秦王": "C", "八尺大人": "C", "術士": "C", "黃雨衣": "C",
+    "撒旦": "S", "瘟疫": "A", "第三王國惡魔": "C", "秦王": "C", "八尺大人": "C", "術士": "C", "雨衣小飛俠": "C",
     "辣雞": "D", "小樂": "D", "阿斌的媽媽": "D", "算命阿婆": "D", "外婆": "D", "吉他手": "D", "廟公": "D",
-    "趙大人": "D", "翠花": "D", "綠衣女子": "D", "梁安恆的媽媽": "D", "庚寅筱晴": "D", "白蛛會角頭": "D", "狀元糕老伯": "D"
+    "趙大人": "D", "翠花": "D", "綠衣女子": "D", "梁安恆的媽媽": "D", "庚寅筱晴": "D", "白蛛會角頭": "D", "狀元糕老伯": "D",
+    // 第四批：照 S1–S7 戰力天梯（IG 2026-11-08）；人面魚不在表上，依劇情（被除魔性的魔神仔）※
+    "女媧": "S+", "媽祖": "S", "白府千歲": "S-", "以賽亞": "S-", "刀鬼": "S-", "魔法翁": "S-", "哨兵古神": "S-",
+    "順風耳": "A", "紅衣小女孩": "A", "謝守": "B", "人面魚": "D"
   };
   // 李國志三階：業鏡羅漢照表是 B；刀鋸使、米店老闆依劇情往下
   const BY_ID = { lee1: "D", lee2: "C", lee3: "B", lee4: "B", yutong1: "D", yutong: "D", yutong3: "C", yutong4: "C", yutong5: "B",
-    xiaoyu2: "C", dabao2: "D", dabao3: "C", afu2: "C" };
+    xiaoyu2: "C", dabao2: "D", dabao3: "C", afu2: "C",
+    dabao4: "C" };   // 覺醒大寶照天梯 C
   // 同一階級裡，進化後的卡再強一點
-  const EVO_UP = { lee2: 1.06, lee3: 1.06, lee4: 1.12, yutong: 1.06, yutong3: 1.0, yutong4: 1.08, yutong5: 1.08, dabao2: 1.08, dabao3: 1.06 };
-  const ON_CHART = new Set(["撒旦", "瘟疫", "路西法", "祝融", "基路伯", "觀音菩薩", "利維坦", "阿芙羅黛蒂", "哈索爾", "千里眼", "鼠軍師", "月老", "愛染明王", "華佗", "九尾", "語彤", "陽滋公主", "諾瓦", "狐姬", "七號"]);
+  const EVO_UP = { lee2: 1.06, lee3: 1.06, lee4: 1.12, yutong: 1.06, yutong3: 1.0, yutong4: 1.08, yutong5: 1.08, dabao2: 1.08, dabao3: 1.06, dabao4: 1.1 };
+  const ON_CHART = new Set(["撒旦", "瘟疫", "路西法", "祝融", "基路伯", "觀音菩薩", "利維坦", "阿芙羅黛蒂", "哈索爾", "千里眼", "鼠軍師", "月老", "愛染明王", "華佗", "九尾", "語彤", "陽滋公主", "諾瓦", "狐姬", "七號",
+    "女媧", "媽祖", "白府千歲", "以賽亞", "刀鬼", "魔法翁", "哨兵古神", "順風耳", "紅衣小女孩", "謝守"]);
   const KIND_ID = { lee1: "bal", lee2: "atk", lee3: "bal", lee4: "bal", xiaobai: "atk", xiaoyu: "rec", dabao: "atk", afu: "hp" };
   const KIND = { atk: [.9, 1.2, .8], hp: [1.3, .9, .9], rec: [1, .85, 1.5], bal: [1.05, 1, 1.05] };
   const BIAS = { water: [1.3, .82, 1.6], fire: [.82, 1.2, .65] };
@@ -219,7 +257,7 @@ window.TIERS = {
     const tier = BY_ID[id] || BY_WHO[c.who] || "D", t = TIERS[tier];
     const kind = KIND_ID[id] || c.kind || "bal", km = KIND[kind], ab = BIAS[c.attr] || [1, 1, 1];
     const j = 1 + ((k * 37) % 9 - 4) / 100, e = EVO_UP[id] || 1;   // j 每張卡微調、e 進化加成
-    c.tier = tier; c.onChart = (ON_CHART.has(c.who) && !/^yutong/.test(id)) || id === "lee4" || id === "yutong4" || id === "yutong5"; c.star = t.star;
+    c.tier = tier; c.onChart = (ON_CHART.has(c.who) && !/^yutong/.test(id)) || id === "dabao4" || id === "lee4" || id === "yutong4" || id === "yutong5"; c.star = t.star;
     c.hp = Math.round(BASE[0] * t.m * km[0] * ab[0] * j * e / 10) * 10;
     c.atk = Math.round(BASE[1] * t.m * km[1] * ab[1] / j * e / 5) * 5;
     c.rec = Math.round(BASE[2] * t.m * km[2] * ab[2] * j * e / 5) * 5;
@@ -287,6 +325,62 @@ window.TIERS = {
   });
 })();
 
+/* =========================================================================
+   新版技能（2026-11-11 使用者定：第四批新卡參考神魔之塔、怪物彈珠近年的設計；舊卡維持原本技能）
+   ▸ 隊長技：高倍率＋條件疊加（combo、消除屬性數）、減傷、延長轉珠、追打、無視護盾
+   ▸ 主動技：自動排版（整版排成可一次消完的形狀）＋一回合大幅提升（攻擊倍率、combo 加成、全隊轉屬性）
+   ▸ 倍率是最終值，不經過上面的壓縮；招式名取自劇中原句與招式
+   ▸ 新欄位（game.js、tools/sim.js 都要認得）
+     隊長技 comboAt {n,x} 達到 n combo 攻擊再 x 倍／dmgCut 受到傷害減少比例（雙隊長相乘）／timeAdd 每回合轉珠多幾秒
+           chase n 每次攻擊後追打全體（隊長攻擊力 n 倍）／pierce 全隊攻擊無視敵人護盾
+     主動技 arrange 自動排版（見 game.js ARRANGE）／comboAdd 本回合 combo 數加 n／turnAs 本回合全隊以某屬性出手、所有符石都算
+           cut {x,turns} 幾回合內受到的傷害只剩 x／cleanse 解除敵人的轉珠干擾／unseal 解除全隊「封鎖攻擊」／pierceTurn 本回合無視護盾
+     immune 本回合受到的傷害全部變 0／multiHit n 連續普通攻擊 n 次／vsCthulhu 對克蘇魯系敵人（敵人資料 cthulhu: true）的傷害倍率
+     acts：多個主動技（各自冷卻，戰鬥中點頭像選一招；act 是第一招）；video：發招時播影片（取代發招特寫）
+   ========================================================================= */
+(() => {
+  const V = n => `video/mazu-${n}.mp4`;
+  // [隊長技, [主動技...]]；主動技 { name, cd, fx, video }
+  const NEW = {
+    // 媽祖：不進化、直接六星（使用者定）。四招共用一組冷卻 4 回合（shared）：安瀾（防守）、鎮瀾（全體高攻擊）、無瀾（一回合無傷）、霸極拳（連續普通攻擊 10 次）
+    mazu: [{ name: "媽祖加持的手串", fx: { attrAtk: { water: 6 }, allHp: 1.6, allRec: 1.4, comboAt: { n: 5, x: 2 }, dmgCut: .4, timeAdd: 1 } },
+      [{ name: "安瀾", cd: 4, fx: { cut: { x: .2, turns: 3 }, healPct: .6, delay: 1, cleanse: true, arrange: "water-heart" }, video: V("anlan") },
+       { name: "鎮瀾", cd: 4, fx: { arrange: "water-all", turnAs: "water", comboAdd: 4, buff: 3, nuke: 80, pierceTurn: true }, video: V("zhenlan") },
+       { name: "無瀾", cd: 4, fx: { immune: 1, healPct: .3 }, video: V("wulan") },
+       { name: "霸極拳", cd: 4, fx: { multiHit: 10, pierceTurn: true }, video: V("baji") }], true],
+    shunfeng: [{ name: "妖魔自治條例", fx: { attrAtk: { water: 4.5 }, comboAt: { n: 4, x: 1.8 }, timeAdd: 2 } },
+      [{ name: "靜音咒", cd: 5, fx: { delay: 2, arrange: "water-cross", buff: 2.5 } }]],
+    xieshou: [{ name: "甲級除咒師", fx: { attrAtk: { water: 4 }, allHp: 1.5, allRec: 1.5, regen: .08 } },
+      [{ name: "醫者令・小山火", cd: 4, fx: { cleanse: true, healPct: .4, convert: ["dark", "water"], buff: 2 } }]],
+    renmianyu: [{ name: "在山裡面好好修行", fx: { attrAtk: { water: 2.2 } } },
+      [{ name: "魚肉好吃嗎？", cd: 3, fx: { convert: ["fire", "water"] } }]],
+    redgirl: [{ name: "魔神仔領袖", fx: { attrAtk: { dark: 5 }, comboAt: { n: 5, x: 1.6 }, pierce: true } },
+      [{ name: "我控制住他了", cd: 5, fx: { delay: 2, arrange: "dark-rows", buff: 2.5 } }]],
+    baifu: [{ name: "只殺不度", fx: { attrAtk: { light: 5.5 }, allHp: 1.3, chase: 30, pierce: true } },
+      [{ name: "霸極拳", cd: 6, fx: { arrange: "light-all", turnAs: "light", buff: 2.5, nuke: 60, pierceTurn: true } }]],
+    nuwa: [{ name: "北境的金色菩提樹", fx: { attrAtk: { wood: 6 }, allHp: 1.8, allRec: 1.6, regen: .15, multiAttr: { n: 3, x: 1.8 } } },
+      [{ name: "輪迴六趣", cd: 6, fx: { healPct: 1, arrange: "six", comboAdd: 4, buff: 3 } }]],
+    isaiah: [{ name: "等統一魔界", fx: { attrAtk: { fire: 5.5 }, allHp: 1.4, chase: 25, dmgCut: .2 } },
+      [{ name: "巨錘", cd: 6, fx: { arrange: "fire-all", turnAs: "fire", buff: 2.5, nuke: 50 } }]],
+    daogui: [{ name: "我的封地要最大", fx: { attrAtk: { wood: 5.5 }, comboAt: { n: 6, x: 2.2 }, timeAdd: 1 } },
+      [{ name: "獨臂刀", cd: 5, fx: { arrange: "wood-cross", comboAdd: 2, buff: 2.5, pierceTurn: true } }]],
+    mofaweng: [{ name: "我要當國師", fx: { attrAtk: { dark: 5.5 }, multiAttr: { n: 3, x: 2 }, allRec: 1.3 } },
+      [{ name: "法術巨擘", cd: 6, fx: { arrange: "dark-heart", turnAs: "dark", buff: 3 } }]],
+    sentinel: [{ name: "不可直視", fx: { attrAtk: { dark: 5 }, allHp: 1.6, dmgCut: .3 } },
+      [{ name: "最強反派一定會有第二形態", cd: 6, fx: { healPct: .4, arrange: "dark-all", selfBuff: 6 } }]],
+    // 覺醒大寶：四星隊員（照天梯 C）。赤帝之火＝攻擊（對克蘇魯系特別痛）；直視古神＝解除全隊封鎖（古神戰只有他能解）
+    dabao4: [{ name: "祝融轉世", fx: { attrAtk: { fire: 2.5 } } },
+      [{ name: "赤帝之火", cd: 4, fx: { nuke: 40, vsCthulhu: 4, selfBuff: 3 } },
+       { name: "直視古神", cd: 3, fx: { unseal: true } }]]
+  };
+  Object.entries(NEW).forEach(([id, [lead, acts, shared]]) => {
+    const c = CARDS[id]; c.newgen = true; c.sharedCd = !!shared;   // shared：所有主動技共用一組冷卻
+    c.lead = { name: lead.name, fx: lead.fx };
+    c.acts = acts.map(a => ({ ...a }));
+    c.act = c.acts[0];
+  });
+})();
+
 /* 技能說明：沒寫 desc 的卡片，依效果自動產生 */
 (() => {
   const N = a => ATTR[a].name;
@@ -304,10 +398,19 @@ window.TIERS = {
     if (fx.regen) t.push(`每次轉珠後回復最大生命力 ${Math.round(fx.regen * 100)}%`);
     if (fx.survive) t.push(`每場戰鬥 ${fx.survive} 次，受到致命傷害時保留 1 點生命`);
     if (fx.multiAttr) t.push(`同時消除 ${fx.multiAttr.n} 種或以上屬性符石時，全隊攻擊力再 ${fx.multiAttr.x} 倍`);
+    if (fx.comboAt) t.push(`達成 ${fx.comboAt.n} combo 或以上時，全隊攻擊力再 ${fx.comboAt.x} 倍`);
+    if (fx.dmgCut) t.push(`受到的傷害減少 ${Math.round(fx.dmgCut * 100)}%`);
+    if (fx.timeAdd) t.push(`轉珠時間延長 ${fx.timeAdd} 秒`);
+    if (fx.chase) t.push(`每次攻擊後追打全體敵人（自身攻擊力 ${fx.chase} 倍的${N(attr)}屬性傷害）`);
+    if (fx.pierce) t.push("全隊攻擊無視敵人護盾");
     return t.join("；");
   }
   function actDesc(fx, attr) {
     const t = [];
+    if (fx.unseal) t.push("解除全隊的「封鎖攻擊」（古神戰必備）");
+    if (fx.immune) t.push(`${fx.immune} 回合內受到的傷害全部變 0`);
+    if (fx.multiHit) t.push(`連續普通攻擊 ${fx.multiHit} 次（每下＝自身消除一組符石的攻擊，含隊長倍率），本回合無視敵人護盾`.replace("，本回合無視敵人護盾", ""));
+    if (fx.arrange) t.push(`自動排版：${(window.ARRANGE_DESC || {})[fx.arrange] || "整理盤面"}`);
     if (fx.breakShield) t.push("破除所有敵人的護盾（屬性限定、傷害吸收）");
     if (fx.convert) t.push(`${N(fx.convert[0])}符石轉化為${N(fx.convert[1])}符石`);
     if (fx.board) t.push(`符石變成固定版面：${fx.boardDesc}`);
@@ -318,10 +421,15 @@ window.TIERS = {
     if (fx.rainbow) t.push("所有符石重新排列，六種符石各 5 粒");
     if (fx.healPct) t.push(`回復最大生命力 ${Math.round(fx.healPct * 100)}%`);
     if (fx.delay) t.push(`所有敵人的攻擊延遲 ${fx.delay} 回合`);
+    if (fx.cut) t.push(`${fx.cut.turns} 回合內受到的傷害只剩 ${Math.round(fx.cut.x * 100)}%`);
+    if (fx.cleanse) t.push("3 回合內敵人不能把符石變色");
     if (fx.guard) t.push(`${fx.guard} 回合內受到的傷害減半`);
-    if (fx.nuke) t.push(`對全體敵人造成自身攻擊力 ${fx.nuke} 倍的${N(attr)}屬性傷害`);
+    if (fx.nuke) t.push(`對全體敵人造成自身攻擊力 ${fx.nuke} 倍的${N(attr)}屬性傷害${fx.vsCthulhu ? `（對古神等克蘇魯系 ${fx.vsCthulhu} 倍）` : ""}`);
     if (fx.selfBuff) t.push(`本回合自身攻擊力 ${fx.selfBuff} 倍`);
     if (fx.buff) t.push(`本回合全隊攻擊力 ${fx.buff} 倍`);
+    if (fx.comboAdd) t.push(`本回合 combo 數 +${fx.comboAdd}`);
+    if (fx.turnAs) t.push(`本回合消除任何符石都算作${N(fx.turnAs)}符石，全隊以${N(fx.turnAs)}屬性出手`);
+    if (fx.pierceTurn) t.push("本回合無視敵人護盾");
     return t.join("，");
   }
   // 隱藏設定（不寫進說明）：全隊都是動物時，每位動物隊長讓全隊攻擊力 7 倍，雙隊長相乘 49 倍
@@ -336,6 +444,7 @@ window.TIERS = {
   Object.values(CARDS).forEach(c => {
     if (!c.lead.desc) c.lead.desc = leadDesc(c.lead.fx, c.attr);
     if (!c.act.desc) c.act.desc = actDesc(c.act.fx, c.attr);
+    (c.acts || []).forEach(a => { if (!a.desc) a.desc = actDesc(a.fx, c.attr); });
   });
 })();
 

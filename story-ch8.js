@@ -7,7 +7,7 @@
 Object.assign(window.ENEMIES, {
   wspider:  { name: "白蛛會幫眾", attr: "light", img: "art/enemy-baizhugang.webp", hp: 82000, atk: 1500, cd: 2 },
   wspiderB: { name: "白蛛會幫眾", attr: "light", img: "art/enemy-baizhugang.webp", hp: 118000, atk: 2000, cd: 2 },
-  raincoat: { name: "黃雨衣", attr: "dark", img: "art/enemy-raincoat.webp", hp: 118000, atk: 2000, cd: 2,
+  raincoat: { name: "雨衣小飛俠", attr: "dark", img: "art/enemy-raincoat.webp", hp: 118000, atk: 2000, cd: 2,
               skills: [{ on: "attack", name: "迷失幻境", convert: ["light", "dark"], n: 4 }] },
   baizhu:   { name: "白蛛會角頭", attr: "light", img: "art/enemy-baizhu.webp", hp: 420000, atk: 2800, cd: 3, boss: true,
               title: "白老大", warn: "庚寅時空 ‧ 白蛛會倉庫", quote: "黑龍的第一打手不敢單挑，竟然報警",
@@ -28,13 +28,13 @@ Object.assign(window.ENEMIES, {
   ["庚寅月老", "庚寅時空本地的月老，一頭白髮的老神明。"],
   ["白蛛會角頭", "白蛛會的老大，大家叫他白老大。走私違禁品，是黑龍堂的對頭。"],
   ["術士", "替白蛛會下蠱的術士，戴著紅布眼罩、拿著法杖的老頭。"],
-  ["黃雨衣", "跟著術士行動的青年，穿黃雨衣、拿狙擊槍，會用幻術「迷失幻境」。"],
+  ["雨衣小飛俠", "跟著術士行動的青年，穿黃雨衣、拿狙擊槍，會用幻術「迷失幻境」。"],
   ["基路伯", "天族的智天使，曾是遠古時期的半神。月老在庚寅時空遇上的天使。"],
   ["梁安恆", "庚寅時空的高中生，月老在這個世界最掛念的人。"],
   ["林怡曼", "安恆的女友。"],
   ["華佗", "醫神，發明了忘憂舞，是月老的好朋友。"]
 ].forEach(([k, v]) => { window.INTRO[k] = window.INTRO[k] || v; });
-Object.assign(window.VN, { "白蛛會角頭": "baizhu", "術士": "shushi", "黃雨衣": "raincoat", "基路伯": "cherub", "庚寅筱晴": "gyxiaoqing", "庚寅月老": "gengyin" });
+Object.assign(window.VN, { "白蛛會角頭": "baizhu", "術士": "shushi", "雨衣小飛俠": "raincoat", "基路伯": "cherub", "庚寅筱晴": "gyxiaoqing", "庚寅月老": "gengyin" });
 
 window.CHAPTERS.push({
   id: "ch8", music: { battle: "battle2", boss: "boss1" }, no: "第八章", name: "口罩方舟計畫", sub: "庚寅時空", place: "庚寅地球 ‧ 高熊市", bg: "art/bg-ch8.webp",
@@ -123,11 +123,15 @@ window.CHAPTERS.push({
     [null, "警察謝謝黑龍堂不但捐口罩給警隊，還幫忙破獲違禁品源頭。光頭說不客氣，改天來公司泡茶。"],
     [null, "白老大破產，被警察抓走了。"],
     ["@scene", "art/scenes/089.webp"],
-    [null, "路邊，黃雨衣和八尺大人說，白老大破產，沒錢付頭期款了，他們也走吧。", "", null, "黃雨衣"],
-    [null, "黃雨衣說他有把傘鬼救回來。"],
-    ["八尺大人", "養你這麼久，還不知道你這麼有義氣", "EP5-19"],
+    [null, "路邊，術士、雨衣小飛俠和八尺大人站在一起。"],
+    ["術士", "白老大破產了，沒有錢付頭期款", "EP5-19"],
+    ["雨衣小飛俠", "我有把傘鬼救回來哦", "EP5-19"],
+    ["術士", "養你這麼久，還不知道你這麼有義氣", "EP5-19"],
+    ["雨衣小飛俠", "我失業了，咱找個地方玩去吧，你們決定地點", "EP5-19"],
     ["八尺大人", "我想回故鄉，嚇小孩", "EP5-19"],
-    [null, "兩個人一起喊：好耶。"],
+    ["雨衣小飛俠", "你故鄉有山嗎，我喜歡用幻術整登山客", "EP5-19"],
+    ["八尺大人", "有山", "EP5-19"],
+    ["雨衣小飛俠", "好耶", "EP5-19"],
     ["@scene", "art/scenes/090.webp"],
     [null, "黑龍興業的頂樓。月老左右開弓，同時替安恆和怡曼紋身。"],
     [null, "杜先生說，文印不只能讓人更愛彼此，還能跨越輪迴不消散。看到紋好的圖樣，他驚呼：是三層文印。"],
@@ -154,5 +158,5 @@ window.CHAPTERS.push({
 /* 第四季 EP4-08 之後語彤穿實習月老的漢服，立繪用 yutongh */
 { const ch = window.CHAPTERS.find(c => c.id === "ch8"); ch.vn = { ...(ch.vn || {}), "語彤": "yutongh" }; }
 
-/* 黃雨衣：資料館沒有這個角色的條目，卡片的背景故事寫在這裡 */
-Object.assign(window.PROFILE, { "黃雨衣": { story: "跟著術士行動的青年，穿黃雨衣、拿狙擊槍。心堀江鬼城裡，他從頂樓一槍打爆了快要說出幕後主使的八尺大人，再用幻術「迷失幻境」困住月老，讓他看見陰曼的身影。白蛛會垮掉以後，他跟八尺大人一起離開。", aka: [], debut: "EP5-12", eps: 2, rel: [["術士", "一起行動"], ["八尺大人", "一起離開"]], quotes: [["EP5-12", "笨蛋神明"]] } });
+/* 雨衣小飛俠：資料館沒有這個角色的條目，卡片的背景故事寫在這裡 */
+Object.assign(window.PROFILE, { "雨衣小飛俠": { story: "跟著術士行動的青年，穿黃雨衣、拿狙擊槍。心堀江鬼城裡，他從頂樓一槍打爆了快要說出幕後主使的八尺大人，再用幻術「迷失幻境」困住月老，讓他看見陰曼的身影。白蛛會垮掉以後，他說自己失業了，跟術士、八尺大人一起找地方玩去。", aka: ["黃雨衣"], debut: "EP5-12", eps: 2, rel: [["術士", "一起行動"], ["八尺大人", "一起離開"]], quotes: [["EP5-12", "笨蛋神明"]] } });

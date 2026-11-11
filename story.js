@@ -514,7 +514,11 @@ window.CHAPTERS = [
 window.VN_SCALE = { "鼠軍師": .78,
   // 依立繪代號：女性角色比男性矮一點（照陽滋公主和岳夏澤的身高差，約 0.9）；有帽子、耳朵的已含在原圖高度裡
   yutong: .9, xiaoyu: .9, yiman: .9, mimi: .9, guanyin: .92, no7: .88, huji: .88, jiuwei: .88, gyxiaoqing: .9, xiaomi: .9,
-  nova: .8, gongwan: .42 };
+  nova: .8, gongwan: .42,
+  // 第六季後段～第七季（v1.4）
+  mazu: .9, shunfeng: .9, redgirl: .9, nuwa: .9, guanyin6: 1.06, yutong7: .9,
+  // 這批立繪的取景（含帽子、頭冠）比舊的大，照臉的大小對齊李國志、語彤
+  baifu: .72, xieshou: .72, isaiah: .86, daogui: .82, mofaweng: .88, aizen: .74, dabaof: .78 };
 window.VN = { "劉大牛": "liudaniu", "觀音菩薩": "guanyin", "千里眼": "qianliyan", "岳夏澤": "youshuzhang", "陽滋公主": "yangzi", "諾瓦": "nova", "語彤": "yutong", "李國志": "lee", "林伯伯": "linbobo", "王柏宏": "bohong", "月老": "yuelao", "鼠軍師": "rat", "利維坦": "leviathan", "小米": "xiaomi", "貢丸君": "gongwan" };
 
 /* 難度放寬（2026-10-19）：不照神魔之塔原版難度，敵人生命 ×0.6、攻擊 ×0.7。

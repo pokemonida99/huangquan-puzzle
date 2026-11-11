@@ -597,12 +597,23 @@ h1 small { display: block; font-size: 18px; letter-spacing: .5em; color: var(--i
 .sp-motto { position: absolute; top: calc(31% + 34px); left: 0; right: 0; text-align: center; z-index: 2; text-shadow: 0 0 6px #000, 0 0 12px #000, 0 2px 2px #000; font-family: "Noto Serif TC", "Songti TC", serif; font-weight: 900; color: #f0b98a; letter-spacing: .5em; font-size: 15px; opacity: 0; }
 #splash.cut .sp-motto { animation: fadeUp .7s ease-out 1s forwards; }
 @keyframes fadeUp { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: none; } }
-.sp-chr { position: absolute; bottom: 0; height: 46%; opacity: 0; filter: brightness(.8) drop-shadow(0 0 18px rgba(255,90,20,.35));
-  -webkit-mask-image: linear-gradient(#000 60%, transparent); mask-image: linear-gradient(#000 60%, transparent); }
-.sp-l { left: -4%; height: 53.5%; transform: translateX(-30px); }   /* 李國志的立繪多了禮帽，高度依比例放大 */
-.sp-r { right: 2%; transform: translateX(30px); }
-#splash.cut .sp-chr { animation: chrIn .9s ease-out .7s forwards; }
-@keyframes chrIn { to { opacity: .9; transform: none; } }
+/* v1.4 片頭：媽祖居中（金光中升起），順風耳從左、千里眼從右壓低身位進場，三人高低錯落 */
+.sp-chr { position: absolute; bottom: 0; opacity: 0; filter: brightness(.85) drop-shadow(0 0 16px rgba(0,0,0,.6));
+  -webkit-mask-image: linear-gradient(#000 70%, transparent); mask-image: linear-gradient(#000 70%, transparent); }
+.sp-sf { left: -12%; bottom: 2%; height: 44%; z-index: 1; transform: translateX(-40px) rotate(-3deg); }
+.sp-ql { right: -17%; bottom: 3%; height: 41%; z-index: 1; transform: translateX(40px) rotate(3deg); }
+.sp-mz { left: 50%; height: 55%; z-index: 3; transform: translate(-50%, 50px) scale(.94); filter: brightness(.95) drop-shadow(0 0 22px rgba(255,200,90,.55)); }
+#splash.cut .sp-sf { filter: brightness(.7) drop-shadow(0 0 14px rgba(0,0,0,.7)); animation: guardL .8s cubic-bezier(.2, .9, .3, 1) .6s forwards; }
+#splash.cut .sp-ql { filter: brightness(.7) drop-shadow(0 0 14px rgba(0,0,0,.7)); animation: guardR .8s cubic-bezier(.2, .9, .3, 1) .75s forwards; }
+#splash.cut .sp-mz { animation: mazuRise 1.2s cubic-bezier(.2, .8, .3, 1) .95s forwards; }
+@keyframes guardL { to { opacity: .92; transform: none; } }
+@keyframes guardR { to { opacity: .92; transform: none; } }
+@keyframes mazuRise { to { opacity: 1; transform: translate(-50%, 0) scale(1); } }
+.sp-halo { position: absolute; left: 50%; bottom: 14%; width: min(110vw, 520px); aspect-ratio: 1; transform: translateX(-50%) scale(.4); opacity: 0; border-radius: 50%; pointer-events: none;
+  background: radial-gradient(circle, rgba(255,225,140,.55) 0%, rgba(255,190,80,.22) 35%, rgba(80,160,255,.10) 55%, transparent 70%); }
+#splash.cut .sp-halo { animation: haloIn 1.4s ease-out .9s forwards, haloPulse 4s ease-in-out 2.3s infinite; }
+@keyframes haloIn { to { opacity: 1; transform: translateX(-50%) scale(1); } }
+@keyframes haloPulse { 50% { opacity: .7; transform: translateX(-50%) scale(1.06); } }
 /* 斬擊：一道光從左上劈到右下 */
 .sp-slash { position: absolute; left: -20%; top: 48%; width: 140%; height: 4px; background: linear-gradient(90deg, transparent, #fff 45%, #ffe0a0 55%, transparent);
   box-shadow: 0 0 18px 6px rgba(255,220,150,.8); transform: rotate(-14deg) scaleX(0); transform-origin: 0 50%; opacity: 0; pointer-events: none; }
@@ -624,3 +635,35 @@ h1 small { display: block; font-size: 18px; letter-spacing: .5em; color: var(--i
 html, body { -webkit-tap-highlight-color: transparent; }
 *, *::before, *::after { -webkit-user-select: none; user-select: none; -webkit-touch-callout: none; }   /* iOS Safari 不會從 body 繼承，要每個元素都設 */
 img { -webkit-user-drag: none; user-drag: none; -webkit-touch-callout: none; pointer-events: auto; }
+
+/* ===== v1.4：古神戰「封鎖攻擊」、雙主動技、發大招影片、需要的卡 ===== */
+.seal-tag { position: absolute; right: 92px; top: 8px; z-index: 4; max-width: 140px; padding: 3px 9px 4px; border-radius: 8px;
+  background: #0d0613e6; border: 1px solid #6b4a8a; color: #d9c7ee; font-size: 12px; line-height: 1.35; pointer-events: none; }
+.seal-tag[hidden] { display: none; }
+.seal-tag b { display: block; font-size: 12px; letter-spacing: .05em; color: #c9a6ff; }
+.seal-tag small { display: block; font-size: 10px; line-height: 1.3; color: #bfb1cf; }
+.seal-tag.on { border-color: #b06bff; box-shadow: 0 0 10px #b06bff66; }
+.seal-tag:not(.on) b { color: #ffb36b; }
+.seal-tag.bump { animation: sealbump .4s; }
+@keyframes sealbump { 30% { transform: translateX(-4px); } 60% { transform: translateX(4px); } }
+.need-box { margin: 10px 16px 0; padding: 8px 12px; border-radius: 10px; font-size: 13px; line-height: 1.5; background: #2a0f12; border: 1px solid #c8443a; color: #ffd2c8; }
+.need-box[hidden] { display: none; }
+.need-box.ok { background: #10220f; border-color: #4f9a4a; color: #cfeec8; }
+.party .icon.two::after { content: attr(data-n); position: absolute; right: 2px; top: 2px; font-size: 9px; font-weight: 700; line-height: 13px; width: 13px; text-align: center;
+  border-radius: 50%; background: #3fa7ff; color: #fff; }
+.modal.two-skill .skill.pick .row { margin-top: 8px; }
+.modal.two-skill .skill.pick .hint { margin: 0; font-size: 12px; color: var(--dim); }
+.skill-video { position: absolute; inset: 0; z-index: 60; background: #000; display: flex; align-items: center; justify-content: center; animation: svin .25s; }
+.skill-video video { width: 100%; height: 100%; object-fit: contain; pointer-events: none; }
+.skill-video .sv-skip { position: absolute; right: 12px; bottom: calc(14px + env(safe-area-inset-bottom)); padding: 5px 12px; border-radius: 999px;
+  font-size: 12px; color: #ddd; background: #000a; border: 1px solid #fff3; }
+.skill-video.out { opacity: 0; transition: opacity .3s; }
+@keyframes svin { from { opacity: 0; } }
+.hpbar.immune { box-shadow: 0 0 0 2px #ffe08a, 0 0 14px #ffd24a; }
+
+/* 封鎖攻擊：頭像掛上交叉的鐵鍊（大寶除外） */
+.party .icon.chained { filter: grayscale(.55) brightness(.75); }
+.party .icon.chained::before { content: ""; position: absolute; inset: -3px; z-index: 3; pointer-events: none;
+  background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 60 60'%3E%3Cellipse cx='5.1' cy='5.1' rx='6.2' ry='3.4' transform='rotate%2845 5.1 5.1%29' fill='none' stroke='%231a1a1a' stroke-width='3.6'/%3E%3Cellipse cx='5.1' cy='5.1' rx='6.2' ry='3.4' transform='rotate%2845 5.1 5.1%29' fill='none' stroke='%23c9ccd4' stroke-width='2'/%3E%3Cline x1='7.8' y1='7.8' x2='14.9' y2='14.9' stroke='%231a1a1a' stroke-width='4.4' stroke-linecap='round'/%3E%3Cline x1='7.8' y1='7.8' x2='14.9' y2='14.9' stroke='%23e6e8ee' stroke-width='2.2' stroke-linecap='round'/%3E%3Cellipse cx='17.6' cy='17.6' rx='6.2' ry='3.4' transform='rotate%2845 17.6 17.6%29' fill='none' stroke='%231a1a1a' stroke-width='3.6'/%3E%3Cellipse cx='17.6' cy='17.6' rx='6.2' ry='3.4' transform='rotate%2845 17.6 17.6%29' fill='none' stroke='%23c9ccd4' stroke-width='2'/%3E%3Cline x1='20.2' y1='20.2' x2='27.3' y2='27.3' stroke='%231a1a1a' stroke-width='4.4' stroke-linecap='round'/%3E%3Cline x1='20.2' y1='20.2' x2='27.3' y2='27.3' stroke='%23e6e8ee' stroke-width='2.2' stroke-linecap='round'/%3E%3Cellipse cx='30.0' cy='30.0' rx='6.2' ry='3.4' transform='rotate%2845 30.0 30.0%29' fill='none' stroke='%231a1a1a' stroke-width='3.6'/%3E%3Cellipse cx='30.0' cy='30.0' rx='6.2' ry='3.4' transform='rotate%2845 30.0 30.0%29' fill='none' stroke='%23c9ccd4' stroke-width='2'/%3E%3Cline x1='32.7' y1='32.7' x2='39.8' y2='39.8' stroke='%231a1a1a' stroke-width='4.4' stroke-linecap='round'/%3E%3Cline x1='32.7' y1='32.7' x2='39.8' y2='39.8' stroke='%23e6e8ee' stroke-width='2.2' stroke-linecap='round'/%3E%3Cellipse cx='42.4' cy='42.4' rx='6.2' ry='3.4' transform='rotate%2845 42.4 42.4%29' fill='none' stroke='%231a1a1a' stroke-width='3.6'/%3E%3Cellipse cx='42.4' cy='42.4' rx='6.2' ry='3.4' transform='rotate%2845 42.4 42.4%29' fill='none' stroke='%23c9ccd4' stroke-width='2'/%3E%3Cline x1='45.1' y1='45.1' x2='52.2' y2='52.2' stroke='%231a1a1a' stroke-width='4.4' stroke-linecap='round'/%3E%3Cline x1='45.1' y1='45.1' x2='52.2' y2='52.2' stroke='%23e6e8ee' stroke-width='2.2' stroke-linecap='round'/%3E%3Cellipse cx='54.9' cy='54.9' rx='6.2' ry='3.4' transform='rotate%2845 54.9 54.9%29' fill='none' stroke='%231a1a1a' stroke-width='3.6'/%3E%3Cellipse cx='54.9' cy='54.9' rx='6.2' ry='3.4' transform='rotate%2845 54.9 54.9%29' fill='none' stroke='%23c9ccd4' stroke-width='2'/%3E%3Cellipse cx='54.9' cy='5.1' rx='6.2' ry='3.4' transform='rotate%28135 54.9 5.1%29' fill='none' stroke='%231a1a1a' stroke-width='3.6'/%3E%3Cellipse cx='54.9' cy='5.1' rx='6.2' ry='3.4' transform='rotate%28135 54.9 5.1%29' fill='none' stroke='%23c9ccd4' stroke-width='2'/%3E%3Cline x1='52.2' y1='7.8' x2='45.1' y2='14.9' stroke='%231a1a1a' stroke-width='4.4' stroke-linecap='round'/%3E%3Cline x1='52.2' y1='7.8' x2='45.1' y2='14.9' stroke='%23e6e8ee' stroke-width='2.2' stroke-linecap='round'/%3E%3Cellipse cx='42.4' cy='17.6' rx='6.2' ry='3.4' transform='rotate%28135 42.4 17.6%29' fill='none' stroke='%231a1a1a' stroke-width='3.6'/%3E%3Cellipse cx='42.4' cy='17.6' rx='6.2' ry='3.4' transform='rotate%28135 42.4 17.6%29' fill='none' stroke='%23c9ccd4' stroke-width='2'/%3E%3Cline x1='39.8' y1='20.2' x2='32.7' y2='27.3' stroke='%231a1a1a' stroke-width='4.4' stroke-linecap='round'/%3E%3Cline x1='39.8' y1='20.2' x2='32.7' y2='27.3' stroke='%23e6e8ee' stroke-width='2.2' stroke-linecap='round'/%3E%3Cellipse cx='30.0' cy='30.0' rx='6.2' ry='3.4' transform='rotate%28135 30.0 30.0%29' fill='none' stroke='%231a1a1a' stroke-width='3.6'/%3E%3Cellipse cx='30.0' cy='30.0' rx='6.2' ry='3.4' transform='rotate%28135 30.0 30.0%29' fill='none' stroke='%23c9ccd4' stroke-width='2'/%3E%3Cline x1='27.3' y1='32.7' x2='20.2' y2='39.8' stroke='%231a1a1a' stroke-width='4.4' stroke-linecap='round'/%3E%3Cline x1='27.3' y1='32.7' x2='20.2' y2='39.8' stroke='%23e6e8ee' stroke-width='2.2' stroke-linecap='round'/%3E%3Cellipse cx='17.6' cy='42.4' rx='6.2' ry='3.4' transform='rotate%28135 17.6 42.4%29' fill='none' stroke='%231a1a1a' stroke-width='3.6'/%3E%3Cellipse cx='17.6' cy='42.4' rx='6.2' ry='3.4' transform='rotate%28135 17.6 42.4%29' fill='none' stroke='%23c9ccd4' stroke-width='2'/%3E%3Cline x1='14.9' y1='45.1' x2='7.8' y2='52.2' stroke='%231a1a1a' stroke-width='4.4' stroke-linecap='round'/%3E%3Cline x1='14.9' y1='45.1' x2='7.8' y2='52.2' stroke='%23e6e8ee' stroke-width='2.2' stroke-linecap='round'/%3E%3Cellipse cx='5.1' cy='54.9' rx='6.2' ry='3.4' transform='rotate%28135 5.1 54.9%29' fill='none' stroke='%231a1a1a' stroke-width='3.6'/%3E%3Cellipse cx='5.1' cy='54.9' rx='6.2' ry='3.4' transform='rotate%28135 5.1 54.9%29' fill='none' stroke='%23c9ccd4' stroke-width='2'/%3E%3Crect x='23' y='27' width='14' height='12' rx='2' fill='%233a3a40' stroke='%23d8dbe2' stroke-width='1.6'/%3E%3Cpath d='M26 27v-3.5a4 4 0 0 1 8 0V27' fill='none' stroke='%23d8dbe2' stroke-width='2'/%3E%3Ccircle cx='30' cy='32.5' r='1.6' fill='%23d8dbe2'/%3E%3C/svg%3E") center / 100% 100% no-repeat;
+  animation: chainIn .35s ease-out; }
+@keyframes chainIn { from { transform: scale(1.4); opacity: 0; } }

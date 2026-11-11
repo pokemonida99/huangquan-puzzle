@@ -98,7 +98,7 @@ function chalCheck() {   // 出擊前檢查：回傳不符合的說明，空字�
   if (!chal) return "";
   const d = chalDef(chal.idx);
   if (!d.bad) return "";
-  const bad = [...new Set(team.filter(d.bad).map(id => CARDS[id].who))];
+  const bad = [...new Set(team.filter((id, i) => !trialSlot(i) && d.bad(id)).map(id => CARDS[id].who))];   // 試用的卡不算
   return bad.length ? `隊伍裡有不符合條件的卡：${bad.join("、")}` : "";
 }
 function setChalTag() {
@@ -157,6 +157,14 @@ function renderTeam() {
   $(".stage-name").textContent = `${CH.no}　${CH.name}${chal ? "　挑戰關" : ""}`;
   const cb = $(".chal-box"), cd = chal && chalDef(chal.idx), cmsg = chalCheck();
   cb.hidden = !chal;
+  const nb = $(".need-box"), need = CH.needs && CARDS[CH.needs];   // 古神戰：一定要帶覺醒大寶
+  nb.hidden = !need;
+  if (need) {
+    const ok = team.includes(CH.needs);
+    nb.className = "need-box" + (ok ? " ok" : "");
+    nb.innerHTML = ok ? `✔ 隊伍裡有「${need.title} ${need.who}」：${CH.seal ? `開場的「${CH.seal.name}」可以用「${unsealAct(CH.needs).name}」解除` : "可以出擊"}`
+      : `✘ 這一章一定要帶「${need.title} ${need.who}」${CH.seal ? `：開場全隊「${CH.seal.name}」，只有他的「${unsealAct(CH.needs).name}」能解除` : ""}`;
+  }
   if (chal) cb.innerHTML = `<b>⚔ 挑戰條件：${cd.label}</b><span class="${cmsg ? "bad" : "ok"}">${cd.turns ? "過關回合數會計算" : cmsg ? "✘ " + cmsg : "✔ 隊伍符合條件"}</span>
     <small>${prog.chal[chal.idx] ? `已完成，再次過關 ${REWARD.chalAgain} 功德` : `首次過關 ${REWARD.chalFirst} 功德`}；劇情自動略過</small>`;
   $(".stage-intro").textContent = CH.intro;
@@ -216,6 +224,13 @@ $("#go-battle").onclick = () => {
     modal(`<h3>不符合挑戰條件</h3><p>「${chalDef(chal.idx).label}」</p><p class="unlock">${bad}</p><div class="row"><button class="btn gold" data-close>回去換隊伍</button></div>`);
     vibe(40); return;
   }
+  const need = CH.needs && CARDS[CH.needs];
+  if (need && !team.includes(CH.needs)) {
+    modal(`<h3>還沒帶${need.who}</h3><p>這一章開場全隊會被「${CH.seal ? CH.seal.name : "封鎖"}」，只有「${need.title} ${need.who}」的「${unsealAct(CH.needs).name}」能解除。沒帶他就沒辦法攻擊。</p>
+      <div class="row"><button class="btn gold" data-close>回去換隊伍</button><button class="btn" id="go-anyway">照樣出擊</button></div>`);
+    $("#go-anyway").onclick = () => { closeModal(); go("battle"); setChalTag(); startBattle(!!chal); };
+    vibe(40); return;
+  }
   go("battle"); setChalTag(); startBattle(!!chal);
 };
 
@@ -223,14 +238,14 @@ $("#go-battle").onclick = () => {
    劇情對話框
    ================================================================ */
 // 說話的人用哪張圖：有立繪用立繪（依表情），沒有就用卡面；敵人用敵人圖
-function portraitOf(who, expr) {
+function portraitOf(who, expr, keyOver) {   // keyOver：台詞第 6 欄指定這一句的立繪代號（同一章裡換造型）
   if (!who) return null;
   const ids = Object.keys(CARDS).filter(id => CARDS[id].who === who);
   const foe = Object.values(ENEMIES).find(x => x.name === who);
   if (foe && !VN[who]) return { src: foe.img, attr: foe.attr, kind: "enemy" };   // 撒旦、辣雞等：劇情裡用敵人圖（邊緣融入畫面）
   if (ids.length) {
     const c = CARDS[who === "李國志" ? "lee4" : who === "語彤" ? "yutong1" : ids[0]];
-    const key = (CH.vn && CH.vn[who]) || VN[who];   // 有些章節換造型（例：語彤第四季穿漢服）
+    const key = keyOver || (CH.vn && CH.vn[who]) || VN[who];   // 有些章節換造型（例：語彤第四季穿漢服）
     return { src: key ? `art/vn/${key}-${expr || "normal"}.webp` : c.art, fallback: c.art, attr: c.attr, kind: key ? "vn" : "card", key };
   }
   const e = Object.values(ENEMIES).find(x => x.name === who);
@@ -284,7 +299,7 @@ function dialog(source) {
         return;
       }
       const actor = who || lines[i][4];   // 旁白行可帶第 5 欄：讓沒有台詞的角色（例：貓）站上舞台
-      const p = portraitOf(actor, expr);
+      const p = portraitOf(actor, expr, lines[i][5]);
       D.classList.toggle("narr", !who); D.classList.remove("ready");
       $(".dlg-name", D).textContent = who || "";
       $(".dlg-ep", D).textContent = ep || "";
@@ -293,7 +308,11 @@ function dialog(source) {
         let side = slot.l === actor ? "l" : slot.r === actor ? "r" : (last === "l" ? "r" : "l");
         const v = $(".vn-" + side, D), img = $("img", v), entering = slot[side] !== actor;
         slot[side] = actor; last = side;
-        img.onerror = () => { if (p.fallback && img.getAttribute("src") !== p.fallback) { img.src = p.fallback; v.classList.remove("vn-pic"); v.classList.add("card"); } };
+        img.onerror = () => {   // 這個表情還沒畫：先退回同代號的 normal，再退回卡面
+          const cur = img.getAttribute("src"), nm = p.key && `art/vn/${p.key}-normal.webp`;
+          if (nm && cur !== nm && cur !== p.fallback) { img.src = nm; return; }
+          if (p.fallback && cur !== p.fallback) { img.src = p.fallback; v.classList.remove("vn-pic"); v.classList.add("card"); }
+        };
         if (img.getAttribute("src") !== p.src) img.src = p.src;
         // 立繪的頭都對齊在同一個基準高度（935px）；有帽子、頭飾的圖比較高，依實際高度放大，臉才一樣大
         const fit = () => v.style.setProperty("--vs", (p.kind === "vn" && img.naturalHeight ? img.naturalHeight / 935 : 1) * (VN_SCALE[p.key] || VN_SCALE[actor] || 1));
@@ -331,11 +350,14 @@ function startBattle(skipStory) {
   B = {
     hpMax: teamHp(), hp: teamHp(), rec: teamRec(),
     wave: 0, enemies: [], target: null, buff: 1, busy: false,
-    cd: team.map(id => CARDS[id].act.cd)
+    cd: team.map(id => CARDS[id].act.cd),
+    cdx: team.map(id => (CARDS[id].acts || []).slice(1).map(a => a.cd))   // 第二招以後的冷卻（媽祖四招、大寶兩招）
   };
+  B.sealed = !!CH.seal; B.cut = null; B.noConvert = 0;   // 古神戰：一進場全隊封鎖攻擊
+  if (CH.seal) team.forEach((id, i) => (CARDS[id].acts || []).forEach((a, k) => { if (a.fx.unseal && k) B.cdx[i][k - 1] = 0; else if (a.fx.unseal) B.cd[i] = 0; }));   // 解封招開場就能用
   B.guard = 0; B.turns = 0; B.maxCombo = 0; setChalTag();
   B.survive = leaderFx().reduce((a, fx) => a + (fx.survive || 0), 0);
-  renderParty(); updateHp();
+  renderParty(); updateHp(); updateSeal();   // updateSeal 會替頭像掛鐵鍊
   initBoard();
   $(".field-bg").style.backgroundImage = `url(${CH.bg})`;
   $(".enemies").innerHTML = "";
@@ -364,25 +386,47 @@ function preloadChapter() {
     if (l[0] === "@scene") { if (l[1]) srcs.add(l[1]); return; }
     const who = l[0] === "@intro" ? l[1] : (l[0] || l[4]);
     if (!who || who[0] === "@") return;
-    const p = portraitOf(who, l[0] === "@intro" ? null : l[3]);
+    const p = portraitOf(who, l[0] === "@intro" ? null : l[3], l[0] === "@intro" ? null : l[5]);
     if (p) srcs.add(p.src);
   }));
   srcs.forEach(src => { if (!src) return; const im = new Image(); im.src = src; preloaded.push(im); });
 }
 
+const actsOf = i => CARDS[team[i]].acts || [CARDS[team[i]].act];
+const cdOf = (i, k) => k ? B.cdx[i][k - 1] : B.cd[i];
+const hasAct2 = i => actsOf(i).length > 1;
+const slotCd = i => Math.min(B.cd[i], ...B.cdx[i]);
+const slotReady = i => slotCd(i) <= 0;
 function renderParty() {
-  $(".party").innerHTML = team.map((id, i) => iconHTML(id, `<span class="cd">${B.cd[i] || "OK"}</span>`)).join("");
+  $(".party").innerHTML = team.map((id, i) => iconHTML(id, `<span class="cd">${slotCd(i) || "OK"}</span>`)).join("");
   $$(".party .icon").forEach((el, i) => {
     el.dataset.i = i;
-    el.classList.toggle("ready", B.cd[i] <= 0);
+    el.classList.toggle("ready", slotReady(i));
+    el.classList.toggle("two", hasAct2(i));
+    if (hasAct2(i)) el.dataset.n = actsOf(i).length;
     el.onclick = () => skillDialog(i);
   });
 }
 function updateParty() {
   $$(".party .icon").forEach((el, i) => {
-    el.classList.toggle("ready", B.cd[i] <= 0);
-    $(".cd", el).textContent = B.cd[i] > 0 ? B.cd[i] : "OK";
+    el.classList.toggle("ready", slotReady(i));
+    $(".cd", el).textContent = slotCd(i) > 0 ? slotCd(i) : "OK";
   });
+}
+/* 古神戰「封鎖攻擊」：角落的狀態提示（不擋畫面中間） */
+const unsealAct = id => (CARDS[id].acts || [CARDS[id].act]).find(a => a.fx.unseal);
+const hasUnsealer = () => team.some(id => unsealAct(id));
+const sealFree = i => !!unsealAct(team[i]);   // 大寶能直視古神：封鎖對他無效，照樣攻擊
+function updateSeal() {
+  const el = $(".seal-tag"); if (!el) return;
+  el.hidden = !(B && CH.seal);
+  $$(".party .icon").forEach((ic, i) => ic.classList.toggle("chained", !!(B && B.sealed && !sealFree(i))));   // 封鎖中：頭像掛上鐵鍊（大寶除外）
+  if (el.hidden) return;
+  el.classList.toggle("on", !!B.sealed);
+  el.innerHTML = B.sealed
+    ? `<b>🔒 ${CH.seal.name}</b><small>${hasUnsealer() ? `點大寶「${unsealAct(team.find(id => unsealAct(id))).name}」解除` : "沒帶覺醒大寶，無法解除"}</small>`
+    : `<b>🔓 已解除封鎖</b><small>古神攻擊後會再封鎖</small>`;
+  if (B.sealed) el.querySelector("small").textContent += "（大寶照常攻擊）";
 }
 function updateHp() {
   B.hp = Math.max(0, Math.min(B.hpMax, B.hp));
@@ -436,7 +480,7 @@ async function openStrike() {
   if (!B) return;
   for (const i of [0, 5]) {
     const c = CARDS[team[i]], n = c.lead.fx.openStrike;
-    if (!n || !alive().length) continue;
+    if (!n || !alive().length || B.sealed) continue;
     await sleep(500);
     if (!B) return;
     banner(c.lead.name);
@@ -523,6 +567,7 @@ function skillText(s) {
     if (s.shield && s.shield.only) return `${head}出場時只受${ATTR[s.shield.only].name}屬性傷害，持續 ${s.turns} 回合（可用破盾技能破除）`;
     return `${head}出場時單次傷害低於 ${fmt(s.absorb)} 會被完全吸收，持續 ${s.turns} 回合（可用破盾技能破除）`;
   }
+  if (s.on === "attack" && s.seal) return `「${s.name}」攻擊後再次封鎖全隊的攻擊（只有覺醒大寶的「直視古神」能解除）`;
   if (s.on === "attack") return `「${s.name}」攻擊後把 ${s.n} 顆${ATTR[s.convert[0]].name}符石變成${ATTR[s.convert[1]].name}符石`;
   if (s.on === "low") return `「${s.name}」生命力低於 ${Math.round(s.hp * 100)}% 時狂暴：攻擊間隔變 ${s.cd} 回合、攻擊力 ${s.atk} 倍`;
   return "";
@@ -548,7 +593,8 @@ async function enemyRage(e, i) {
   await sleep(500);
 }
 async function enemyConvert(e) {
-  for (const s of e.skills.filter(x => x.on === "attack")) {
+  if (B.noConvert > 0) return;   // 新版主動技 cleanse：這幾回合不能把符石變色
+  for (const s of e.skills.filter(x => x.on === "attack" && x.convert)) {
     const pool = grid.flat().filter(o => o.attr === s.convert[0]);
     if (!pool.length) continue;
     banner(s.name);
@@ -565,13 +611,13 @@ function banner(text) {
   $(".field").appendChild(d); setTimeout(() => d.remove(), 1500);
 }
 /* 五星以上發招特寫：去背的發招姿勢圖（art/skill/<id>.webp，還沒畫的先用卡面）＋招式名稱 */
-async function cutIn(id) {
+async function cutIn(id, actName) {
   const c = CARDS[id], A = ATTR[c.attr], d = document.createElement("div");
   const pose = (window.SKILL_POSE || []).includes(id);
   d.className = "cutin" + (pose ? " pose" : "");
   d.style.setProperty("--ac", A.color); d.style.setProperty("--ad", A.dark);
   d.innerHTML = `<div class="ci-band"></div><img src="${pose ? `art/skill/${id}.webp` : c.art}" alt="">
-    <div class="ci-text"><small>${c.title.replace(/（.*?）/, "")} ${c.who}</small><b>${c.act.name}</b></div>`;
+    <div class="ci-text"><small>${c.title.replace(/（.*?）/, "")} ${c.who}</small><b>${actName || c.act.name}</b></div>`;
   $(".field").appendChild(d);
   sfx.skill(); vibe([20, 30, 20, 30, 60]);
   if (window.playVoice) playVoice(id);
@@ -735,7 +781,8 @@ board.addEventListener("pointercancel", endDrag);
 let timerRAF = 0;
 function startTimer() {
   drag.t0 = performance.now();
-  drag.limit = MOVE_TIME + (B.timeUp || 0) * 1000; B.timeUp = 0;   // 主動技「延長轉珠時間」只作用一次
+  const lt = leaderFx().reduce((a, fx) => a + (fx.timeAdd || 0), 0);   // 新版隊長技：每回合延長
+  drag.limit = MOVE_TIME + ((B.timeUp || 0) + lt) * 1000; B.timeUp = 0;   // 主動技「延長轉珠時間」只作用一次
   $(".timer").classList.add("on");
   const tick = now => {
     if (!drag) return;
@@ -871,21 +918,22 @@ async function playerTurnInner() {
     floatText(hb.left - fb.left + hb.width / 2, hb.top - fb.top - 34, "+" + fmt(heal), "heart", "heal");
   }
   $(".combo").classList.remove("show");
-  if (groups.length) { B.buff = 1; B.selfBuff = {}; }   // 沒消除就保留主動技的加成到下一次
-  if (groups.length) { B.cd = B.cd.map(v => Math.max(0, v - 1)); updateParty(); }
+  if (groups.length) { B.buff = 1; B.selfBuff = {}; B.comboAdd = 0; B.turnAs = null; B.pierceTurn = false; }   // 沒消除就保留主動技的加成到下一次
+  if (groups.length) { B.cd = B.cd.map(v => Math.max(0, v - 1)); B.cdx = B.cdx.map(a => a.map(v => Math.max(0, v - 1))); updateParty(); }
   if (await checkWave()) return;
   await enemyTurn();
   if (B !== b || B.over) return;   // 輸了／離開：盤面維持鎖定
   B.busy = false; board.classList.remove("locked");
 }
 
-function leaderMul(attr, groups) {
+function leaderMul(attr, groups, combo = groups.length) {
   let m = 1;
   const kinds = new Set(groups.filter(g => g.attr !== "heart").map(g => g.attr)).size;
   leaderFx().forEach(fx => {
     if (fx.allAtk) m *= fx.allAtk;
     if (fx.attrAtk && fx.attrAtk[attr]) m *= fx.attrAtk[attr];
     if (fx.multiAttr && kinds >= fx.multiAttr.n) m *= fx.multiAttr.x;
+    if (fx.comboAt && combo >= fx.comboAt.n) m *= fx.comboAt.x;   // 新版：達成 n combo
   });
   if (allAnimal()) m *= 7 * 7;
   return m;
@@ -895,7 +943,7 @@ function typeMul(a, d) { return BEATS[a] === d ? 2 : BEATS[d] === a && a !== "li
 async function attack(groups) {
   B.allShown = false;
   const comboUp = leaderFx().reduce((a, fx) => a + (fx.comboUp || 0), 0);   // 路西法：combo 加成更高
-  const combo = groups.length, comboMul = 1 + (combo - 1) * (.25 + comboUp);
+  const combo = groups.length + (B.comboAdd || 0), comboMul = 1 + (combo - 1) * (.25 + comboUp);   // 主動技可以加 combo 數
   const partyEls = $$(".party .icon");
   // 回復
   const hearts = groups.filter(g => g.attr === "heart");
@@ -907,24 +955,37 @@ async function attack(groups) {
     floatText(hb.left - fb.left + hb.width / 2, hb.top - fb.top - 34, "+" + fmt(heal), "heart", "heal");
     sfx.heal();
   }
+  // 古神戰：封鎖中只有大寶能攻擊（心符石照樣回血）
+  if (B.sealed && groups.some(g => g.attr !== "heart")) { banner(`${CH.seal.name}：只有大寶能攻擊`); shakeSeal(); await sleep(300); }
   // 攻擊：每位成員依自己的屬性出手
   for (let i = 0; i < team.length; i++) {
     const c = CARDS[team[i]];
-    // 利維坦的隊長技：任何顏色的符石都算作水符石
+    if (B.sealed && !sealFree(i)) continue;
+    // 利維坦的隊長技：任何顏色的符石都算作水符石；新版主動技 turnAs：本回合全隊以某屬性出手、所有符石都算
     const asAll = leaderFx().some(fx => fx.allAs === c.attr);
-    const mine = groups.filter(g => g.attr === c.attr || asAll);
+    const atkAttr = B.turnAs || c.attr;
+    const mine = B.turnAs ? groups.filter(g => g.attr !== "heart") : groups.filter(g => g.attr === c.attr || asAll);
     if (!mine.length || !alive().length) continue;
     const base = mine.reduce((s, g) => s + 1 + (g.n - 3) * .25, 0);
     const toAll = mine.some(g => g.n >= 5);
-    const raw = c.atk * base * comboMul * leaderMul(c.attr, groups) * B.buff * ((B.selfBuff && B.selfBuff[i]) || 1);
+    const raw = c.atk * base * comboMul * leaderMul(atkAttr, groups, combo) * B.buff * ((B.selfBuff && B.selfBuff[i]) || 1);
     if (toAll && !B.allShown) { B.allShown = true; banner("全體攻擊"); }
     const targets = toAll ? alive() : [B.target != null && B.enemies[B.target].hpNow > 0 ? B.target : alive()[0]];
     partyEls[i].classList.remove("atk"); void partyEls[i].offsetWidth; partyEls[i].classList.add("atk");
-    await Promise.all(targets.map(t => hitEnemy(t, raw, c.attr, partyEls[i])));
+    await Promise.all(targets.map(t => hitEnemy(t, raw, atkAttr, partyEls[i])));
     await sleep(90);
+  }
+  // 新版隊長技：追打（白府千歲、以賽亞）
+  for (const k of [0, 5]) {
+    const c = CARDS[team[k]], n = c.lead.fx.chase;
+    if (!n || !alive().length || !groups.some(g => g.attr !== "heart") || (B.sealed && !sealFree(k))) continue;
+    await sleep(150); banner(`追打 ‧ ${c.lead.name}`);
+    await Promise.all(alive().map(t => hitEnemy(t, c.atk * n * B.buff, c.attr, partyEls[k])));
   }
   await sleep(250);
 }
+function shakeSeal() { const el = $(".seal-tag"); if (!el) return; el.classList.remove("bump"); void el.offsetWidth; el.classList.add("bump"); }
+const piercing = () => B.pierceTurn || leaderFx().some(fx => fx.pierce);
 async function hitEnemy(t, raw, attr, fromEl) {
   if (!B) return;
   const e = B.enemies[t], el = enemyEl(t);
@@ -933,7 +994,7 @@ async function hitEnemy(t, raw, attr, fromEl) {
   const vd = e.demon ? leaderFx().reduce((a, fx) => a * (fx.vsDemon || 1), 1) : 1;   // 哈索爾：打魔族加倍
   const tm = typeMul(attr, e.attr) * vd;
   let dmg = Math.round(raw * tm), block = "";
-  if (e.shield) {
+  if (e.shield && !piercing()) {   // 新版：無視護盾
     if (e.shield.only && attr !== e.shield.only) block = "無效";
     else if (e.shield.absorb && dmg < e.shield.absorb) block = "吸收";
   }
@@ -971,7 +1032,8 @@ async function enemyTurn() {
       const el = enemyEl(i);
       el.classList.remove("atk"); void el.offsetWidth; el.classList.add("atk");
       await sleep(250);
-      const dmg = B.saved ? 0 : Math.round(e.atk * (B.guard > 0 ? .5 : 1));   // 剛保命過，這回合後面的攻擊都擋下
+      const cutMul = leaderFx().reduce((a, fx) => a * (1 - (fx.dmgCut || 0)), 1) * (B.cut ? B.cut.x : 1);   // 新版：減傷
+      const dmg = B.saved || B.immune > 0 ? 0 : Math.round(e.atk * (B.guard > 0 ? .5 : 1) * cutMul);   // 剛保命過，這回合後面的攻擊都擋下
       B.hp -= dmg; updateHp();
       if (e.boss) { quake(16, 500); flash("rgba(200,0,0,.4)", 400); }
       else quake(6, 240);
@@ -981,6 +1043,10 @@ async function enemyTurn() {
       e.cdNow = e.cd;
       await sleep(350);
       if (B.hp > 0) await enemyConvert(e);
+      if (B.hp > 0 && CH.seal && !B.sealed && e.skills.some(x => x.seal)) {   // 古神：攻擊後重新封鎖
+        B.sealed = true; updateSeal(); banner(e.skills.find(x => x.seal).name || CH.seal.name);
+        flash("rgba(90,0,140,.45)", 500); vibe([60, 40, 60]); await sleep(500);
+      }
     }
     enemyShieldTurn(e);
     updateEnemy(i);
@@ -991,29 +1057,78 @@ async function enemyTurn() {
     }
     if (B.hp <= 0) { lose(); return; }
   }
-  if (B.guard > 0) { B.guard--; $(".hpbar").classList.toggle("guarded", B.guard > 0); }
+  if (B.guard > 0) B.guard--;
+  if (B.cut && --B.cut.turns <= 0) B.cut = null;
+  if (B.noConvert > 0) B.noConvert--;
+  if (B.immune > 0) B.immune--;
+  $(".hpbar").classList.toggle("guarded", B.guard > 0 || !!B.cut || B.immune > 0);
+  $(".hpbar").classList.toggle("immune", B.immune > 0);
 }
 
 /* ---------------- 主動技能 ---------------- */
 function skillDialog(i) {
   if (B.busy || drag) return;
-  const c = CARDS[team[i]], ready = B.cd[i] <= 0;
+  const c = CARDS[team[i]];
+  const acts = actsOf(i), cds = acts.map((a, k) => cdOf(i, k));
+  const two = acts.length > 1;
   modal(`<h3>${c.title} ${c.who}</h3>
-    <div class="skill"><span class="k">主動技能</span><span class="cdv">CD ${c.act.cd}</span><br><b>${c.act.name}</b><br>${c.act.desc}</div>
-    <p class="hint">${ready ? "" : `還要 ${B.cd[i]} 回合才能發動`}</p>
-    <div class="row"><button class="btn" data-close>返回</button>${ready ? `<button class="btn gold" id="cast">發動</button>` : ""}</div>`);
-  if (ready) $("#cast").onclick = () => { closeModal(); castSkill(i); };
+    ${acts.map((a, k) => `<div class="skill ${two ? "pick" : ""}"><span class="k">${two ? `主動技能 ${k + 1}` : "主動技能"}</span><span class="cdv">CD ${a.cd}</span><br><b>${a.name}</b><br>${a.desc}
+      ${two ? `<div class="row">${cds[k] <= 0 ? `<button class="btn gold" data-cast="${k}">發動「${a.name}」</button>` : `<span class="hint">還要 ${cds[k]} 回合</span>`}</div>` : ""}</div>`).join("")}
+    ${two ? "" : `<p class="hint">${cds[0] <= 0 ? "" : `還要 ${cds[0]} 回合才能發動`}</p>`}
+    <div class="row"><button class="btn" data-close>返回</button>${!two && cds[0] <= 0 ? `<button class="btn gold" data-cast="0">發動</button>` : ""}</div>`, two ? "two-skill" : "");
+  $$("#modal [data-cast]").forEach(b => b.onclick = () => {
+    const k = +b.dataset.cast, a = acts[k];
+    const vid = a.video ? startSkillVideo(a.video) : null;   // iPhone：影片要在點擊的當下開始播
+    closeModal(); castSkill(i, k, vid);
+  });
 }
-async function castSkill(i) {
+/* 發大招影片（媽祖：安瀾、鎮瀾）：全螢幕直式影片，點一下跳過，播完接原本的效果 */
+function startSkillVideo(src) {
+  const wrap = document.createElement("div");
+  wrap.className = "skill-video";
+  wrap.innerHTML = `<video playsinline webkit-playsinline preload="auto" src="${src}"></video><span class="sv-skip">點一下跳過</span>`;
+  $("#modal").parentNode.appendChild(wrap);   // 跟彈窗同一層（桌機上是手機寬的畫面）
+  const v = $("video", wrap);
+  v.muted = !SET.sound;
+  music.stop(.3);
+  let done;
+  const p = new Promise(r => done = r);
+  const finish = () => { if (!wrap.isConnected) return; v.pause(); wrap.classList.add("out"); setTimeout(() => wrap.remove(), 300); music.refresh(); done(); };
+  wrap.onclick = finish;
+  v.onended = finish;
+  v.onerror = finish;   // 影片載入失敗就直接接效果
+  const t = v.play();
+  if (t && t.catch) t.catch(() => { v.muted = true; v.play().catch(finish); });   // 有聲音播不了就靜音播
+  setTimeout(finish, 30000);   // 保險：最多 30 秒
+  return p;
+}
+async function castSkill(i, k = 0, vid = null) {
   const b = B;
-  try { await castSkillInner(i); } catch (err) { if (B === b) throw err; }
+  try { await castSkillInner(i, k, vid); } catch (err) { if (B === b) throw err; }
 }
-async function castSkillInner(i) {
-  const c = CARDS[team[i]], fx = c.act.fx;
-  B.cd[i] = c.act.cd; updateParty();
+async function castSkillInner(i, k = 0, vid = null) {
+  const c = CARDS[team[i]], act = actsOf(i)[k], fx = act.fx, b = B;
+  if (c.sharedCd) { B.cd[i] = act.cd; B.cdx[i] = B.cdx[i].map(() => act.cd); }   // 媽祖：四招共用冷卻
+  else if (k) B.cdx[i][k - 1] = act.cd; else B.cd[i] = act.cd;
+  updateParty();
   B.busy = true; board.classList.add("locked");
-  if (c.star >= 5) await cutIn(team[i]);
-  else { banner(c.act.name); sfx.skill(); vibe([20, 30, 20, 30, 60]); await sleep(500); }
+  if (vid) { await vid; banner(act.name); }
+  else if (c.star >= 5) await cutIn(team[i], act.name);
+  else { banner(act.name); sfx.skill(); vibe([20, 30, 20, 30, 60]); await sleep(500); }
+  if (B !== b) return;
+  if (fx.unseal && B.sealed) {   // 覺醒大寶：赤帝之火解除封鎖
+    B.sealed = false; updateSeal(); banner("封鎖解除！"); flash("rgba(255,120,40,.5)", 450); vibe([40, 30, 80]); await sleep(500);
+  }
+  if (fx.cleanse) B.noConvert = Math.max(B.noConvert, 3);
+  if (fx.arrange && ARRANGE[fx.arrange]) {   // 新版：自動排版
+    const M = { w: "water", f: "fire", g: "wood", l: "light", d: "dark", h: "heart" }, L = ARRANGE[fx.arrange];
+    grid.forEach((row, r) => row.forEach((o, cc) => setAttr(o, M[L[r][cc]])));
+  }
+  if (fx.comboAdd) B.comboAdd = (B.comboAdd || 0) + fx.comboAdd;
+  if (fx.turnAs) B.turnAs = fx.turnAs;
+  if (fx.pierceTurn) B.pierceTurn = true;
+  if (fx.cut) { B.cut = { ...fx.cut }; $(".hpbar").classList.add("guarded"); }
+  if (fx.immune) { B.immune = Math.max(B.immune || 0, fx.immune); $(".hpbar").classList.add("guarded", "immune"); }   // 無瀾：這回合敵人的攻擊全部變 0
   if (fx.breakShield && B.enemies.some(e => e.hpNow > 0 && e.shield)) {
     B.enemies.forEach((e, k) => { if (e.shield) { e.shield = null; updateEnemy(k); } });
     banner("破盾！"); sfx.sword && sfx.sword(); await sleep(400);
@@ -1046,7 +1161,9 @@ async function castSkillInner(i) {
   if (fx.healPct) { B.hp += B.hpMax * fx.healPct; updateHp(); }
   if (fx.guard) { B.guard = Math.max(B.guard, fx.guard); $(".hpbar").classList.add("guarded"); }
   if (fx.delay) { B.enemies.forEach(e => e.cdNow += fx.delay); alive().forEach(updateEnemy); }
-  if (fx.fixedDmg) {   // 固定傷害：不受屬性與倍率影響
+  const sealedMe = B.sealed && !sealFree(i);
+  if (sealedMe && (fx.fixedDmg || fx.nuke || fx.multiHit)) { banner(`${CH.seal.name}：無法攻擊`); shakeSeal(); }
+  else if (fx.fixedDmg) {   // 固定傷害：不受屬性與倍率影響
     for (const t of alive()) {
       const e = B.enemies[t], el = enemyEl(t);
       e.hpNow -= fx.fixedDmg;
@@ -1059,9 +1176,22 @@ async function castSkillInner(i) {
     await sleep(500);
     if (await checkWave()) return;
   }
-  if (fx.nuke) {
+  if (fx.multiHit && !sealedMe) {   // 霸極拳：連續普通攻擊 n 次（每下＝自己消一組 3 粒的普通攻擊，含隊長倍率與本回合加成）
     const el = $$(".party .icon")[i];
-    await Promise.all(alive().map(t => hitEnemy(t, c.atk * fx.nuke, c.attr, el)));
+    for (let h = 0; h < fx.multiHit && alive().length; h++) {
+      const t = B.target != null && B.enemies[B.target].hpNow > 0 ? B.target : alive()[0];
+      el.classList.remove("atk"); void el.offsetWidth; el.classList.add("atk");
+      banner(`${act.name} ${h + 1} / ${fx.multiHit}`);
+      await hitEnemy(t, c.atk * leaderMul(c.attr, [{ attr: c.attr, n: 3 }], 1) * B.buff, c.attr, el);
+      await sleep(120);
+      if (!B) return;
+    }
+    await sleep(300);
+    if (await checkWave()) return;
+  }
+  if (fx.nuke && !sealedMe) {
+    const el = $$(".party .icon")[i];
+    await Promise.all(alive().map(t => hitEnemy(t, c.atk * fx.nuke * (B.enemies[t].cthulhu && fx.vsCthulhu ? fx.vsCthulhu : 1), c.attr, el)));
     await sleep(400);
     if (await checkWave()) return;
   }
@@ -1399,7 +1529,7 @@ function showCard(id) {
   }
   const skill = `<div class="stats"><div>生命力<b>${fmt(c.hp)}</b></div><div>攻擊力<b>${fmt(c.atk)}</b></div><div>回復力<b>${fmt(c.rec)}</b></div></div>
     <div class="skill"><span class="k">隊長技能</span> <b>${c.lead.name}</b><br>${c.lead.desc}</div>
-    <div class="skill"><span class="k">主動技能</span> <b>${c.act.name}</b><span class="cdv">CD ${c.act.cd}</span><br>${c.act.desc}</div>${evo}
+    ${(c.acts || [c.act]).map((a, k, all) => `<div class="skill"><span class="k">主動技能${all.length > 1 ? ` ${k + 1}` : ""}</span> <b>${a.name}</b><span class="cdv">CD ${a.cd}</span><br>${a.desc}</div>`).join("")}${(c.acts || []).length > 1 ? `<p class="hint">${c.acts.length} 個主動技${c.sharedCd ? "共用一組冷卻" : "各自計算冷卻"}，戰鬥中點頭像選一個發動</p>` : ""}${evo}
     ${buyable(id) ? `<div class="buy"><button class="btn gold" id="do-buy">用 ${PRICE[c.star]} 功德兌換</button></div>` : !owned.has(id) ? `<p class="hint">還沒獲得，要從前一階進化才能取得。</p>` : ""}
     <p class="hint own-msg" id="own-msg"></p>`;
   cardShell({
@@ -1461,9 +1591,9 @@ $$(".ver").forEach(el => el.textContent = GAME_VERSION);
   const linesOf = ch => [ch.pre, ch.post, ...ch.waves.map(w => w.lines || [])].flat();
   const imgsOf = ch => [ch.bg, ...ch.waves.flatMap(w => w.enemies).map(k => ENEMIES[k].img),
     ...linesOf(ch).filter(l => l[0] === "@scene" && l[1]).map(l => l[1]),
-    ...linesOf(ch).filter(l => l[0] && l[0][0] !== "@" && VN[l[0]]).map(l => `art/vn/${VN[l[0]]}-${l[3] || "normal"}.webp`)];
+    ...linesOf(ch).map(l => [l, l[0] && l[0][0] !== "@" && (l[5] || (ch.vn && ch.vn[l[0]]) || VN[l[0]])]).filter(([, k]) => k).map(([l, k]) => `art/vn/${k}-${l[3] || "normal"}.webp`)];   // 章節換造型、逐行代號也算
   const ESSENTIAL = [...new Set([
-    "art/emblem.webp", "art/vn/lee-normal.webp", "art/vn/yutong-normal.webp", "art/bg-battle.webp",
+    "art/emblem.webp", "art/op/mazu.webp", "art/op/shunfeng.webp", "art/op/qianliyan.webp", "art/bg-battle.webp",
     ...["water", "fire", "wood", "light", "dark", "heart"].map(a => `art/orb-${a}.webp`),
     ...team.map(id => CARDS[id].art), ...imgsOf(ch1),
     "audio/title.m4a", `audio/${(ch1.music && ch1.music.battle) || "battle1"}.m4a`
@@ -1502,4 +1632,10 @@ $$(".ver").forEach(el => el.textContent = GAME_VERSION);
     await sleep(2900); finish();
   });
 })();
+/* 本機測試用（只在 localhost 開放）：在 console 用 __hq.B 看戰鬥狀態、__hq.ready() 讓技能馬上能用 */
+if (/^(localhost|127\.0\.0\.1)$/.test(location.hostname)) window.__hq = {
+  get B() { return B; }, get CH() { return CH; }, team,
+  ready() { B.cd = B.cd.map(() => 0); B.cdx = B.cdx.map(a => a.map(() => 0)); updateParty(); },
+  skill: skillDialog
+};
 })();
