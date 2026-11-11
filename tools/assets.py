@@ -39,9 +39,12 @@ for p in [*art.glob("orb-*.png"), *([art / "emblem.png"] if (art / "emblem.png")
     im.putalpha(mask)
     im.save(p.with_suffix(".webp"), quality=90)
 # 劇情立繪：高度 1100（李國志含禮帽 1278）的縮成 0.85 倍，比例不變（只縮一次）
+import subprocess
+tracked = set(subprocess.run(["git", "ls-files", "art/vn"], cwd=root, capture_output=True, text=True).stdout.split())
 for p in (root / "art/vn").glob("*.webp"):
+    if f"art/vn/{p.name}" in tracked: continue   # 已進 git 的立繪都縮過了，不再縮（避免重跑越縮越小）
     im = Image.open(p)
-    if im.height >= 1100:   # 只縮原始 1100 高（李國志 1278）的；縮過的（≤1086）不再縮，重跑不會越縮越小
+    if im.height >= 1000:   # 新生的立繪（原始 1100 高，李國志 1278）縮成 0.85 倍
         im = im.resize((round(im.width * .85), round(im.height * .85)), Image.LANCZOS)
         im.save(p, quality=78, method=6)
 print(sorted(x.name for x in art.glob("*.webp")))
