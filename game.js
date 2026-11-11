@@ -59,11 +59,11 @@ const saveTeam = () => store.set("hq-team", trialSave || team);
 const prog = (p => ({ ...p, cleared: p.cleared || 0, stars: p.stars || [], chal: p.chal || [], done: Array.isArray(p.done) ? p.done : [] }))(store.get("hq-progress", {}));
 let cleared = Math.max(0, Math.min(CHAPTERS.length, Math.floor(+prog.cleared) || 0));   // 從第一章起連續通關到第幾章（夾在合理範圍）
 const saveProg = () => store.set("hq-progress", { ...prog, cleared });
-/* v1.4.1（使用者定）：第十一章（第六季後段起的新劇情）一開始就開放，不用先打完前十章；之後照順序一章一章開。
+/* v1.4.3（使用者定）：第一～十一章所有存檔一開始就全部開放、可以任選一章打；第十二章起照順序（打完前一章才開）。
    跳著打的通關紀錄記在 prog.done（章節索引），cleared 只算從第一章起連續通關的章數 */
 const FREE_FROM = CHAPTERS.findIndex(c => c.id === "ch11");
 const chDone = i => i < cleared || prog.done.includes(i);
-const chOpen = i => !chDone(i) && (i === 0 || i === FREE_FROM || chDone(i - 1));
+const chOpen = i => !chDone(i) && (i <= FREE_FROM || chDone(i - 1));   // 第一～十一章一開始就全部開放，之後照順序
 
 /* ---------------- 收集：擁有的卡、功德（地府的貨幣）、三星評價、挑戰關 ---------------- */
 // 開局贈送：業鏡五屬隊整隊（李國志、小白、小雨、大寶、阿副）＋嫉妒魔王水隊整隊（利維坦、諾瓦、咪咪、九尾、陽滋公主）
@@ -134,7 +134,7 @@ function renderChapters() {
     return `<div class="ch-item"><button class="ch-card ${st}" data-ch="${i}" style="background-image:linear-gradient(90deg,#000d 30%,#0004),url(${ch.bg})">
       <span class="ch-no">${ch.no}</span><b>${ch.name}</b><span class="ch-sub">${ch.sub} ‧ ${ch.place}</span>
       <span class="ch-intro">${ch.intro}</span>
-      <span class="ch-st">${st === "done" ? `已通關 <i class="rate">${"★".repeat(n)}${"☆".repeat(3 - n)}</i>` : st === "open" ? (i === FREE_FROM && !chDone(i - 1) ? "挑戰（新劇情，可直接開始）" : "挑戰") : "🔒 通關上一章後開放"}</span></button>
+      <span class="ch-st">${st === "done" ? `已通關 <i class="rate">${"★".repeat(n)}${"☆".repeat(3 - n)}</i>` : st === "open" ? "挑戰" : "🔒 通關上一章後開放"}</span></button>
       ${st === "done" ? `<button class="ch-chal ${prog.chal[i] ? "got" : ""}" data-chal="${i}"><b>⚔ 挑戰關</b>${d.label}<em>${prog.chal[i] ? "已完成" : `獎勵 ${REWARD.chalFirst} 功德`}</em></button>` : ""}</div>`;
   }).join("");
   $$(".ch-card").forEach(b => b.onclick = () => {
@@ -1227,7 +1227,7 @@ function showResult() {
       <div class="row"><button class="btn" data-goto="chapters">回章節</button><button class="btn gold" data-goto="again">再打一次</button></div></div>`);
     return;
   }
-  const first = !chDone(idx);
+  const first = !chDone(idx), nextWasOpen = !!next && (chDone(idx + 1) || chOpen(idx + 1));   // 下一章本來就開放（第一～十一章）就不顯示「開放了」
   const goalT = CH.waves.length * 5, hpRate = B.hp / B.hpMax;
   const rules = [[`回合數 ${B.turns} ／ ${goalT} 以內`, B.turns <= goalT], [`剩餘血量 ${Math.round(hpRate * 100)}%（需 50% 以上）`, hpRate >= .5], [`最高 ${B.maxCombo} combo（需 6 以上）`, B.maxCombo >= 6]];
   const n = Math.max(1, rules.filter(r => r[1]).length), prev = prog.stars[idx] || 0;
@@ -1243,7 +1243,7 @@ function showResult() {
     <ul class="rules">${rules.map(([t, ok]) => `<li class="${ok ? "ok" : ""}">${ok ? "✔" : "✘"} ${t}</li>`).join("")}</ul>
     <p class="merit-gain">功德 +${gain}${n > prev && prev ? `（星數提升 +${REWARD.star * (n - prev)}）` : ""}</p>
     ${joined.length ? `<div class="joined"><div class="j-title">新加入的角色</div><div class="j-grid">${joined.map(id => `<div class="j">${iconHTML(id)}<span>${CARDS[id].who}</span></div>`).join("")}</div></div>` : ""}
-    ${first && next ? `<p class="unlock">${next.no}「${next.name}」開放了</p>` : ""}${!next ? `<p class="unlock">主線劇情全部通關，謝謝你玩到最後。</p>` : ""}
+    ${first && next && !nextWasOpen ? `<p class="unlock">${next.no}「${next.name}」開放了</p>` : ""}${!next ? `<p class="unlock">主線劇情全部通關，謝謝你玩到最後。</p>` : ""}
     <div class="row"><button class="btn" data-goto="chapters">回章節</button>${next ? `<button class="btn gold" data-goto="next">下一章</button>` : `<button class="btn gold" data-goto="again">再打一次</button>`}</div></div>`);
 }
 function lose() {
