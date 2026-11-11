@@ -346,36 +346,36 @@ window.TIERS = {
     // 媽祖：不進化、直接六星（使用者定）。四招共用一組冷卻 4 回合（shared）：安瀾（防守）、鎮瀾（全體高攻擊）、無瀾（一回合無傷）、霸極拳（連續普通攻擊 10 次）
     mazu: [{ name: "媽祖加持的手串", fx: { attrAtk: { water: 6 }, allAs: "water", swapHeal: .02, swapHealMax: .5, allHp: 1.6, allRec: 1.4, comboAt: { n: 5, x: 2 }, dmgCut: .4, timeAdd: 1 } },   // allAs：任何顏色都算水符石（v1.4.12 使用者定）
       [{ name: "安瀾", cd: 4, fx: { cut: { x: .2, turns: 3 }, healPct: .6, delay: 1, cleanse: true, arrange: "water-heart" }, video: V("anlan") },
-       { name: "鎮瀾", cd: 4, fx: { arrange: "water-all", turnAs: "water", comboAdd: 4, buff: 3, nuke: 80, pierceTurn: true }, video: V("zhenlan") },
-       { name: "無瀾", cd: 4, fx: { immune: 1, healPct: .3 }, video: V("wulan") },
-       { name: "霸極拳", cd: 4, fx: { multiHit: 10, pierceTurn: true }, video: V("baji") }], true],
+       { name: "鎮瀾", cd: 4, fx: { pick: "all", turnAs: "water", comboAdd: 4, buff: 3, nuke: 80, pierceTurn: true }, video: V("zhenlan") },
+       { name: "無瀾", cd: 4, fx: { immune: 1, healPct: .3, pick: 10 }, video: V("wulan") },
+       { name: "霸極拳", cd: 4, fx: { multiHit: 10, pierceTurn: true, pick: 10 }, video: V("baji") }], true],
     shunfeng: [{ name: "妖魔自治條例", fx: { attrAtk: { water: 4.5 }, comboAt: { n: 4, x: 1.8 }, timeAdd: 2 } },
-      [{ name: "靜音咒", cd: 5, fx: { delay: 2, arrange: "water-cross", buff: 2.5 } }]],
+      [{ name: "靜音咒", cd: 5, fx: { delay: 2, pick: 12, buff: 2.5 } }]],
     xieshou: [{ name: "甲級除咒師", fx: { attrAtk: { water: 4 }, allHp: 1.5, allRec: 1.5, regen: .08 } },
-      [{ name: "醫者令・小山火", cd: 4, fx: { cleanse: true, healPct: .4, convert: ["dark", "water"], buff: 2 } }]],
+      [{ name: "醫者令・小山火", cd: 4, fx: { cleanse: true, healPct: .4, pick: 10, buff: 2 } }]],
     renmianyu: [{ name: "在山裡面好好修行", fx: { attrAtk: { water: 2.2 } } },
-      [{ name: "魚肉好吃嗎？", cd: 3, fx: { convert: ["fire", "water"] } }]],
+      [{ name: "魚肉好吃嗎？", cd: 3, fx: { pick: 8 } }]],
     redgirl: [{ name: "魔神仔領袖", fx: { attrAtk: { dark: 5 }, comboAt: { n: 5, x: 1.6 }, pierce: true } },
-      [{ name: "我控制住他了", cd: 5, fx: { delay: 2, arrange: "dark-rows", buff: 2.5 } }]],
+      [{ name: "我控制住他了", cd: 5, fx: { delay: 2, pick: 12, buff: 2.5 } }]],
     baifu: [{ name: "只殺不度", fx: { attrAtk: { light: 5.5 }, allHp: 1.3, chase: 30, pierce: true } },
-      [{ name: "霸極拳", cd: 6, fx: { arrange: "light-all", turnAs: "light", buff: 2.5, nuke: 60, pierceTurn: true } }]],
+      [{ name: "霸極拳", cd: 6, fx: { pick: "all", turnAs: "light", buff: 2.5, nuke: 60, pierceTurn: true } }]],
     nuwa: [{ name: "北境的金色菩提樹", fx: { attrAtk: { wood: 6 }, allAs: "wood", comboPlus: 8, allHp: 1.8, allRec: 1.6, regen: .15, multiAttr: { n: 3, x: 1.8 } } },   // v1.4.15：combo +8 改成隊長技、任何顏色都算木珠（使用者定）
       [{ name: "輪迴六趣", cd: 6, fx: { healPct: 1, arrange: "six", buff: 3 } }]],
     // 觀音潛能解放：打古神用。兩個主動技各自冷卻（台詞與招式取自 EP6-23～24）
     guanyin2: [{ name: "一開打就要火力全開", fx: { allAtk: 4, allHp: 1.5, cthulhuAtk: 3, timeAdd: 1 } },
       [{ name: "浮屠百鍊", cd: 2, fx: { nuke: 100, vsCthulhu: 3, buff: 2.5, pierceTurn: true } },
-       { name: "梵海渡", cd: 3, fx: { arrange: "light-all", turnAs: "light", buff: 3, cut: { x: .3, turns: 2 }, healPct: .5 } }]],
+       { name: "梵海渡", cd: 3, fx: { pick: "all", turnAs: "light", buff: 3, cut: { x: .3, turns: 2 }, healPct: .5 } }]],
     isaiah: [{ name: "等統一魔界", fx: { attrAtk: { fire: 5.5 }, allHp: 1.4, chase: 25, dmgCut: .2 } },
-      [{ name: "巨錘", cd: 6, fx: { arrange: "fire-all", turnAs: "fire", buff: 2.5, nuke: 50 } }]],
+      [{ name: "巨錘", cd: 6, fx: { pick: "all", turnAs: "fire", buff: 2.5, nuke: 50 } }]],
     daogui: [{ name: "我的封地要最大", fx: { attrAtk: { wood: 5.5 }, comboAt: { n: 6, x: 2.2 }, timeAdd: 1 } },
-      [{ name: "獨臂刀", cd: 5, fx: { arrange: "wood-cross", comboAdd: 2, buff: 2.5, pierceTurn: true } }]],
+      [{ name: "獨臂刀", cd: 5, fx: { pick: 12, comboAdd: 2, buff: 2.5, pierceTurn: true } }]],
     mofaweng: [{ name: "我要當國師", fx: { attrAtk: { dark: 5.5 }, multiAttr: { n: 3, x: 2 }, allRec: 1.3 } },
-      [{ name: "法術巨擘", cd: 6, fx: { arrange: "dark-heart", turnAs: "dark", buff: 3 } }]],
+      [{ name: "法術巨擘", cd: 6, fx: { pick: 15, turnAs: "dark", buff: 3 } }]],
     sentinel: [{ name: "不可直視", fx: { attrAtk: { dark: 5 }, allHp: 1.6, dmgCut: .3 } },
-      [{ name: "最強反派一定會有第二形態", cd: 6, fx: { healPct: .4, arrange: "dark-all", selfBuff: 6 } }]],
+      [{ name: "最強反派一定會有第二形態", cd: 6, fx: { healPct: .4, pick: "all", selfBuff: 6 } }]],
     // 覺醒大寶：四星隊員（照天梯 C）。赤帝之火＝攻擊（對克蘇魯系特別痛）；直視古神＝解除全隊封鎖（古神戰只有他能解）
     dabao4: [{ name: "祝融轉世", fx: { attrAtk: { fire: 2.5 } } },
-      [{ name: "赤帝之火", cd: 4, fx: { nuke: 40, vsCthulhu: 4, selfBuff: 3 } },
+      [{ name: "赤帝之火", cd: 4, fx: { nuke: 40, vsCthulhu: 4, selfBuff: 3, pick: 8 } },
        { name: "直視古神", cd: 3, fx: { unseal: true } }]]
   };
   Object.entries(NEW).forEach(([id, [lead, acts, shared]]) => {
@@ -416,6 +416,8 @@ window.TIERS = {
   }
   function actDesc(fx, attr) {
     const t = [];
+    if (fx.pick === "all") t.push("選一種屬性：心符石以外的整版符石都轉成該屬性");
+    else if (fx.pick) t.push(`選一種屬性：隨機 ${fx.pick} 顆符石轉成該屬性`);
     if (fx.unseal) t.push("解除全隊的「封鎖攻擊」（古神戰必備）");
     if (fx.immune) t.push(`${fx.immune} 回合內受到的傷害全部變 0`);
     if (fx.multiHit) t.push(`連續普通攻擊 ${fx.multiHit} 次（每下＝自身消除一組符石的攻擊，含隊長倍率），本回合無視敵人護盾`.replace("，本回合無視敵人護盾", ""));

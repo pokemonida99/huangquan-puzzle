@@ -1145,6 +1145,15 @@ function startSkillVideo(src) {
   setTimeout(finish, 30000);   // 保險：最多 30 秒
   return p;
 }
+/* 轉珠技能的屬性選擇（從下方跳出，六顆符石按鈕） */
+function pickAttr(name, n, def) {
+  return new Promise(done => {
+    const list = ["water", "fire", "wood", "light", "dark", "heart"].filter(a => n !== "all" || a !== "heart");
+    modal(`<h3>${name}</h3><p>${n === "all" ? "心符石以外的整版符石要轉成哪一種？" : `隨機 ${n} 顆符石要轉成哪一種？`}</p>
+      <div class="pick-attr">${list.map(a => `<button class="pa ${a === def ? "def" : ""}" data-a="${a}" style="${attrVars(a)}"><img src="art/orb-${a}.webp" alt=""><span>${ATTR[a].name}</span></button>`).join("")}</div>`, "sheet locked");
+    $$("#modal .pa").forEach(btn => btn.onclick = () => { closeModal(); done(btn.dataset.a); });
+  });
+}
 async function castSkill(i, k = 0, vid = null) {
   const b = B;
   try { await castSkillInner(i, k, vid); } catch (err) { if (B === b) throw err; }
@@ -1163,6 +1172,14 @@ async function castSkillInner(i, k = 0, vid = null) {
     B.sealed = false; updateSeal(); sfx.chainBreak(); banner("封鎖解除！"); flash("rgba(255,120,40,.5)", 450); vibe([40, 30, 80]); await sleep(500);
   }
   if (fx.cleanse) B.noConvert = Math.max(B.noConvert, 3);
+  if (fx.pick) {   // v1.4.17：轉珠技能，發動時選要轉成哪一種屬性
+    const to = await pickAttr(act.name, fx.pick, c.attr);
+    if (B !== b) return;
+    const pool = grid.flat().filter(o => o.attr !== to && (fx.pick !== "all" || o.attr !== "heart"));
+    for (let k = pool.length - 1; k > 0; k--) { const j = Math.floor(Math.random() * (k + 1)); [pool[k], pool[j]] = [pool[j], pool[k]]; }
+    (fx.pick === "all" ? pool : pool.slice(0, fx.pick)).forEach(o => setAttr(o, to));
+    sfx.swap(); await sleep(250);
+  }
   if (fx.arrange && ARRANGE[fx.arrange]) {   // 新版：自動排版
     const M = { w: "water", f: "fire", g: "wood", l: "light", d: "dark", h: "heart" }, L = ARRANGE[fx.arrange];
     grid.forEach((row, r) => row.forEach((o, cc) => setAttr(o, M[L[r][cc]])));
@@ -1478,7 +1495,7 @@ document.querySelector(".board-wrap").addEventListener("pointerdown", e => {
 function modal(html, kind = "") { $(".modal-box").innerHTML = html; $("#modal").className = "modal on " + kind; }
 function closeModal() { $("#modal").className = "modal"; }
 $("#modal").addEventListener("click", e => {
-  if ((e.target.id === "modal" && !(B && B.over)) || e.target.closest("[data-close]")) closeModal();   // 結算視窗只能按按鈕
+  if ((e.target.id === "modal" && !(B && B.over) && !$("#modal").classList.contains("locked")) || e.target.closest("[data-close]")) closeModal();   // locked：一定要選（例：轉珠技能選屬性）   // 結算視窗只能按按鈕
   const g = e.target.closest("[data-goto]");
   if (g) {
     closeModal();
