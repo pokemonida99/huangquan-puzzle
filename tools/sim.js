@@ -65,7 +65,7 @@ function sealRun(team, ch) {
       const live = es.filter(e => e.hpNow > 0);   // 封鎖中只有大寶出手
       live.forEach(e => e.hpNow -= turnDamage(team, e, undefined, sealed ? [dab] : null) * boost / live.length);
       cd = Math.max(0, cd - 1); cdA = Math.max(0, cdA - 1);
-      for (const e of es.filter(x => x.hpNow > 0)) if (--e.cdNow <= 0) { e.cdNow = e.cd; if ((e.skills || []).some(s => s.seal)) sealed = true; }
+      for (const e of es.filter(x => x.hpNow > 0)) if (--e.cdNow <= 0) { e.cdNow = e.cd; e.hits = (e.hits || 0) + 1; const sk = (e.skills || []).find(s => s.seal); if (sk && e.hits % (sk.every || 1) === 0) sealed = true; }
     }
   }
   return turns;

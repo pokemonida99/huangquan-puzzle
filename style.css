@@ -639,7 +639,7 @@ html, body { -webkit-tap-highlight-color: transparent; }
 img { -webkit-user-drag: none; user-drag: none; -webkit-touch-callout: none; pointer-events: auto; }
 
 /* ===== v1.4：古神戰「封鎖攻擊」、雙主動技、發大招影片、需要的卡 ===== */
-.seal-tag { position: absolute; right: 92px; top: 8px; z-index: 4; max-width: 140px; padding: 3px 9px 4px; border-radius: 8px;
+.seal-tag { position: absolute; right: 8px; top: 48px; z-index: 4; max-width: 172px; padding: 3px 9px 4px; border-radius: 8px;
   background: #0d0613e6; border: 1px solid #6b4a8a; color: #d9c7ee; font-size: 12px; line-height: 1.35; pointer-events: none; }
 .seal-tag[hidden] { display: none; }
 .seal-tag b { display: block; font-size: 12px; letter-spacing: .05em; color: #c9a6ff; }

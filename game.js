@@ -485,6 +485,20 @@ async function loadWave(w) {
   B.godWave = !!CH.seal && B.enemies.some(e => e.skills.some(s => s.seal));   // 古神現身：全隊封鎖攻擊（第二形態再封一次）
   if (B.godWave && !B.sealed) { B.sealed = true; await sleep(300); sfx.chainLock(); banner(CH.seal.name); flash("rgba(90,0,140,.45)", 500); vibe([60, 40, 60]); }
   updateSeal();
+  for (const [i, e] of B.enemies.entries()) {   // 先制攻擊（v1.4.13 古神：一出場就先打一下）
+    if (!e.preempt || e.hpNow <= 0 || !B || B.over) continue;
+    await sleep(400);
+    if (e.preempt === "hp1") {   // 古神一出場：全隊生命只剩 1（使用者定），下一次攻擊晚 1 回合，讓玩家有一回合補血
+      banner(`先制攻擊 ‧ ${e.name}`); const el = enemyEl(i); el.classList.remove("atk"); void el.offsetWidth; el.classList.add("atk");
+      await sleep(250); const lost = B.hp - 1; B.hp = 1; updateHp(); quake(16, 500); flash("rgba(200,0,0,.5)", 500); sfx.slam(); vibe([120, 40, 200]);
+      const hb = $(".hpbar").getBoundingClientRect(), fb = $(".field").getBoundingClientRect();
+      floatText(hb.left - fb.left + hb.width / 2, hb.top - fb.top - 34, "-" + fmt(lost), e.attr);
+      e.cdNow = e.cd + 1; updateEnemy(i); await sleep(600); banner("生命只剩 1！"); continue;
+    }
+    banner(`先制攻擊 ‧ ${e.name}`); await enemyStrike(e, i);
+    if (B.hp <= 0 && B.survive > 0) { B.survive--; B.hp = 1; updateHp(); }
+    if (B.hp <= 0) { lose(); return; }
+  }
   await openStrike();
 }
 /* 進場攻擊（觀音的隊長技）：每一波敵人一出現，隊長／戰友先打全體一下 */
@@ -580,17 +594,18 @@ function skillText(s) {
     if (s.shield && s.shield.only) return `${head}出場時只受${ATTR[s.shield.only].name}屬性傷害，持續 ${s.turns} 回合（可用破盾技能破除）`;
     return `${head}出場時單次傷害低於 ${fmt(s.absorb)} 會被完全吸收，持續 ${s.turns} 回合（可用破盾技能破除）`;
   }
-  if (s.on === "attack" && s.seal) return `「${s.name}」攻擊後再次封鎖全隊的攻擊（只有覺醒大寶的「直視古神」能解除）${s.convert ? `，並把 ${s.n} 顆${ATTR[s.convert[0]].name}符石變成${ATTR[s.convert[1]].name}符石` : ""}`;
+  if (s.on === "attack" && s.seal) return `「${s.name}」${s.every > 1 ? `每攻擊 ${s.every} 次` : "攻擊後"}再次封鎖全隊的攻擊（只有覺醒大寶的「直視古神」能解除）${s.convert ? `，並把 ${s.n} 顆${ATTR[s.convert[0]].name}符石變成${ATTR[s.convert[1]].name}符石` : ""}`;
   if (s.on === "attack") return `「${s.name}」攻擊後把 ${s.n} 顆${ATTR[s.convert[0]].name}符石變成${ATTR[s.convert[1]].name}符石`;
   if (s.on === "low") return `「${s.name}」生命力低於 ${Math.round(s.hp * 100)}% 時狂暴：攻擊間隔變 ${s.cd} 回合、攻擊力 ${s.atk} 倍`;
   return "";
 }
 function showSkillTip(e) {
   $$(".skilltip").forEach(x => x.remove());
-  if (!e || !e.skills || !e.skills.length) return;
+  if (!e || ((!e.skills || !e.skills.length) && !e.preempt)) return;
   const d = document.createElement("div");
   d.className = "skilltip";
-  d.innerHTML = `<b>${e.name}</b>` + e.skills.map(s => `<p>${skillText(s)}</p>`).join("");
+  const pre = e.preempt === "hp1" ? "<p>「先制攻擊」出場時全隊生命只剩 1</p>" : e.preempt ? "<p>「先制攻擊」出場時先攻擊一次</p>" : "";
+  d.innerHTML = `<b>${e.name}</b>` + pre + e.skills.map(s => `<p>${skillText(s)}</p>`).join("");
   $(".field").appendChild(d);
   setTimeout(() => d.remove(), 5000);
 }
@@ -969,7 +984,7 @@ async function attack(groups) {
     sfx.heal();
   }
   // 古神戰：封鎖中只有大寶能攻擊（心符石照樣回血）
-  if (B.sealed && groups.some(g => g.attr !== "heart")) { banner(`${CH.seal.name}：只有大寶能攻擊`); shakeSeal(); await sleep(300); }
+  if (B.sealed && groups.some(g => g.attr !== "heart")) { banner("封鎖中：只有大寶能攻擊"); shakeSeal(); await sleep(300); }
   // 攻擊：每位成員依自己的屬性出手
   for (let i = 0; i < team.length; i++) {
     const c = CARDS[team[i]];
@@ -1036,12 +1051,8 @@ async function checkWave() {
   }
   await win(); return true;
 }
-async function enemyTurn() {
-  B.saved = false;
-  for (const i of alive()) {
-    const e = B.enemies[i];
-    e.cdNow--;
-    if (e.cdNow <= 0) {
+/* 敵人攻擊一次（回合中到 CD、或出場先制攻擊 preempt 都走這裡） */
+async function enemyStrike(e, i) {
       const el = enemyEl(i);
       el.classList.remove("atk"); void el.offsetWidth; el.classList.add("atk");
       await sleep(250);
@@ -1057,11 +1068,19 @@ async function enemyTurn() {
       e.cdNow = e.cd;
       await sleep(350);
       if (B.hp > 0) await enemyConvert(e);
-      if (B.hp > 0 && CH.seal && !B.sealed && e.skills.some(x => x.seal)) {   // 古神：攻擊後重新封鎖
-        B.sealed = true; updateSeal(); sfx.chainLock(); banner(e.skills.find(x => x.seal).name || CH.seal.name);
+      const sk = e.skills.find(x => x.seal);
+      e.hits = (e.hits || 0) + 1;
+      if (B.hp > 0 && CH.seal && !B.sealed && sk && e.hits % (sk.every || 1) === 0) {   // 古神：每攻擊 every 次重新封鎖
+        B.sealed = true; updateSeal(); sfx.chainLock(); banner(CH.seal.name);
         flash("rgba(90,0,140,.45)", 500); vibe([60, 40, 60]); await sleep(500);
       }
-    }
+}
+async function enemyTurn() {
+  B.saved = false;
+  for (const i of alive()) {
+    const e = B.enemies[i];
+    e.cdNow--;
+    if (e.cdNow <= 0) await enemyStrike(e, i);
     enemyShieldTurn(e);
     updateEnemy(i);
     if (B.hp <= 0 && B.survive > 0) {   // 基路伯：致命傷時保留 1 點生命
@@ -1177,7 +1196,7 @@ async function castSkillInner(i, k = 0, vid = null) {
   if (fx.guard) { B.guard = Math.max(B.guard, fx.guard); $(".hpbar").classList.add("guarded"); }
   if (fx.delay) { B.enemies.forEach(e => e.cdNow += fx.delay); alive().forEach(updateEnemy); }
   const sealedMe = B.sealed && !sealFree(i);
-  if (sealedMe && (fx.fixedDmg || fx.nuke || fx.multiHit)) { banner(`${CH.seal.name}：無法攻擊`); shakeSeal(); }
+  if (sealedMe && (fx.fixedDmg || fx.nuke || fx.multiHit)) { banner("封鎖中：無法攻擊"); shakeSeal(); }
   else if (fx.fixedDmg) {   // 固定傷害：不受屬性與倍率影響
     for (const t of alive()) {
       const e = B.enemies[t], el = enemyEl(t);
@@ -1656,6 +1675,7 @@ $$(".ver").forEach(el => el.textContent = GAME_VERSION);
 if (/^(localhost|127\.0\.0\.1)$/.test(location.hostname)) window.__hq = {
   get B() { return B; }, get CH() { return CH; }, team,
   ready() { B.cd = B.cd.map(() => 0); B.cdx = B.cdx.map(a => a.map(() => 0)); updateParty(); },
-  skill: skillDialog
+  skill: skillDialog,
+  wave: n => loadWave(n)   // 直接跳到第 n 波（測試用）
 };
 })();
