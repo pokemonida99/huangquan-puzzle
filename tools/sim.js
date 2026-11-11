@@ -23,7 +23,8 @@ function turnDamage(team, enemy, combos = normalCombos(team), only = null) {   /
   const groups = pick.map(a => a || "heart").slice(0, combos).map(attr => ({ attr, n: 3 }));
   const kinds = new Set(groups.filter(g => g.attr !== "heart").map(g => g.attr)).size;
   const comboUp = L.reduce((a, fx) => a + (fx.comboUp || 0), 0);
-  const comboMul = 1 + (groups.length - 1) * (.25 + comboUp);
+  const plus = L.reduce((a, fx) => a + (fx.comboPlus || 0), 0), combo = groups.length + plus;
+  const comboMul = 1 + (combo - 1) * (.25 + comboUp);
   let total = 0;
   team.forEach((id, slot) => {
     if (only && !only.includes(slot)) return;
@@ -34,9 +35,9 @@ function turnDamage(team, enemy, combos = normalCombos(team), only = null) {   /
     L.forEach(fx => {
       if (fx.allAtk) m *= fx.allAtk; if (fx.attrAtk && fx.attrAtk[c.attr]) m *= fx.attrAtk[c.attr];
       if (fx.multiAttr && kinds >= fx.multiAttr.n) m *= fx.multiAttr.x;
-      if (fx.comboAt && groups.length >= fx.comboAt.n) m *= fx.comboAt.x;
+      if (fx.comboAt && combo >= fx.comboAt.n) m *= fx.comboAt.x;
     });
-    const vd = enemy.demon ? L.reduce((a, fx) => a * (fx.vsDemon || 1), 1) : 1;
+    const vd = (enemy.demon ? L.reduce((a, fx) => a * (fx.vsDemon || 1), 1) : 1) * (enemy.cthulhu ? L.reduce((a, fx) => a * (fx.cthulhuAtk || 1), 1) : 1);
     total += c.atk * mine.length * comboMul * m * typeMul(c.attr, enemy.attr) * vd;
   });
   [0, 5].forEach(k => { const c = CARDS[team[k]]; if (only && !only.includes(k)) return; if (c.lead.fx.chase) total += c.atk * c.lead.fx.chase * typeMul(c.attr, enemy.attr); });   // 追打
@@ -79,6 +80,7 @@ const TEAMS = {
   "女媧木隊（新卡）": ["nuwa", "daogui", "huatuo", "qianliyan", "afu", "nuwa"],
   "以賽亞火隊（新卡）": ["isaiah", "dabao4", "zhurong", "aizen", "hathor", "isaiah"],
   "觀音隊＋大寶": ["guanyin", "aizen", "dabao4", "yutong5", "hathor", "guanyin"],
+  "觀音潛能解放隊＋大寶": ["guanyin2", "aizen", "dabao4", "yutong5", "hathor", "guanyin2"],
   "女媧木隊＋大寶（新卡）": ["nuwa", "dabao4", "daogui", "huatuo", "qianliyan", "nuwa"],
   "魔法翁暗隊＋大寶（新卡）": ["mofaweng", "dabao4", "redgirl", "sentinel", "yutong5", "mofaweng"]
 };

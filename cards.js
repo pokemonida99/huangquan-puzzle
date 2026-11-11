@@ -27,7 +27,7 @@ window.ARRANGE_DESC = {
 };
 (() => {
 // 進化鏈的階段（同一角色在圖鑑、換卡器依這個排序）
-const STAGE_OF = { yutong1: 1, yutong: 2, yutong3: 3, yutong4: 4, yutong5: 5, xiaoyu2: 2, dabao2: 2, dabao3: 3, afu2: 2, dabao4: 4 };
+const STAGE_OF = { yutong1: 1, yutong: 2, yutong3: 3, yutong4: 4, yutong5: 5, xiaoyu2: 2, dabao2: 2, dabao3: 3, afu2: 2, dabao4: 4, guanyin2: 2 };
 const ROWS = [
   /* 黃泉燒肉店 */
   // 語彤是主角，四階進化依劇中衣著的時期：高中生 → 燒肉店 → 狐姬改造後 → 實習月老 → 覺醒（EP5-13 同一套漢服外加白紗）
@@ -177,6 +177,7 @@ const ROWS = [
   ["renmianyu", "人面魚", "魚仔", "water", "妖", "mazu", "bal", "", {}, "", 3, {}, null],
   ["redgirl", "紅衣小女孩", "魔神仔領袖", "dark", "妖", "mazu", "atk", "", {}, "", 5, {}, null],
   ["baifu", "白府千歲", "白千歲", "light", "神", "mazu", "atk", "", {}, "", 5, {}, null],
+  ["guanyin2", "觀音菩薩", "潛能解放", "light", "神", "gods", "atk", "", {}, "", 5, {}, null],   // 打古神用（EP6-23～24 蒙眼綁馬尾），卡面直接用劇照截圖（使用者定）
   ["nuwa", "女媧", "女媧娘娘", "wood", "古神", "gods", "rec", "", {}, "", 6, {}, null],
   ["isaiah", "以賽亞", "巨錘以賽亞", "fire", "魔族", "demon", "hp", "", {}, "", 5, {}, null],
   ["daogui", "刀鬼", "獨臂刀鬼", "wood", "魔族", "demon", "atk", "", {}, "", 5, {}, null],
@@ -201,7 +202,7 @@ ROWS.forEach(([id, who, title, attr, race, series, kind, leadName, leadFx, actNa
 });
 })();
 // 進化順序（語彤四階；小雨、大寶、阿副的進化）
-[["yutong1", "yutong"], ["yutong", "yutong3"], ["yutong3", "yutong4"], ["yutong4", "yutong5"], ["xiaoyu", "xiaoyu2"], ["dabao", "dabao2"], ["dabao2", "dabao3"], ["dabao3", "dabao4"], ["afu", "afu2"]]
+[["yutong1", "yutong"], ["yutong", "yutong3"], ["yutong3", "yutong4"], ["yutong4", "yutong5"], ["xiaoyu", "xiaoyu2"], ["dabao", "dabao2"], ["dabao2", "dabao3"], ["dabao3", "dabao4"], ["guanyin", "guanyin2"], ["afu", "afu2"]]
   .forEach(([a, b]) => { CARDS[a].evo = b; CARDS[a].stage = CARDS[a].stage || 1; });
 
 /* =========================================================================
@@ -244,7 +245,7 @@ window.TIERS = {
   // 李國志三階：業鏡羅漢照表是 B；刀鋸使、米店老闆依劇情往下
   const BY_ID = { lee1: "D", lee2: "C", lee3: "B", lee4: "B", yutong1: "D", yutong: "D", yutong3: "C", yutong4: "C", yutong5: "B",
     xiaoyu2: "C", dabao2: "D", dabao3: "C", afu2: "C",
-    dabao4: "C" };   // 覺醒大寶照天梯 C
+    dabao4: "C", guanyin2: "S+" };   // 覺醒大寶照天梯 C；觀音潛能解放（打古神用）
   // 同一階級裡，進化後的卡再強一點
   const EVO_UP = { lee2: 1.06, lee3: 1.06, lee4: 1.12, yutong: 1.06, yutong3: 1.0, yutong4: 1.08, yutong5: 1.08, dabao2: 1.08, dabao3: 1.06, dabao4: 1.1 };
   const ON_CHART = new Set(["撒旦", "瘟疫", "路西法", "祝融", "基路伯", "觀音菩薩", "利維坦", "阿芙羅黛蒂", "哈索爾", "千里眼", "鼠軍師", "月老", "愛染明王", "華佗", "九尾", "語彤", "陽滋公主", "諾瓦", "狐姬", "七號",
@@ -358,8 +359,12 @@ window.TIERS = {
       [{ name: "我控制住他了", cd: 5, fx: { delay: 2, arrange: "dark-rows", buff: 2.5 } }]],
     baifu: [{ name: "只殺不度", fx: { attrAtk: { light: 5.5 }, allHp: 1.3, chase: 30, pierce: true } },
       [{ name: "霸極拳", cd: 6, fx: { arrange: "light-all", turnAs: "light", buff: 2.5, nuke: 60, pierceTurn: true } }]],
-    nuwa: [{ name: "北境的金色菩提樹", fx: { attrAtk: { wood: 6 }, allHp: 1.8, allRec: 1.6, regen: .15, multiAttr: { n: 3, x: 1.8 } } },
-      [{ name: "輪迴六趣", cd: 6, fx: { healPct: 1, arrange: "six", comboAdd: 4, buff: 3 } }]],
+    nuwa: [{ name: "北境的金色菩提樹", fx: { attrAtk: { wood: 6 }, allAs: "wood", comboPlus: 8, allHp: 1.8, allRec: 1.6, regen: .15, multiAttr: { n: 3, x: 1.8 } } },   // v1.4.15：combo +8 改成隊長技、任何顏色都算木珠（使用者定）
+      [{ name: "輪迴六趣", cd: 6, fx: { healPct: 1, arrange: "six", buff: 3 } }]],
+    // 觀音潛能解放：打古神用。兩個主動技各自冷卻（台詞與招式取自 EP6-23～24）
+    guanyin2: [{ name: "一開打就要火力全開", fx: { allAtk: 4, allHp: 1.5, cthulhuAtk: 3, timeAdd: 1 } },
+      [{ name: "浮屠百鍊", cd: 5, fx: { nuke: 100, vsCthulhu: 3, buff: 2.5, pierceTurn: true } },
+       { name: "梵海渡", cd: 6, fx: { arrange: "light-all", turnAs: "light", buff: 3, cut: { x: .3, turns: 2 }, healPct: .5 } }]],
     isaiah: [{ name: "等統一魔界", fx: { attrAtk: { fire: 5.5 }, allHp: 1.4, chase: 25, dmgCut: .2 } },
       [{ name: "巨錘", cd: 6, fx: { arrange: "fire-all", turnAs: "fire", buff: 2.5, nuke: 50 } }]],
     daogui: [{ name: "我的封地要最大", fx: { attrAtk: { wood: 5.5 }, comboAt: { n: 6, x: 2.2 }, timeAdd: 1 } },
@@ -403,6 +408,8 @@ window.TIERS = {
     if (fx.comboAt) t.push(`達成 ${fx.comboAt.n} combo 或以上時，全隊攻擊力再 ${fx.comboAt.x} 倍`);
     if (fx.dmgCut) t.push(`受到的傷害減少 ${Math.round(fx.dmgCut * 100)}%`);
     if (fx.timeAdd) t.push(`轉珠時間延長 ${fx.timeAdd} 秒`);
+    if (fx.comboPlus) t.push(`每次攻擊 combo 數 +${fx.comboPlus}`);
+    if (fx.cthulhuAtk) t.push(`對古神等克蘇魯系敵人的傷害 ${fx.cthulhuAtk} 倍`);
     if (fx.chase) t.push(`每次攻擊後追打全體敵人（自身攻擊力 ${fx.chase} 倍的${N(attr)}屬性傷害）`);
     if (fx.pierce) t.push("全隊攻擊無視敵人護盾");
     return t.join("；");

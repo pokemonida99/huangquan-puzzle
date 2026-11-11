@@ -980,7 +980,7 @@ function typeMul(a, d) { return BEATS[a] === d ? 2 : BEATS[d] === a && a !== "li
 async function attack(groups) {
   B.allShown = false;
   const comboUp = leaderFx().reduce((a, fx) => a + (fx.comboUp || 0), 0);   // 路西法：combo 加成更高
-  const combo = groups.length + (B.comboAdd || 0), comboMul = 1 + (combo - 1) * (.25 + comboUp);   // 主動技可以加 combo 數
+  const combo = groups.length + (B.comboAdd || 0) + leaderFx().reduce((a, fx) => a + (fx.comboPlus || 0), 0), comboMul = 1 + (combo - 1) * (.25 + comboUp);   // 主動技可以加 combo 數
   const partyEls = $$(".party .icon");
   // 回復
   const hearts = groups.filter(g => g.attr === "heart");
@@ -1028,7 +1028,8 @@ async function hitEnemy(t, raw, attr, fromEl) {
   const e = B.enemies[t], el = enemyEl(t);
   await shoot(fromEl, $(".pic", el), attr);
   if (!B) return;
-  const vd = e.demon ? leaderFx().reduce((a, fx) => a * (fx.vsDemon || 1), 1) : 1;   // 哈索爾：打魔族加倍
+  const vd = (e.demon ? leaderFx().reduce((a, fx) => a * (fx.vsDemon || 1), 1) : 1)   // 哈索爾：打魔族加倍
+    * (e.cthulhu ? leaderFx().reduce((a, fx) => a * (fx.cthulhuAtk || 1), 1) : 1);   // 觀音潛能解放：打克蘇魯系加倍
   const tm = typeMul(attr, e.attr) * vd;
   let dmg = Math.round(raw * tm), block = "";
   if (e.shield && !piercing()) {   // 新版：無視護盾
