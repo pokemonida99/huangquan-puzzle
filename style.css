@@ -321,7 +321,9 @@ h1 small { display: block; font-size: 18px; letter-spacing: .5em; color: var(--i
 .cf-tabs button { padding: 8px 0; border-radius: 999px; border: 1px solid var(--line); background: none; font-size: 14px; letter-spacing: .1em; cursor: pointer; }
 .cf-tabs button.on { background: var(--c); border-color: var(--c); color: #fff; font-weight: 700; text-shadow: 0 1px 2px #0008; }
 .cf-body { position: relative; height: 262px; }
-.pane { position: absolute; inset: 0; display: none; overflow: hidden; }
+.pane { position: absolute; inset: 0; display: none; overflow-x: hidden; overflow-y: auto; overscroll-behavior: contain; -webkit-overflow-scrolling: touch; padding-bottom: 10px; }   /* 內容長的卡（媽祖四招）可以上下滑 */
+.cf-foot { margin-top: 8px; }
+.cf-panel .own-msg:empty { display: none; }
 .pane.on { display: block; }
 .pane .stats { margin: 0 0 6px; }
 .pane .stats b { font-size: 16px; }

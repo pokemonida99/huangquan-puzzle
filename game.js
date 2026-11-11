@@ -1530,14 +1530,16 @@ function showCard(id) {
   const skill = `<div class="stats"><div>生命力<b>${fmt(c.hp)}</b></div><div>攻擊力<b>${fmt(c.atk)}</b></div><div>回復力<b>${fmt(c.rec)}</b></div></div>
     <div class="skill"><span class="k">隊長技能</span> <b>${c.lead.name}</b><br>${c.lead.desc}</div>
     ${(c.acts || [c.act]).map((a, k, all) => `<div class="skill"><span class="k">主動技能${all.length > 1 ? ` ${k + 1}` : ""}</span> <b>${a.name}</b><span class="cdv">CD ${a.cd}</span><br>${a.desc}</div>`).join("")}${(c.acts || []).length > 1 ? `<p class="hint">${c.acts.length} 個主動技${c.sharedCd ? "共用一組冷卻" : "各自計算冷卻"}，戰鬥中點頭像選一個發動</p>` : ""}${evo}
-    ${buyable(id) ? `<div class="buy"><button class="btn gold" id="do-buy">用 ${PRICE[c.star]} 功德兌換</button></div>` : !owned.has(id) ? `<p class="hint">還沒獲得，要從前一階進化才能取得。</p>` : ""}
-    <p class="hint own-msg" id="own-msg"></p>`;
+    ${!buyable(id) && !owned.has(id) ? `<p class="hint">還沒獲得，要從前一階進化才能取得。</p>` : ""}`;
+  // 兌換按鈕固定在面板最下面（技能多的卡，例如媽祖四招，能力欄要捲動，按鈕不能被擠出畫面）
+  const foot = `${buyable(id) ? `<div class="buy cf-foot"><button class="btn gold" id="do-buy">用 ${PRICE[c.star]} 功德兌換</button></div>` : ""}<p class="hint own-msg" id="own-msg"></p>`;
   cardShell({
     attr: c.attr, art: c.art, star: stars(c.star), title: c.title, name: c.who, race: c.race,
     topRight: `<span class="tier t${c.tier.replace("+", "p").replace("-", "m")}" title="${c.onChart ? "依戰力表" : "依劇情判斷"}">戰力 ${c.tier}${c.onChart ? "" : "<small>※</small>"}</span>`,
     tabs: [{ id: "skill", label: "能力", html: skill },
            { id: "story", label: "背景故事", html: storyHTML(c.who, c.lore) },
-           { id: "info", label: "角色資料", html: infoHTML(c.who) }]
+           { id: "info", label: "角色資料", html: infoHTML(c.who) }],
+    foot
   });
   $$("[data-evo]").forEach(el => el.onclick = () => showCard(el.dataset.evo));
   const short = (need) => { $("#own-msg").textContent = `功德不足，還差 ${need - merit}`; vibe(40); };
