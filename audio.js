@@ -1,6 +1,6 @@
 /* =========================================================================
    黃泉燒肉店 轉珠 ‧ 聲音
-   配樂與音效全部用 WebAudio 即時合成，沒有音檔。
+   配樂用音檔（audio/*.m4a）；音效優先用 ElevenLabs 擬真音效（audio/sfx/），沒載好就用 WebAudio 即時合成。
    ▸ SET / saveSet / vibe  設定（音效、配樂、震動）與震動
    ▸ sfx.xxx()             音效
    ▸ music.play(名稱)      配樂：title 標題、battle 戰鬥、boss 撒旦
@@ -331,6 +331,7 @@ music.unlock = function () {
       Object.keys(TRACKS).forEach(n => { const tr = trackOf(n); tr.a.play().then(() => { if (music.cur !== n) tr.a.pause(); }).catch(() => {}); });
     }
     if (music.want && !music.cur) music.play(music.want);
+    loadSamples();   // 第一次點畫面後才下載擬真音效
   } catch (e) {}
 };
 ["touchend", "click", "keydown"].forEach(ev => document.addEventListener(ev, () => music.unlock(), true));
@@ -440,7 +441,54 @@ const SFX = {
   },
   slam() { SFX.hurt(true); const t = A.currentTime; I.taiko(sfxBus, t, 1, .5); }
 };
-const sfx = new Proxy(SFX, { get: (o, k) => (...a) => { if (!SET.sound) return; try { ac(); o[k](...a); } catch (e) {} } });
+/* ---------------- 擬真音效（v1.4.9：ElevenLabs Sound Effects，audio/sfx/*.m4a） ----------------
+   第一次點畫面（解鎖聲音）後才下載解碼；還沒載好或載入失敗時，照舊用上面的合成音效。
+   音量比配樂小（SMP_VOL），連續觸發的轉珠音效再壓小。 */
+const SMP = {}, SMP_VOL = .42;
+const SMP_FILES = ["orb_pick", "orb_swap", "orb_drop", "orb_pop", "timer", "ui_click", "ui_page", "ui_get", "ui_win", "ui_lose", "ui_evo",
+  "hit_water", "hit_fire", "hit_wood", "hit_light", "hit_dark", "heal", "shield", "hurt", "enemy_die", "boss", "charge", "slam",
+  "chain_lock", "chain_break", "immune", "punch"];
+let smpLoading = false;
+function loadSamples() {
+  if (smpLoading || !A) return; smpLoading = true;
+  SMP_FILES.forEach(n => fetch(`audio/sfx/${n}.m4a?v=1`).then(r => r.ok ? r.arrayBuffer() : Promise.reject())
+    .then(b => new Promise((ok, ng) => A.decodeAudioData(b, ok, ng))).then(buf => { SMP[n] = buf; }).catch(() => {}));
+}
+const lastPlay = {};
+function smp(n, vol = 1, rate = 1) {
+  const buf = SMP[n]; if (!buf) return false;
+  const now = A.currentTime;
+  if (lastPlay[n] && now - lastPlay[n] < .035) return true;   // 同一聲 35 毫秒內只播一次，免得疊爆
+  lastPlay[n] = now;
+  const src = A.createBufferSource(), g = A.createGain();
+  src.buffer = buf; src.playbackRate.value = rate; g.gain.value = SMP_VOL * vol;
+  src.connect(g); out(g, sfxBus, .08); src.start(now);
+  return true;
+}
+// 音效名稱 → 擬真音檔（回傳 false 就退回合成音效）
+const REAL = {
+  pick: () => smp("orb_pick", .7), swap: () => smp("orb_swap", .35), drop: () => smp("orb_drop", .45),
+  pop: n => smp("orb_pop", .6, Math.min(1.75, 1 + ((n || 1) - 1) * .07)),   // combo 越多音越高
+  tick: () => smp("timer", .7), click: () => smp("ui_click", .7),
+  hit: (big, attr) => attr ? smp("hit_" + attr, big ? 1 : .75) : false,
+  hurt: heavy => smp("hurt", heavy ? 1 : .8), heal: () => smp("heal", .7), skill: () => smp("charge", .8),
+  win: () => smp("ui_win", .9), lose: () => smp("ui_lose", .9), evo: () => smp("ui_evo", .9),
+  roar: () => smp("boss", 1), slam: () => smp("slam", 1),
+  page: () => smp("ui_page", .5), get: () => smp("ui_get", .85), shield: () => smp("shield", .8), enemyDie: () => smp("enemy_die", .7),
+  chainLock: () => smp("chain_lock", .9), chainBreak: () => smp("chain_break", .9), immune: () => smp("immune", .9), punch: () => smp("punch", .8)
+};
+// 新音效沒有擬真檔時的合成備援
+Object.assign(SFX, {
+  page() { noise({ dur: .12, vol: .08, freq: 2500, f1: 800, wet: 0 }); },
+  get() { [0, 4, 7, 12].forEach((k, i) => tone({ f0: 880 * Math.pow(2, k / 12), dur: .3, vol: .1, delay: i * .05, wet: .5 })); },
+  shield() { tone({ f0: 600, f1: 900, dur: .4, type: "triangle", vol: .12, wet: .6 }); },
+  enemyDie() { noise({ dur: .5, vol: .15, freq: 1800, f1: 300, wet: .4 }); },
+  chainLock() { [0, .08, .16].forEach(d => noise({ dur: .08, vol: .25, freq: 3500, q: 6, delay: d, wet: .2 })); tone({ f0: 1800, dur: .12, type: "square", vol: .06, delay: .3 }); },
+  chainBreak() { noise({ dur: .5, vol: .35, freq: 4000, f1: 600, q: 2, wet: .4 }); SFX.hurt(true); },
+  immune() { tone({ f0: 1400, f1: 2100, dur: .5, type: "triangle", vol: .14, wet: .7 }); },
+  punch() { noise({ dur: .07, vol: .3, freq: 900, wet: 0 }); tone({ f0: 160, f1: 70, dur: .1, vol: .3, wet: 0 }); }
+});
+const sfx = new Proxy(SFX, { get: (o, k) => (...a) => { if (!SET.sound) return; try { ac(); loadSamples(); if (REAL[k] && REAL[k](...a)) return; o[k](...a); } catch (e) {} } });
 
 window.HQ = { SET, saveSet, canVibe, vibe, sfx, music };
 })();

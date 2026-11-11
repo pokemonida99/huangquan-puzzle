@@ -17,6 +17,8 @@ const { SET, saveSet, canVibe, vibe, sfx, music } = HQ;
 
 /* ---------------- 畫面切換 ---------------- */
 function go(id) {
+  const cur = document.querySelector(".screen.active");
+  if (cur && cur.id !== id && id !== "battle") sfx.page();   // 切換頁面的音效
   $$(".screen").forEach(s => s.classList.toggle("active", s.id === id));
   if (id !== "battle") music.play("title");
   if (id !== "team" && id !== "battle") restoreTrial();
@@ -481,7 +483,7 @@ async function loadWave(w) {
   if (sh) { await sleep(300); banner(sh.shield.name); }
   if (w === 0 && allAnimal()) { await sleep(300); banner("動物大團結！"); vibe([30, 40, 30]); await sleep(600); }
   B.godWave = !!CH.seal && B.enemies.some(e => e.skills.some(s => s.seal));   // 古神現身：全隊封鎖攻擊（第二形態再封一次）
-  if (B.godWave && !B.sealed) { B.sealed = true; await sleep(300); banner(CH.seal.name); flash("rgba(90,0,140,.45)", 500); vibe([60, 40, 60]); }
+  if (B.godWave && !B.sealed) { B.sealed = true; await sleep(300); sfx.chainLock(); banner(CH.seal.name); flash("rgba(90,0,140,.45)", 500); vibe([60, 40, 60]); }
   updateSeal();
   await openStrike();
 }
@@ -560,6 +562,7 @@ function updateEnemy(i) {
   const e = B.enemies[i], el = enemyEl(i);
   $(".ehp i", el).style.width = Math.max(0, e.hpNow / e.hp * 100) + "%";
   $(".ecd b", el).textContent = e.cdNow;
+  if (e.hpNow <= 0 && !el.classList.contains("dead")) sfx.enemyDie();
   if (e.hpNow <= 0) el.classList.add("dead");
   const sd = $(".eshield", el);
   if (sd) {
@@ -1043,7 +1046,8 @@ async function enemyTurn() {
       el.classList.remove("atk"); void el.offsetWidth; el.classList.add("atk");
       await sleep(250);
       const cutMul = leaderFx().reduce((a, fx) => a * (1 - (fx.dmgCut || 0)), 1) * (B.cut ? B.cut.x : 1);   // 新版：減傷
-      const dmg = B.saved || B.immune > 0 ? 0 : Math.round(e.atk * (B.guard > 0 ? .5 : 1) * cutMul);   // 剛保命過，這回合後面的攻擊都擋下
+      const dmg = B.saved || B.immune > 0 ? 0 : Math.round(e.atk * (B.guard > 0 ? .5 : 1) * cutMul);
+      if (B.immune > 0) sfx.immune();   // 無瀾：擋下   // 剛保命過，這回合後面的攻擊都擋下
       B.hp -= dmg; updateHp();
       if (e.boss) { quake(16, 500); flash("rgba(200,0,0,.4)", 400); }
       else quake(6, 240);
@@ -1054,7 +1058,7 @@ async function enemyTurn() {
       await sleep(350);
       if (B.hp > 0) await enemyConvert(e);
       if (B.hp > 0 && CH.seal && !B.sealed && e.skills.some(x => x.seal)) {   // 古神：攻擊後重新封鎖
-        B.sealed = true; updateSeal(); banner(e.skills.find(x => x.seal).name || CH.seal.name);
+        B.sealed = true; updateSeal(); sfx.chainLock(); banner(e.skills.find(x => x.seal).name || CH.seal.name);
         flash("rgba(90,0,140,.45)", 500); vibe([60, 40, 60]); await sleep(500);
       }
     }
@@ -1127,7 +1131,7 @@ async function castSkillInner(i, k = 0, vid = null) {
   else { banner(act.name); sfx.skill(); vibe([20, 30, 20, 30, 60]); await sleep(500); }
   if (B !== b) return;
   if (fx.unseal && B.sealed) {   // 覺醒大寶：赤帝之火解除封鎖
-    B.sealed = false; updateSeal(); banner("封鎖解除！"); flash("rgba(255,120,40,.5)", 450); vibe([40, 30, 80]); await sleep(500);
+    B.sealed = false; updateSeal(); sfx.chainBreak(); banner("封鎖解除！"); flash("rgba(255,120,40,.5)", 450); vibe([40, 30, 80]); await sleep(500);
   }
   if (fx.cleanse) B.noConvert = Math.max(B.noConvert, 3);
   if (fx.arrange && ARRANGE[fx.arrange]) {   // 新版：自動排版
@@ -1137,8 +1141,9 @@ async function castSkillInner(i, k = 0, vid = null) {
   if (fx.comboAdd) B.comboAdd = (B.comboAdd || 0) + fx.comboAdd;
   if (fx.turnAs) B.turnAs = fx.turnAs;
   if (fx.pierceTurn) B.pierceTurn = true;
+  if (fx.cut || fx.guard) sfx.shield();
   if (fx.cut) { B.cut = { ...fx.cut }; $(".hpbar").classList.add("guarded"); }
-  if (fx.immune) { B.immune = Math.max(B.immune || 0, fx.immune); $(".hpbar").classList.add("guarded", "immune"); }   // 無瀾：這回合敵人的攻擊全部變 0
+  if (fx.immune) { sfx.immune(); B.immune = Math.max(B.immune || 0, fx.immune); $(".hpbar").classList.add("guarded", "immune"); }   // 無瀾：這回合敵人的攻擊全部變 0
   if (fx.breakShield && B.enemies.some(e => e.hpNow > 0 && e.shield)) {
     B.enemies.forEach((e, k) => { if (e.shield) { e.shield = null; updateEnemy(k); } });
     banner("破盾！"); sfx.sword && sfx.sword(); await sleep(400);
@@ -1191,7 +1196,7 @@ async function castSkillInner(i, k = 0, vid = null) {
     for (let h = 0; h < fx.multiHit && alive().length; h++) {
       const t = B.target != null && B.enemies[B.target].hpNow > 0 ? B.target : alive()[0];
       el.classList.remove("atk"); void el.offsetWidth; el.classList.add("atk");
-      banner(`${act.name} ${h + 1} / ${fx.multiHit}`);
+      banner(`${act.name} ${h + 1} / ${fx.multiHit}`); sfx.punch();
       await hitEnemy(t, c.atk * leaderMul(c.attr, [{ attr: c.attr, n: 3 }], 1) * B.buff, c.attr, el);
       await sleep(120);
       if (!B) return;
@@ -1559,7 +1564,7 @@ function showCard(id) {
   if ($("#do-buy")) $("#do-buy").onclick = () => {
     const p = PRICE[c.star];
     if (merit < p) return short(p);
-    addMerit(-p); owned.add(id); saveOwned(); sfx.pick(); vibe([30, 40, 60]);
+    addMerit(-p); owned.add(id); saveOwned(); sfx.get(); vibe([30, 40, 60]);
     showCard(id); renderDex(); renderShop();
   };
   if ($("#do-evo")) $("#do-evo").onclick = async () => {
