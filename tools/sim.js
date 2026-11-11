@@ -77,7 +77,10 @@ const TEAMS = {
   "全 D 卡隊": ["yutong1", "xiaobai", "xiaoyu", "dabao", "afu", "lee1"],
   "路西法雙隊長（最強舊卡）": ["lucifer", "guanyin", "cherub", "hathor", "aphrodite", "lucifer"],
   "女媧木隊（新卡）": ["nuwa", "daogui", "huatuo", "qianliyan", "afu", "nuwa"],
-  "以賽亞火隊（新卡）": ["isaiah", "dabao4", "zhurong", "aizen", "hathor", "isaiah"]
+  "以賽亞火隊（新卡）": ["isaiah", "dabao4", "zhurong", "aizen", "hathor", "isaiah"],
+  "觀音隊＋大寶": ["guanyin", "aizen", "dabao4", "yutong5", "hathor", "guanyin"],
+  "女媧木隊＋大寶（新卡）": ["nuwa", "dabao4", "daogui", "huatuo", "qianliyan", "nuwa"],
+  "魔法翁暗隊＋大寶（新卡）": ["mofaweng", "dabao4", "redgirl", "sentinel", "yutong5", "mofaweng"]
 };
 module.exports = { turnDamage, teamHp, TEAMS, sealRun, dmgCut };
 if (require.main === module) {

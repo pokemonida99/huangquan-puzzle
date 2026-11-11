@@ -7,15 +7,16 @@
    ========================================================================= */
 
 Object.assign(window.ENEMIES, {
-  cursebeast: { demon: true, cthulhu: true, name: "詛咒怪物", attr: "dark", img: "art/enemy-cursebeast.webp", hp: 160000, atk: 2400, cd: 2 },
-  sentinel:   { demon: true, cthulhu: true, name: "哨兵古神", attr: "dark", img: "art/enemy-sentinel.webp", hp: 583000, atk: 5000, cd: 3, boss: true,
+  cursebeast: { demon: true, cthulhu: true, name: "詛咒怪物", attr: "dark", img: "art/enemy-cursebeast.webp", hp: 1000000, atk: 5700, cd: 2 },
+  sentinel:   { demon: true, cthulhu: true, name: "哨兵古神", attr: "dark", img: "art/enemy-sentinel.webp", hp: 4167000, atk: 12900, cd: 3, boss: true,
                 title: "克蘇魯族的哨兵神", warn: "神魔禁地 ‧ 古神之門", quote: "有看到早就被我吃了",
-                skills: [{ on: "attack", name: "不可直視", seal: true },
+                skills: [{ on: "attack", name: "不可直視", seal: true, convert: ["heart", "dark"], n: 4 },
                          { on: "low", name: "古神之門", hp: .3, cd: 1, atk: 1.5 }] },
-  sentinel2:  { demon: true, cthulhu: true, name: "哨兵古神", attr: "dark", img: "art/enemy-sentinel2.webp", hp: 750000, atk: 5400, cd: 3, boss: true,
+  sentinel2:  { demon: true, cthulhu: true, name: "哨兵古神", attr: "dark", img: "art/enemy-sentinel2.webp", hp: 5833000, atk: 15700, cd: 3, boss: true,
                 title: "第二形態", warn: "神魔禁地 ‧ 古神第二形態", quote: "最強反派一定會有第二形態，你說對吧",
-                skills: [{ on: "attack", name: "不可直視", seal: true },
-                         { on: "low", name: "伸出利爪", hp: .3, cd: 1, atk: 1.6 }] }
+                skills: [{ on: "spawn", name: "第二形態", absorb: 250000, turns: 2 },
+                         { on: "attack", name: "不可直視", seal: true, convert: ["heart", "dark"], n: 6 },
+                         { on: "low", name: "伸出利爪", hp: .3, cd: 1, atk: 1.8 }] }
 });
 ["cursebeast", "sentinel", "sentinel2"].forEach(k => {
   const e = window.ENEMIES[k], E = window.EASE || { hp: .6, atk: .7 };   // 難度放寬：同 story.js 末尾
@@ -32,7 +33,8 @@ window.CHAPTERS.push({
   vn: { "語彤": "yutongh", "大寶": "dabaof", "觀音菩薩": "guanyin6", "月老": "yuelao6", "九尾": "jiuwei" },
   seal: { name: "封鎖攻擊", desc: "打到古神時，看見古神的人都無法攻擊（能直視古神的大寶不受影響）；只有大寶（覺醒祝融記憶）的主動技「直視古神」能解除" },
   needs: "dabao4",
-  trial: ["guanyin", "aizen", "dabao4", "yutong5"],   // 試用隊伍：隊長＝觀音、戰友＝愛染明王（先鋒），隊員＝大寶、語彤（殿後）
+  // v1.4.8：不鎖隊伍（使用者定），進關前提醒帶覺醒大寶（needTip）
+  needTip: "打古神時全隊會被封鎖攻擊，建議帶「覺醒祝融記憶 大寶」，進去會比較順利。",
   unlock: ["dabao4", "sentinel"],   // 通關後加入的角色
   intro: "打到古神時，看見古神的人都無法攻擊。只有能直視古神的大寶，能解除封鎖。",
   pre: [

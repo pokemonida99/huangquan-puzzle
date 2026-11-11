@@ -7,12 +7,12 @@
    ========================================================================= */
 
 Object.assign(window.ENEMIES, {
-  wave:       { name: "巨浪", attr: "water", img: "art/enemy-tsunami.webp", hp: 833000, atk: 4300, cd: 2 },
-  tsunami:    { name: "海嘯", attr: "water", img: "art/enemy-tsunami.webp", hp: 1333000, atk: 5100, cd: 2 },
-  c13moqi:    { demon: true, name: "人面魚的魔氣", attr: "dark", img: "art/enemy-moqi.webp", hp: 833000, atk: 4300, cd: 2 },
-  renmianyuE: { demon: true, name: "人面魚", attr: "water", img: "art/enemy-renmianyu.webp", hp: 2000000, atk: 6000, cd: 2 },
-  baifuA:     { name: "白府千歲", attr: "light", img: "art/enemy-baifu.webp", hp: 3333000, atk: 7100, cd: 2 },
-  baifuE:     { name: "白府千歲", attr: "light", img: "art/enemy-baifu.webp", hp: 11667000, atk: 10000, cd: 3, boss: true,
+  wave:       { name: "巨浪", attr: "water", img: "art/enemy-tsunami.webp", hp: 417000, atk: 3600, cd: 2 },
+  tsunami:    { name: "海嘯", attr: "water", img: "art/enemy-tsunami.webp", hp: 667000, atk: 4300, cd: 2 },
+  c13moqi:    { demon: true, name: "人面魚的魔氣", attr: "dark", img: "art/enemy-moqi.webp", hp: 417000, atk: 3600, cd: 2 },
+  renmianyuE: { demon: true, name: "人面魚", attr: "water", img: "art/enemy-renmianyu.webp", hp: 1000000, atk: 5000, cd: 2 },
+  baifuA:     { name: "白府千歲", attr: "light", img: "art/enemy-baifu.webp", hp: 1667000, atk: 6000, cd: 2 },
+  baifuE:     { name: "白府千歲", attr: "light", img: "art/enemy-baifu.webp", hp: 10000000, atk: 7900, cd: 3, boss: true,
                 title: "陽間戰神", warn: "山中湖畔 ‧ 媽祖戰千歲", quote: "媽祖婆，順便讓我了結四十年前的恥辱",
                 skills: [{ on: "spawn", name: "八卦法陣", absorb: 60000, turns: 3 },
                          { on: "attack", name: "雷光", convert: ["heart", "light"], n: 4 },
@@ -37,7 +37,9 @@ Object.assign(window.VN, { "媽祖": "mazu", "順風耳": "shunfeng", "謝守": 
 window.CHAPTERS.push({
   id: "ch13", music: { battle: "battle1", boss: "boss2" }, no: "第十三章", name: "慈悲聖母篇", sub: "媽祖戰千歲", place: "陽間 ‧ 安瀾天后宮", bg: "art/bg-ch13.webp",
   vn: { "語彤": "yutong7", "月老": "yuelao6", "華佗": "huatuo" },
-  trial: ["mazu", "shunfeng"],   // 試用隊伍：隊長＝媽祖（慈悲聖母）、戰友＝順風耳
+  // v1.4.8：不鎖隊伍（使用者定），進關前提醒帶媽祖
+  needs: "mazu",
+  needTip: "這一章的對手是白府千歲，建議帶「慈悲聖母 媽祖」當隊長，進去會比較順利（托夢照相館可以用功德兌換）。",
   unlock: ["mazu", "shunfeng", "xieshou", "renmianyu", "redgirl", "baifu"],   // 通關後加入的角色
   intro: "第七季開始。陽間西南外海發生大地震，海嘯來了。這一章借用媽祖和順風耳出戰。",
   pre: [

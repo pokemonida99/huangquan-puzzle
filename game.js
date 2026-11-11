@@ -168,9 +168,9 @@ function renderTeam() {
   nb.hidden = !need;
   if (need) {
     const ok = team.includes(CH.needs);
-    nb.className = "need-box" + (ok ? " ok" : "");
-    nb.innerHTML = ok ? `✔ 隊伍裡有「${need.title} ${need.who}」：${CH.seal ? `打到古神時的「${CH.seal.name}」可以用「${unsealAct(CH.needs).name}」解除` : "可以出擊"}`
-      : `✘ 這一章一定要帶「${need.title} ${need.who}」${CH.seal ? `：打到古神時全隊會被「${CH.seal.name}」，只有他的「${unsealAct(CH.needs).name}」能解除` : ""}`;
+    nb.className = "need-box" + (ok ? " ok" : " tip");
+    nb.innerHTML = ok ? `✔ 隊伍裡有「${need.title} ${need.who}」${CH.seal ? `：打到古神時的「${CH.seal.name}」可以用「${unsealAct(CH.needs).name}」解除` : ""}`
+      : `💡 ${CH.needTip || `建議帶「${need.title} ${need.who}」`}`;
   }
   if (chal) cb.innerHTML = `<b>⚔ 挑戰條件：${cd.label}</b><span class="${cmsg ? "bad" : "ok"}">${cd.turns ? "過關回合數會計算" : cmsg ? "✘ " + cmsg : "✔ 隊伍符合條件"}</span>
     <small>${prog.chal[chal.idx] ? `已完成，再次過關 ${REWARD.chalAgain} 功德` : `首次過關 ${REWARD.chalFirst} 功德`}；劇情自動略過</small>`;
@@ -233,8 +233,8 @@ $("#go-battle").onclick = () => {
   }
   const need = CH.needs && CARDS[CH.needs];
   if (need && !team.includes(CH.needs)) {
-    modal(`<h3>還沒帶${need.who}</h3><p>這一章打到古神時全隊會被「${CH.seal ? CH.seal.name : "封鎖"}」，只有「${need.title} ${need.who}」的「${unsealAct(CH.needs).name}」能解除。沒帶他就沒辦法攻擊。</p>
-      <div class="row"><button class="btn gold" data-close>回去換隊伍</button><button class="btn" id="go-anyway">照樣出擊</button></div>`);
+    modal(`<h3>出發前提醒</h3><p>${CH.needTip || `建議帶「${need.title} ${need.who}」`}</p>
+      <div class="row"><button class="btn" data-close>回去編隊</button><button class="btn gold" id="go-anyway">直接出發</button></div>`, "sheet");
     $("#go-anyway").onclick = () => { closeModal(); go("battle"); setChalTag(); startBattle(!!chal); };
     vibe(40); return;
   }
@@ -577,7 +577,7 @@ function skillText(s) {
     if (s.shield && s.shield.only) return `${head}出場時只受${ATTR[s.shield.only].name}屬性傷害，持續 ${s.turns} 回合（可用破盾技能破除）`;
     return `${head}出場時單次傷害低於 ${fmt(s.absorb)} 會被完全吸收，持續 ${s.turns} 回合（可用破盾技能破除）`;
   }
-  if (s.on === "attack" && s.seal) return `「${s.name}」攻擊後再次封鎖全隊的攻擊（只有覺醒大寶的「直視古神」能解除）`;
+  if (s.on === "attack" && s.seal) return `「${s.name}」攻擊後再次封鎖全隊的攻擊（只有覺醒大寶的「直視古神」能解除）${s.convert ? `，並把 ${s.n} 顆${ATTR[s.convert[0]].name}符石變成${ATTR[s.convert[1]].name}符石` : ""}`;
   if (s.on === "attack") return `「${s.name}」攻擊後把 ${s.n} 顆${ATTR[s.convert[0]].name}符石變成${ATTR[s.convert[1]].name}符石`;
   if (s.on === "low") return `「${s.name}」生命力低於 ${Math.round(s.hp * 100)}% 時狂暴：攻擊間隔變 ${s.cd} 回合、攻擊力 ${s.atk} 倍`;
   return "";
