@@ -144,6 +144,8 @@ function renderChapters() {
   });
   $$(".ch-chal").forEach(b => b.onclick = () => { CH = CHAPTERS[+b.dataset.chal]; chal = { idx: +b.dataset.chal }; go("team"); });
 }
+/* 戰鬥配樂：媽祖當隊長時整場（含王關）改放〈慈航渡苦海〉（v1.4.5 使用者定），其他照章節設定 */
+const battleSong = kind => CARDS[team[0]].who === "媽祖" ? "mazu" : (CH.music && CH.music[kind]) || (kind === "boss" ? "boss1" : "battle1");
 function leaderFx() { return [CARDS[team[0]].lead.fx, CARDS[team[5]].lead.fx]; }
 const allAnimal = () => team.every(id => CARDS[id].animal);   // 隱藏：全隊動物，每位隊長攻擊 7 倍（雙隊長 49 倍）
 function teamHp() {
@@ -473,7 +475,7 @@ async function loadWave(w) {
   if (boss) await bossIntro(boss, $(".enemy.boss"));
   $$(".enemy.boss.lurk").forEach(x => x.classList.remove("lurk"));   // 雙王：第二隻跟著現身
   if (!B) return;
-  else { music.play((CH.music && CH.music.battle) || "battle1"); banner(`第 ${w + 1} 波`); sfx.wave(); }
+  else { music.play(battleSong("battle")); banner(`第 ${w + 1} 波`); sfx.wave(); }
   B.enemies.forEach((e, i) => { if (e.shield) { updateEnemy(i); } });
   const sh = B.enemies.find(e => e.shield);
   if (sh) { await sleep(300); banner(sh.shield.name); }
@@ -546,7 +548,7 @@ async function bossIntro(boss, el) {
   bt.classList.add("boss-field");
   await sleep(2600);
   veil.classList.add("out");
-  music.play((CH.music && CH.music.boss) || "boss1", .2);
+  music.play(battleSong("boss"), .2);
   await sleep(600);
   veil.remove(); el.classList.remove("reveal");
 }

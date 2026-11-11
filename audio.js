@@ -260,7 +260,7 @@ function tick() {
 }
 /* 音檔配樂（配樂資料夾壓縮後放在 audio/）：title 標題、battle1/2 戰鬥、boss1/2 王關。
    沒有音檔的名稱才退回上面的合成配樂。 */
-const TRACKS = { title: "audio/title.m4a", battle1: "audio/battle1.m4a", battle2: "audio/battle2.m4a", boss1: "audio/boss1.m4a", boss2: "audio/boss2.m4a" };
+const TRACKS = { title: "audio/title.m4a", battle1: "audio/battle1.m4a", battle2: "audio/battle2.m4a", boss1: "audio/boss1.m4a", boss2: "audio/boss2.m4a", mazu: "audio/mazu.m4a" };   // mazu：媽祖當隊長時的戰鬥配樂〈慈航渡苦海〉（使用者提供）
 const TRACK_VOL = .6;
 const tracks = {};
 function trackOf(name) {
